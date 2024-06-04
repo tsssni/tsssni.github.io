@@ -1,0 +1,17 @@
+/*
+!archetypes/
+!assets/
+!config/
+!content/
+!data/
+!i18n/
+!layouts/
+!static/
+!themes
+!.gitignore
+!.gitmodules
+!.npmrc
+!flake.lock
+!flake.nix
+!package-lock.json
+!package.json
