@@ -8,10 +8,12 @@
 !layouts/
 !static/
 !themes
-!.gitignore
-!.gitmodules
-!.npmrc
 !flake.lock
 !flake.nix
 !package-lock.json
 !package.json
+
+/.*
+!.git?*
+!.git?*/
+!.npmrc
