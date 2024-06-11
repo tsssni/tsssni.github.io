@@ -1,5 +1,5 @@
 colorScheme = "slate"
-defaultAppearance = "light"
+defaultAppearance = "dark"
 autoSwitchAppearance = true
 enableSearch = true
 enableCodeCopy = false
@@ -32,8 +32,8 @@ homepageImage = "plana-hero.png"
 
 [article]
 showDate = true
-showViews = false
-showLikes = false
+showViews = true
+showLikes = true
 showDateOnlyInArticle = false
 showDateUpdated = false
 showAuthor = true
@@ -53,6 +53,7 @@ showTableOfContents = true
 showTaxonomies = true
 showAuthorsBadges = false
 showWordCount = true
+showComments = true
 showZenMode = false
 heroStyle = "thumbAndBackground"
 
@@ -97,10 +98,18 @@ cardViewScreenWidth = false
 heroStyle = "background"
 
 [firebase]
+  apiKey = "AIzaSyAB04I5m3aWYDSR1j8C79UeKrBzVRF90Qg"
+  authDomain = "tsssni-s-blowfish-blog.firebaseapp.com"
+  projectId = "tsssni-s-blowfish-blog"
+  storageBucket = "tsssni-s-blowfish-blog.appspot.com"
+  messagingSenderId = "1044986167854"
+  appId = "1:1044986167854:web:d5234c7787ec0a86e215bf"
+  measurementId = "G-S2WG8P11SW"
 
 [fathomAnalytics]
 
 [umamiAnalytics]
+  websiteid = "e54a34b7-b153-41c0-a794-bb050c0c1abc"
 
 [buymeacoffee]
 

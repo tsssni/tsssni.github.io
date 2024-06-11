@@ -68,3 +68,7 @@ timeout = 60000
       name = 'fragmentrefs'
       type = 'fragments'
       weight = 10
+
+[services]
+  [services.disqus]
+    shortname = "tsssni-github-io"
