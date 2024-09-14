@@ -15,6 +15,7 @@ summaryLength = 0
 buildDrafts = false
 buildFuture = false
 
+hasCJKLanguage = true
 enableEmoji = true
 
 # github-pages needs a higher limit
