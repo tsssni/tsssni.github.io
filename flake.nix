@@ -5,7 +5,11 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
   };
 
-  outputs = { self , nixpkgs ,... }: let
+  outputs = {
+    nixpkgs
+    , ...
+  }:
+  let
     system = "aarch64-darwin";
   in {
     devShells."${system}".default = let
