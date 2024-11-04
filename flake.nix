@@ -1,5 +1,5 @@
 {
-  description = "blowfish development environment";
+  description = "blowfish devenv";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
@@ -10,14 +10,11 @@
     , ...
   }:
   let
-    system = "aarch64-darwin";
-  in {
-    devShells."${system}".default = let
+    setupShell = shell: system: let
       pkgs = import nixpkgs {
         inherit system;
       };
     in pkgs.mkShell {
-      # create an environment with nodejs-18_x, pnpm, and yarn
       packages = with pkgs; [
         go
         hugo
@@ -25,8 +22,11 @@
       ];
 
       shellHook = ''
-        exec zsh
+        exec ${shell}
       '';
     };
+  in {
+    devShells."aarch64-darwin".default = setupShell "zsh" "aarch64-darwin";
+    devShells."x86_64-linux".default = setupShell "elvish" "x86_64-linux";
   };
 }
