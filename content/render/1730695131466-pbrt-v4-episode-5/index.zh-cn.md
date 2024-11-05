@@ -2,7 +2,7 @@
 title: "pbrt-v4 Ep. V: 相机模型"
 date: 2024-11-04
 draft: false
-description: "a description"
+description: "pbrt-v4 episode 5"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
@@ -87,7 +87,7 @@ pstd::optional<CameraRayDifferential> CameraBase::GenerateRayDifferential(
 
 $$ \frac{1}{z^'} = \frac{1}{z} + \frac{1}{f} $$
 
-对于薄镜头模型, pbrt首先计算成像点与镜头中心形成的光线与焦平面的交点, 由于所有经过透镜到达当前成像点的光线都需要经过该点, 因此只需要圆盘采样镜头上的位置与该点形成一条新的光线, 此时可以获得景深效果.
+对于薄镜头模型, pbrt首先计算成像点与镜头中心形成的光线与对焦平面的交点, 由于所有经过透镜到达当前成像点的光线都需要经过该点, 因此只需要圆盘采样镜头上的位置与该点形成一条新的光线, 此时可以获得景深效果.
 
 ## 球形相机
 
