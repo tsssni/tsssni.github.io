@@ -2,7 +2,7 @@
 title: "pbrt-v4 Ep. V: 相机模型"
 date: 2024-11-04
 draft: false
-description: "a description"
+description: "pbrt-v4 episode 5"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
