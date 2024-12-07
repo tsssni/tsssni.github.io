@@ -141,7 +141,7 @@ $$
 
 $$
 \begin{equation}
-f(x) \otimes g(x) = \int_{-\infty}^{\infty} f(x)g(y-x) dx
+f(x) \otimes g(x) = \int_{-\infty}^{\infty} f(y)g(x-y) dy
 \end{equation}
 $$
 
@@ -194,12 +194,12 @@ $$
 \tilde{f}(x)
 &= \mathcal{F} \lbrace III_T(x)f(x) \otimes r(x) \rbrace\\\\
 &= \mathcal{F} \lbrace III_T(x)f(x) \rbrace \mathcal{F} \lbrace r(x) \rbrace\\\\
-&= (III_{\frac{1}{T}}(\omega) \otimes \mathcal{F} \lbrace f(x) \rbrace) \mathcal{F} \lbrace r(x) \rbrace
+&= (\mathcal{F} \lbrace f(x) \rbrace \otimes III_{\frac{1}{T}}(\omega)) \mathcal{F} \lbrace r(x) \rbrace
 \end{aligned}
 \end{equation}
 $$
 
-盒形滤波定义如下, 其Fourier变换结果为\\(\text{sinc} (T\omega)\\). 由滤波的Fourier变换可知, 若在空间上采用盒形滤波即求附近的样本的均值, 由于\\(\text{sin}\\)函数的定义域是无穷的, 在频域上会导致高频样本对滤波结果产生贡献.
+盒形滤波定义如下, 其Fourier变换结果为\\(\text{sinc} (T\omega)\\). 由滤波的Fourier变换可知, 若在空间上采用盒形滤波即求附近的样本的均值, 由于\\(\text{sin}\\)函数的范围是无限的, 在频域上会导致高频样本对滤波结果产生贡献. 同样的, 若在空间上使用高频\\(\text{sinc}\\)函数作为滤波, 在频域上可以获得最优的滤波结果, 但由于无限范围在空间上无法采用该滤波.
 
 $$
 \begin{equation}
@@ -212,3 +212,74 @@ $$
 \end{aligned}
 \end{equation}
 $$
+
+### 走样
+
+若采样率过低, Fourier变换后频域样本相距过近出现重叠, 或者说多个样本被卷积复制到频谱上的某个位置, 导致滤波无法还原频域信号, 这被称为走样. 因采样导致的走样为前走样, 重建导致的为后走样, 修复走样的行为被称为反走样. 在实时渲染中走样通常表现为锯齿, 因此反走样也可以翻译为抗锯齿.
+
+解决走样的最好方式为提高采样率, 依据采样定理可知, 当采样频率超过信号频率的两倍即可重建信号, 某个采样率可以重建的信号的最大频率即为Nyquist频率. 由于图形学中的函数几乎都不是带限函数, 需要采取更多提高采样率之外的方法.
+
+### 像素
+
+显示器或摄影中的像素代表发出或检测光线的物理元素, 图片中的像素则为图像函数的样本. 图像中的像素实际上是某个点的样本, 而非通常所认为的是一小块矩形区域. 图像函数的坐标通常通过\\(c'= \lfloor c \rfloor + 0.5\\)来离散化.
+
+### 渲染采样与走样
+
+像素位置\\(x,y\\), 镜头采样位置\\(u,v\\), 时间\\(t\\)以及Monte Carlo样本\\(i\\)都会影响最终获得的辐亮度, 因此图像函数可以总结为如下形式.
+
+$$
+\begin{equation}
+f(x,y,t,u,v,i_1,i_2,\dots) \rightarrow L
+\end{equation}
+$$
+
+#### 走样原因
+
+几何物体是最常见的走样原因, 几何物体的边缘或极小的物体会导致图像函数的突变, 此时采用理想的\\(\text{sinc}\\)函数进行重建会导致Gibbs现象或振铃效应, 即采样率不足导致重建出的函数在不连续点附近出现振荡.
+
+贴图与材质也会导致着色走样, 通常由不正确的材质滤波与平面上的高亮点导致. 阴影着色也会引入突变, 且比几何物体的边缘更难检测.
+
+#### 适应性采样
+
+对于超过Nyquist频率的区域提高采样率即位适应性超采样, 通常在相邻样本具有显著变化的区域采用, 但这并不能准确代表当前区域的信号频率, 因此这种方法较难取得理想效果.
+
+#### 预滤波
+
+通过预滤波消除高频信号后的图像函数更易于重建, 图像中通常表现为模糊, 相比走样导致的锯齿模糊不会过于显眼. 令Nyquist频率为\\(\omega_s\\), 理想状态下利用\\(\text{sinc}\\)函数滤波可以消除高于Nyquist频率的信号. 实际使用中基于\\(\text{sinc}\\)函数生成的具有有限范围的函数可以取得较好的预滤波效果.
+
+$$
+\begin{equation}
+\tilde{f}(x) = f(x) \otimes \text{sinc}(2\omega_s x)
+\end{equation}
+$$
+
+### 采样模式的频谱分析
+
+采样率固定的情况下采样点的分布也会影响采样质量, 类似shah函数的确定性采样模式在频域上的行为是容易理解的, 而对于随机性采样模式, 除了分析所有可能产生的样本, 我们还需要针对每次生成的样本分析频谱特征.
+
+功率谱密度(power spectral density, PSD)可以用于频谱分析, 根据Wiener-Khinchin定义它可以通过自相关函数的Fourier变换计算, 整理后为Fourier变换结果与其共轭函数的乘积. 对于频域下的偶函数, 其共轭函数即为函数本身, 此时结果为函数的平方. 由卷积定理可得不同函数乘积的PSD为二者PSD的卷积.
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathcal{F}[\mathcal{R}(\chi)]
+&= \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} f(x) f(x + \chi) e^{-i 2\pi \omega \chi} d\chi dx\\\\
+&= \int_{-\infty}^{\infty} f(x) \int_{-\infty}^{\infty} f(x + \chi) e^{-i 2\pi \omega \chi} d\chi dx\\\\
+&= \int_{-\infty}^{\infty} f(x) e^{i 2\pi \omega x} \int_{-\infty}^{\infty} f(x + \chi) e^{-i 2\pi \omega (x + \chi)} d(x + \chi) dx\\\\
+&= F(\omega) \overline{F(\omega)}
+\end{aligned}
+\end{equation}
+$$
+
+对于采样密度为无穷的理想采样, 其PSD为位于原点的Dirac delta函数. 对于随机采样可以通过数值方法计算PSD, 将每个采样点视为一个Dirac delta函数, 从而将积分转为求和. 通过对均匀采样添加均匀分布的抖动\\(\epsilon\\)获得的PSD的期望如下, 此时在原点为Dirac delta, 低频下功率接近0, 高频下接近1. 基于图片的能量都集中在低频的假设, 此时通过图片PSD与抖动采样PSD之间的卷积高频能量被分散到低频中, 形成高频噪声, 与低频走样相比人类视觉对噪声的接受程度更高.
+
+$$
+\begin{equation}
+\begin{aligned}
+s_T(x) &= \sum_{n = -\infty}^{\infty} \delta(x - (i + \frac{1}{2} - \epsilon)T)\\\\
+P_s(\omega) &= 1 - \text{sinc}^2(\frac{T\omega}{2}) + \delta(\omega)
+\end{aligned}
+\end{equation}
+$$
+
+PSD有时通过颜色描述, 例如白噪声是功率均匀分布的, 蓝噪声则集中在高频, 这与对应颜色的光的性质是相似的. 渲染中通常会使用预计算的噪声贴图, 可以观察到蓝噪声像素之前差异性更大, 白噪声则有相似像素聚集的现象.
