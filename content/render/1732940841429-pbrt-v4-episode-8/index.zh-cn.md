@@ -564,7 +564,8 @@ PBRT_CPU_GPU inline Float OwenScrambledRadicalInverse(int baseIndex, uint64_t a,
 
 ### Halton采样器实现
 
-Halton采样器会根据当前分辨率缩放采样点, 使得相邻像素之间的样本不会相距过近. pbrt中缩放的最大值是128, 所以只保证图像某个区域内点不会过于集中, 同时也防止过大的缩放导致的浮点精度问题. 缩放值是基数的幂, 这使得缩放与位的左移保持一致.
+Halton采样器会根据当前采样点编号的基反演结果的缩放取整确定其所位于的像素, 然后在对基反演结果进行扰动, 这使得相邻像素之间的样本不会相距过近. pbrt中缩放的最大值是128, 所以只保证图像某个区域内点不会过于集中, 同时也防止过大的缩放导致的浮点精度问题. 缩放值是基数的幂, 这使得缩放与位的左移保持一致.
+
 ```c++
 HaltonSampler::HaltonSampler(int samplesPerPixel, Point2i fullRes,
                              RandomizeStrategy randomize, int seed, Allocator alloc)
@@ -589,7 +590,7 @@ HaltonSampler::HaltonSampler(int samplesPerPixel, Point2i fullRes,
 }
 ```
 
-可以通过计算像素的`InverseRadicalInverse`获取当前像素对应的采样点序号, 令计算结果为\\((x_r, y_r)\\), 二维Halton下\\((x, y)\\)上的缩放分别为\\((2^j, 3^k)\\), 只要序号i满足\\(x_r \equiv (i \mod 2^j)\\)和\\(y_r \equiv (i \mod 3^k)\\)即可. 此时可以实现`StartPixelSample`.
+可以通过计算像素的`InverseRadicalInverse`获取当前像素对应的采样点序号, 令计算结果为\\((x_r, y_r)\\), 二维Halton下\\((x, y)\\)上的缩放分别为\\((2^j, 3^k)\\), 只要序号i满足\\(x_r \equiv i \pmod {2^j}\\)和\\(y_r \equiv i \pmod {3^k}\\)即可, 这里构成了一个一元线性同余方程, 可以通过中国剩余定理求解. 此时可以实现`StartPixelSample`.
 
 ```c++
 PBRT_CPU_GPU
@@ -733,3 +734,74 @@ struct FastOwenScrambler {
     uint32_t seed;
 };
 ```
+
+### 样本生成
+
+由于随机类都实现了functor, 这里采用泛型.
+
+```c++
+template <typename R>
+PBRT_CPU_GPU inline Float SobolSample(int64_t a, int dimension, R randomizer) {
+    DCHECK_LT(dimension, NSobolDimensions);
+    DCHECK(a >= 0 && a < (1ull << SobolMatrixSize));
+    // Compute initial Sobol\+$'$ sample _v_ using generator matrices
+    uint32_t v = 0;
+    for (int i = dimension * SobolMatrixSize; a != 0; a >>= 1, i++)
+        if (a & 1)
+            v ^= SobolMatrices32[i];
+
+    // Randomize Sobol\+$'$ sample and return floating-point value
+    v = randomizer(v);
+    return std::min(v * 0x1p-32f, FloatOneMinusEpsilon);
+}
+```
+
+### 全局Sobol'采样器
+
+`SobolSampler`的缩放通过可以覆盖屏幕的最小的2的幂来确定, 即长边的2底对数. 对高位与像素坐标相同的Sobol'变换结果执行逆变换即可得到样本序号, 这可以通过矩阵的逆变换实现, pbrt实现在`SobolIntervalToIndex`中(这里没有解释代码的原理, 没太看懂).
+
+```c++
+PBRT_CPU_GPU
+inline uint64_t SobolIntervalToIndex(uint32_t m, uint64_t frame, Point2i p) {
+    if (m == 0)
+        return frame;
+
+    const uint32_t m2 = m << 1;
+    uint64_t index = uint64_t(frame) << m2;
+
+    uint64_t delta = 0;
+    for (int c = 0; frame; frame >>= 1, ++c)
+        if (frame & 1)  // Add flipped column m + c + 1.
+            delta ^= VdCSobolMatrices[m - 1][c];
+
+    // flipped b
+    uint64_t b = (((uint64_t)((uint32_t)p.x) << m) | ((uint32_t)p.y)) ^ delta;
+
+    for (int c = 0; b; b >>= 1, ++c)
+        if (b & 1)  // Add column 2 * m - c.
+            index ^= VdCSobolMatricesInv[m - 1][c];
+
+    return index;
+}
+```
+
+### 填充Sobol'采样器
+
+`SobolSampler`生成的多维样本在二维上的投影可能不具有良好的分布, `PaddedSobolSampler`通过混排Sobol'序列实现, 不会进行缩放等操作.
+
+```c++
+PBRT_CPU_GPU
+Float Get1D() {
+    // Get permuted index for current pixel sample
+    uint64_t hash = Hash(pixel, dimension, seed);
+    int index = PermutationElement(sampleIndex, samplesPerPixel, hash);
+
+    int dim = dimension++;
+    // Return randomized 1D van der Corput sample for dimension _dim_
+    return SampleDimension(0, index, hash >> 32);
+}
+```
+
+### 蓝噪声Sobol'采样器
+
+`ZSobolSampler`是pbrt的默认采样器, 它会在`PaddedSobolSampler`的混排过程中遵循蓝噪声分布, 使得更多的误差分布在高频中. 这不会改变MSE, 但是对于人类视觉可以取得更优的效果.
