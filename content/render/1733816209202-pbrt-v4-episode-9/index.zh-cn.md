@@ -279,3 +279,79 @@ if (wo.z < 0)
     wi.z *= -1;
 Float pdf = CosineHemispherePDF(AbsCosTheta(wi));
 ```
+
+## 镜面反射与透射
+
+镜面反射只会将光线反射到某个方向集合中, 本节主要关注完美镜面反射, 微表面理论对反射结果的影响会在后面讨论.
+
+### 物理原理
+
+pbrt主要关注几何光学, 在波长远小于物体尺寸时这是可行的, 但对光的本质的探究也是必要的. 根据电磁学的定义光是电磁场的振荡, pbrt只关注其中电场的部分即电子的运动, 当光与表面接触时会刺激表面上的电子使其剧烈振荡, 移动的电子会导致电场中振荡的叠加.
+
+依据电磁学理论, 物质可以分为绝缘体, 导体与半导体. 绝缘体中电子不会脱离原子; 导体中电子可以自由移动, 但移动过程中会有能量衰减, 通常完全吸收会发生在距离表面小于0.1微米处; 半导体兼顾二者的特性, 例如硅在可见光内具有金属特性, 在红外光中则具有透明特性.
+
+### 折射率
+
+由光所激发的电子产生的振荡通常会比原本的振荡的速度要小, 速度减小的程度被称为折射率(index of refraction, IOR), 它通过真空光速与当前材质中的光速的比值来定义, 通常在1.0~2.5之间, 同时光的波长也会影响IOR. IOR的突变会导致反射率的增加, IOR的变化是我们能观察到物体的原因.
+
+### 镜面反射法则
+
+令入射光线方向为\\(\omega_i\\)(如上文所述, 方向是朝外的, 并非光线的传播方向), 完美反射的方向如下.
+
+$$
+\begin{equation}
+\omega_r = -\omega_i + 2(\bold{n} \cdot \omega_i)\bold{n}
+\end{equation}
+$$
+
+### Snell定律
+
+Snell定律描述了入射光线与折射光线在方向上的关系, 这可以通过Fermat原理推导得到, 即光的传播路径是耗时最小的路径, 通过求极值即可证明. 从Snell定律可以看出折射方向取决于IOR的比值即相对IOR, 后文中通过\\(\eta\\)表示该值.
+
+$$
+\begin{equation}
+\begin{aligned}
+\eta_i \sin\theta_i &= \eta_t \sin\theta_t\\\\
+\phi_t &= \phi_i + \pi
+\end{aligned}
+\end{equation}
+$$
+
+经过不同介质后, 由于光的不同波长的部分具有不同的IOR, 这导致传播方向不同, 这被称为散射, 通常会表现为经过介质后产生彩虹状的光锥.
+
+利用Snell定律可以按如下方式表示折射光线. 当光线从物体内部发出时, 由于法线朝外, \\(\omega_i \cdot \bold{n}\\)小于0, 需要对代码做适当调整.
+
+$$
+\begin{equation}
+\omega_t = -\frac{\omega_i}{\eta} + \left[ \frac{\omega_i \cdot \bold{n}}{\eta} - \cos\theta_t \right] \bold{n}
+\end{equation}
+$$
+
+当光线穿过光学密度更小(折射后的介质的IOR较小)时, 当入射天顶角超过\\(\theta_c = \sin^{-1}(\eta^{-1})\\)时折射天顶角会超过\\(90^{\circ}\\), 此时光线会完全反射.
+
+### Fresnel方程
+
+Fresnel方程描述了光线折射与反射的量, 它是Maxwell方程在光滑平面上的解.
+
+将光线分解为相对于表面的垂直与水平偏振, 它们因反射而产生的振幅的变化是不同的.
+
+$$
+\begin{equation}
+\begin{aligned}
+r_{||} &= \frac{E_r^{||}}{E_i^{||}} &= \frac{\eta_t \cos\theta_i - \eta_i \cos\theta_t}{\eta_t \cos\theta_i + \eta_i \cos\theta_t} &= \frac{\eta \cos\theta_i - \cos\theta_t}{\eta \cos\theta_i + \cos\theta_t}\\\\
+r_{\perp} &= \frac{E_r^{\perp}}{E_i^{\perp}} &= \frac{\eta_i \cos\theta_i - \eta_t \cos\theta_t}{\eta_i \cos\theta_i + \eta_t \cos\theta_t} &= \frac{\cos\theta_i - \eta \cos\theta_t}{\cos\theta_i + \eta \cos\theta_t}
+\end{aligned}
+\end{equation}
+$$
+
+电磁学关注的是反射波的振幅与相位, 而pbrt的几何光学中更关注光线所携带的功率, 这可以通过振幅的平方来表示. 若入射光是无偏振的即含有等量的水平与垂直偏振, 此时反射功率为水平与垂直反射功率的平均值, 即位Fresnel反射率.
+
+$$
+\begin{equation}
+F_r = \frac{1}{2}(r_{||}^2 + r_{\perp}^2)
+\end{equation}
+$$
+
+### 导体Fresnel方程
+
+导体的IOR需要用复数表示, 实部描述光线速度的减小, 虚部描述光线在材质内传播时的衰减. 尽管渲染中不需要考虑导体折射的部分, 它所带来的能量衰减也会影响反射. 复数的2范数为实部与虚部和的平方, 此时即可泛化上述Fresnel反射率的计算.
