@@ -355,3 +355,265 @@ $$
 ### 导体Fresnel方程
 
 导体的IOR需要用复数表示, 实部描述光线速度的减小, 虚部描述光线在材质内传播时的衰减. 尽管渲染中不需要考虑导体折射的部分, 它所带来的能量衰减也会影响反射. 复数的2范数为实部与虚部和的平方, 此时即可泛化上述Fresnel反射率的计算.
+
+## 导体BRDF
+
+本节描述的是从光从绝缘体介质中接触导体表面时的BRDF, 只考虑光滑的情况. 光滑导体只将光线返回到一个反向, 反射光线的辐亮度由Fresnel反射率决定, 因此BRDF如下.
+
+$$
+\begin{equation}
+f_r(p, \omega_o, \omega_i) = F_r(\omega_r) \frac{\delta(\omega_i - \omega_r)}{|\cos\theta_r|}
+\end{equation}
+$$
+
+## 绝缘体BSDF
+
+pbrt在选择采样反射或透射时, 根据Fresnel反射率以及用户设置的Flags来决定. 由于只考虑光滑表面, BRDF和BTDF与上一节的导体BRDF都是相同的.
+
+### 薄绝缘体BSDF
+
+pbrt通过`ThinDielectricBxDF`模拟光线穿过薄绝缘体平行的内外表面的现象, 由Fresnel反射率的定义可知, 若交换表面两侧的介质结果是不变的, 因此在薄导体内部多次反射后的总反射率如下.
+
+$$
+\begin{equation}
+R' = R + TRT + TRRRT + \cdots = R + \frac{T^2R}{1-R^2}
+\end{equation}
+$$
+
+### 非对称散射与折射
+
+BRDF都是对称的, 即入射与反射方向可以交换, 但BTDF不是, 因为IOR的变化会导致折射后光线范围的变化, 为保持能量守恒光线的辐亮度不再保持一致. 根据能量守恒我们可以认为\\(d^2\phi_o = d^2\phi_i\\), 结合辐亮度的定义与Snell定律可以推导出如下的关系. 由于路径追踪实际上为光线传播的逆过程, 在折射时需要考虑非对称折射的现象.
+
+$$
+\begin{equation}
+\eta_o^2 f_t(p, \omega_o, \omega_i) = \eta_i^2 f_t(p, \omega_i, \omega_o)
+\end{equation}
+$$
+
+## 微表面理论
+
+大部分物体表面在微观上是粗糙的, 这可以通过微表面理论模拟, 这避免了对建模精度的要求, 且更适用于Monte Carlo.
+
+### 法线分布函数
+
+微表面分布主要定义了法线的分布, 由于光源与观察者都与表面相距较远, 这种概率表示是可行的. 宏表面与微表面所占的面积关系如下, 即微表面沿宏观法线投影的面积与宏表面面积相等.
+
+$$
+\begin{equation}
+\int_{dA_\mu}(\omega_m(p) \cdot \bold{n}) dp = \int_{dA} dp
+\end{equation}
+$$
+
+将所有具有某个方向的法线的微表面在宏表面上的相对投影面积定义为法线分布函数, 此时可以得到法线分布函数的归一化性质.
+
+$$
+\begin{equation}
+\int_\Omega D(\omega_m)(\omega_m \cdot \bold{n}) d\omega_m = \int_\Omega D(\omega_m) \cos\theta_m d\omega_m = 1
+\end{equation}
+$$
+
+若转为斜率分布, 可以得到如下关系.
+
+$$
+\begin{equation}
+\int_{-\infty}^{\infty} \int_{-\infty}^{\infty} P^{22}(x_{\tilde{m}},y_{\tilde{m}}) dx_{\tilde{m}} dy_{\tilde{m}}=1
+\end{equation}
+$$
+
+根据平面的定义\\(x_mx+y_my+z_mz+c=0\\), 法线与斜率具有如下的关系.
+
+$$
+\begin{equation}
+\begin{aligned}
+(x_{\tilde{m}},y_{\tilde{m}})&=(-\frac{x_m}{z_m},-\frac{y_m}{z_m})=-\tan\theta_m(\cos\phi_m,\sin\phi_m)\\\\
+(x_m, y_m, z_m)&=\frac{(-x_{\tilde{m}},-y_{\tilde{m}},1)}{\sqrt{x_{\tilde{m}}^2+y_{\tilde{m}}^2+1}}=\frac{(-x_{\tilde{m}},-y_{\tilde{m}},1)}{\cos\theta_m}
+\end{aligned}
+\end{equation}
+$$
+
+Jacobi行列式的计算结果如下.
+
+$$
+\begin{equation}
+dx_{\tilde{m}}dy_{\tilde{m}}=\frac{\sin\theta}{\cos^3\theta}d\theta d\phi
+\end{equation}
+$$
+
+此时可以得到法线分布函数与斜率分布函数的转换关系.
+
+$$
+\begin{equation}
+D(\omega_m) = \frac{P^{22}(x_{\tilde{m}},y_{\tilde{m}}) dx_{\tilde{m}} dy_{\tilde{m}}}{\cos\theta \sin\theta d\theta d\phi} = \frac{P^{22}(x_{\tilde{m}},y_{\tilde{m}})}{\cos^4\theta}
+\end{equation}
+$$
+
+若法线分布函数为形状无关的, 即修改粗糙度等价于对法线分布函数进行拉伸, 则其斜率分布需要满足如下形式.
+
+$$
+\begin{equation}
+\begin{aligned}
+P^{22}(x_{\tilde{m}},y_{\tilde{m}})
+&=\frac{1}{\alpha_x\alpha_y}f(\sqrt{\frac{x_{\tilde{m}^2}}{\alpha_x^2} + \frac{y_{\tilde{m}^2}}{\alpha_y^2}})\\\\
+&=\frac{1}{\alpha_x\alpha_y}f(\tan\theta_m\sqrt{\frac{\cos^2\phi_m}{\alpha_x^2} + \frac{\sin^2\phi_m}{\alpha_y^2}})
+\end{aligned}
+\end{equation}
+$$
+
+对于渲染任务最常用的GGX法线分布函数定义如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+P^{22}(x_{\tilde{m}},y_{\tilde{m}}) &= \frac{1}{\pi\alpha_x\alpha_y(1+\frac{x_{\tilde{m}^2}}{\alpha_x^2} + \frac{y_{\tilde{m}^2}}{\alpha_y^2})^2}\\\\
+D(\omega_m) &= \frac{1}{\pi\alpha_x\alpha_y\cos^4\theta_m(1+\tan^2\theta_m(\frac{\cos^2\phi_m}{\alpha_x^2} + \frac{\sin^2\phi_m}{\alpha_y^2}))^2}
+\end{aligned}
+\end{equation}
+$$
+
+### 遮蔽函数
+
+微表面可能会被遮挡, 需要通过遮蔽函数来表示某个方向上被遮蔽的比率.
+
+$$
+\begin{equation}
+\int_\Omega D(\omega_m)G_1(\omega,\omega_m)\max(0,\omega\cdot\omega_m)d\omega_m=\omega\cdot\bold{n}=\cos\theta
+\end{equation}
+$$
+
+Smith遮蔽函数认为法线与高度是独立的, 即微表面类似于一个一个浮动的小片段, 此时可以将遮蔽函数分解为局部遮蔽与全部遮蔽, 局部遮蔽只需要法线可见, 此时遮蔽函数不再依赖于微表面法线. 不失一般性, 令表面为各向同性的, 法线为局部空间中的\\((0,0,1)\\), 视线沿\\(x\\)轴为\\((\sin\theta, 0, \cos\theta)\\), 已知由于对称性\\(\int_{-\infty}^{\infty}x_{\tilde{m}}P^{2-}(x_{\tilde{m}})dx_{\tilde{m}}=0\\),\\(\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}})dx_{\tilde{m}}=1\\),此时可以得到如下结果.
+
+$$
+\begin{equation}
+\begin{aligned}
+G_1(\omega)
+&=\frac{\cos\theta}{\int_\Omega D(\omega_m)\max(0,\omega\cdot\omega_m)d\omega_m}\\\\
+&=\frac{\cos\theta}{\int_\Omega D(\omega_m)\cos\theta_m\frac{\max(0,\omega\cdot\omega_m)}{\cos\theta_m}d\omega_m}\\\\
+&=\frac{\cos\theta}{\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}P^{22}(x_{\tilde{m}},y_{\tilde{m}}) \max(0, \frac{-x_{\tilde{m}}\sin\theta + \cos\theta}{\cos\theta_m})\cos\theta_m dx_{\tilde{m}} dy_{\tilde{m}}}\\\\
+&=\frac{\cos\theta}{\int_{-\infty}^{\infty}\int_{-\infty}^{\cot\theta}P^{22}(x_{\tilde{m}},y_{\tilde{m}}) (-x_{\tilde{m}}\sin\theta + \cos\theta) dx_{\tilde{m}} dy_{\tilde{m}}}\\\\
+&=\frac{\cot\theta}{\int_{-\infty}^{\cot\theta}P^{2-}(x_{\tilde{m}}) (-x_{\tilde{m}} + \cot\theta) dx_{\tilde{m}}}\\\\
+&=\frac{\cot\theta}{\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}}) x_{\tilde{m}} dx_{\tilde{m}}-\cot\theta\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}}) dx_{\tilde{m}}+\cot\theta+\int_{-\infty}^{\cot\theta}P^{2-}(x_{\tilde{m}}) (-x_{\tilde{m}} + \cot\theta) dx_{\tilde{m}}}\\\\
+&=\frac{1}{1+\frac{1}{\cot\theta}\int_{\cot\theta}^{\infty}P^{2-}(x_{\tilde{m}}) (x_{\tilde{m}} - \cot\theta) dx_{\tilde{m}}}\\\\
+&=\frac{1}{1+\Lambda(\omega)}
+\end{aligned}
+\end{equation}
+$$
+
+各向同性的GGX的\\(\Lambda(\omega)\\)具有解析形式, 各向异性的粗糙度可以通过\\(\alpha=\sqrt{\alpha_x^2\cos^2\phi+\alpha_y^2\sin^2\phi}\\)得到.
+
+$$
+\begin{equation}
+\begin{aligned}
+\Lambda(\omega)
+&=\frac{1}{\cot\theta}\int_{-\infty}^{\infty}\int_{\cot\theta}^{\infty}\frac{1}{\pi\alpha^2(1+\frac{x_{\tilde{m}^2}}{\alpha^2} + \frac{y_{\tilde{m}^2}}{\alpha^2})^2} (x_{\tilde{m}} - \cot\theta)dx_{\tilde{m}}dy_{\tilde{m}}\\\\
+&=\frac{1}{\cot\theta}\int_{-\infty}^{\infty}\int_{\frac{\cot\theta}{\alpha}}^{\infty}\frac{\alpha}{\pi(1+(\frac{x_{\tilde{m}}}{\alpha})^2 + (\frac{y_{\tilde{m}}}{\alpha})^2)^2} (\frac{x_{\tilde{m}}}{\alpha} - \frac{\cot\theta}{\alpha})d\frac{x_{\tilde{m}}}{\alpha}d\frac{y_{\tilde{m}}}{\alpha}\\\\
+&=\frac{1}{\pi x_0}\int_{-\infty}^{\infty}\int_{x_0}^{\infty}\frac{1}{(1+x^2+y^2)^2}(x-x_0)dxdy\\\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\int_{-\infty}^{\infty}\frac{1}{(1+(\frac{y}{\sqrt{1+x^2}})^2)^2}d\frac{y}{\sqrt{1+x^2}}\\\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\int_{-\infty}^{\infty}\frac{1}{(1+y^2)^2}dy\\\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\int_{-\infty}^{\infty}\frac{1}{(1+\tan^2\theta)^2}d\tan\theta\\\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\int_{-\frac{\pi}{2}}^{\frac{\pi}{2}}\frac{\cos2\theta+1}{2}d\theta\\\\
+&=\frac{1}{2x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\\\\
+&=\frac{1}{2 x_0}\int_{x_0}^{\infty}(x-x_0)(-\frac{1}{x})d(1+x^2)^{-\frac{1}{2}}\\\\
+&=\frac{1}{2 x_0}\int_{(1+x_0^2)^{-\frac{1}{2}}}^{0}\frac{x_0}{\sqrt{\frac{1}{x^2}-1}}-1dx\\\\
+&=\frac{1}{2}\int_{0}^{(1+x_0^2)^{-\frac{1}{2}}}\frac{1}{x_0}-\frac{x}{\sqrt{1-x^2}}dx\\\\
+&=\frac{1}{2}(\frac{(1+x_0^2)^{-\frac{1}{2}}}{x_0}+\int_{0}^{(1+x_0^2)^{-\frac{1}{2}}}d\sqrt{1-x^2})\\\\
+&=\frac{1}{2}(\frac{(1+x_0)^{-\frac{1}{2}}}{x_0}+x_0(1+x_0)^{-\frac{1}{2}}-1)\\\\
+&=\frac{\sqrt{1+\frac{1}{x_0^2}}-1}{2}\\\\
+&=\frac{\sqrt{1+\alpha^2 \tan^2\theta}-1}{2}
+\end{aligned}
+\end{equation}
+$$
+
+### 遮蔽阴影函数
+
+除遮挡视线外, 光源也可能被微表面遮挡. 若采用\\(G(\omega_o, \omega_i)=G_1(\omega_o)G_1(\omega_i)\\)来估计是不准确的, 例如\\(\omega_o=\omega_i\\)的情况下是不应该被遮挡的. 通过高度相关性可以推导出更优的遮蔽阴影函数.
+
+不失一般性, 令视线沿x轴, \\(S(x)\\)为视线方向从\\(x=0\\)上某个点出发行进\\(x\\)后未被遮挡的概率, \\(g(x)dx\\)为光线在\\([x,x+dx]\\)内被遮挡的概率, 此时\\(S(x + dx)\\)可以按如下方式表示.
+
+$$
+\begin{equation}
+S(x+dx)=S(x)(1-g(x)dx)
+\end{equation}
+$$
+
+将该式视为一阶Taylor展开, 此时可以得到微分方程, \\(S(x)\\)可以求解.
+
+$$
+\begin{equation}
+\begin{aligned}
+\frac{dS(x)}{dx}&=-S(x)g(x)\\\\
+S(x)&=S(0)e^{-\int_0^x g(x)dx}
+\end{aligned}
+\end{equation}
+$$
+
+令视线在\\(x\\)轴上的斜率为\\(\mu_v\\), 表面在x轴的斜率为\\(\mu(x)\\), 则\\(S(0)\\)定义如下, 用\\(s(\mu_v-\mu(0))\\)表示.
+
+$$
+\begin{equation}
+\begin{aligned}
+S(0)=s(\mu_v-\mu(0))=
+\begin{cases}
+1 &\mu_v\ge\mu(0)\\\\
+0 &\mu_v<\mu(0)
+\end{cases}
+\end{aligned}
+\end{equation}
+$$
+
+令表面高度为\\(h(x)\\), 条件\\(\alpha\\)为\\(h(x)<h(0)+\mu_v x\\), 条件\\(\beta\\)为\\(h(x+dx)>h(0)+\mu_v\cdot(x+dx)\\), \\(P_3(h,\mu|x)\\)为\\(x\\)处斜率与高度的联合分布, 若在\\([x,x+dx]\\)处被遮挡需要满足\\(\mu(x)>\mu_v\\), 同时在Smith遮蔽函数下高度与斜率是不相关的, 此时可以定义\\(g(x)\\).
+
+$$
+\begin{equation}
+\begin{aligned}
+g(x)
+&=\frac{1}{dx}P(\alpha|\beta)\\\\
+&=\frac{1}{dx}\frac{P(\alpha,\beta)}{P(\beta)}\\\\
+&=\frac{1}{dx}\frac{\int_{\mu_v}^\infty\int_{h(0)+\mu_v(x+dx)-\mu dx}^{h(0)+\mu_vx}P_3(h,\mu|x)dh d\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\\\
+&=\frac{1}{dx}\frac{\int_{\mu_v}^\infty(\mu_v-\mu)dxP_3(h(0)+\mu_vx,\mu|x)d\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\\\
+&=\frac{\int_{\mu_v}^\infty(\mu_v-\mu)P_h(h(0)+\mu_vx)P^{2-}(\mu)d\mu}{\int_{-\infty}^{h(0)+\mu_vx}P_h(h)dh}\\\\
+&=\Lambda(\mu_v)\frac{\mu_vP_h(h(0)+\mu_vx)}{f(h(0)+\mu_vx)}
+\end{aligned}
+\end{equation}
+$$
+
+在Smith遮蔽函数下\\(s(\mu_v-\mu(0))\\)恒成立, 省去该项后可以得到不会被遮蔽的概率\\(S(h)\\).
+
+$$
+\begin{equation}
+\begin{aligned}
+S(h, \omega)
+&= e^{-\Lambda(\omega)\int_0^{\infty}\frac{\mu_vP_h(h+\mu_vx)}{f(h+\mu_vx)}dx}\\\\
+&= e^{-\Lambda(\omega)\left[\ln f(h+\mu_v x)\right]_0^{\infty}}\\\\
+&= e^{-\Lambda(\omega)((\ln 1 - \ln f(h))}\\\\
+&= e^{\Lambda(\omega)\ln f(h)}\\\\
+&= f(h)^{\Lambda(\omega)}
+\end{aligned}
+\end{equation}
+$$
+
+此时可以得到Smith遮蔽函数的全局项, 可以看到与上一节的证明结果是相同的.
+
+$$
+\begin{equation}
+\begin{aligned}
+G_1(\omega)
+&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} P_h(h) dh\\\\
+&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} df(h)\\\\
+&= \left[\frac{f(h)^{1+\Lambda(\omega)}}{1+\Lambda(\omega)}\right]_{-\infty}^{\infty}\\\\
+&= \frac{1}{1+\Lambda(\omega)}
+\end{aligned}
+\end{equation}
+$$
+
+此时可以推导出遮蔽阴影函数.
+
+$$
+\begin{equation}
+\begin{aligned}
+G(\omega_o,\omega_i)
+&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)}P_h(h)dh + \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_i)}P_h(h)dh\\\\
+&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)+\Lambda(\omega_i)}P_h(h)dh\\\\
+&= \frac{1}{1+\Lambda(\omega_o)+\Lambda(\omega_i)}
+\end{aligned}
+\end{equation}
+$$
