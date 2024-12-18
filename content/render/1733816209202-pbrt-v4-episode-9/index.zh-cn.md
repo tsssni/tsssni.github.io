@@ -639,7 +639,7 @@ D_\omega(\omega_m)=\frac{G_1(\omega)}{\cos\theta}D(\omega_m)\max(0,\omega\cdot\o
 \end{equation}
 $$
 
-pbrt的采样方式如下, 将GGX分布看作一个被缩放的半球, 因此没有采用重要性抽样, 这里通过乘上\\(alpha\\)来缩放是因为方向的缩放变换用到的是矩阵的转置逆.
+pbrt的采样方式如下, 将GGX分布看作一个被缩放的半球, 因此没有采用逆变换法, 这里通过乘上\\(alpha\\)来缩放是因为方向的缩放变换用到的是矩阵的转置逆.
 
 ```c++
 PBRT_CPU_GPU
@@ -790,3 +790,39 @@ $$
 #### Torrance-Sparrow采样
 
 若`Sample_wm`得到的\\(omega_i\\)朝向表面下方, 则判定为无效并重新采样.
+
+## 粗糙绝缘体BSDF
+
+### 粗糙绝缘体PDF
+
+根据Snell定律我们可以把投影到\\(x\\)上的部分抵消, 由此可得以下关系, 这里的符号是由\\(\eta_i>\eta_o\\)的假设得到的. 对于反射由于\\(\eta_i=\eta_o\\)这与半向量是等价的.
+
+$$
+\begin{equation}
+\omega_m=\frac{\eta_i\omega_i+\eta_o\omega_o}{\Vert\eta_i\omega_i+\eta_o\omega_o\Vert}=\frac{\eta\omega_i+\omega_o}{\Vert\eta\omega_i+\omega_o\Vert}
+\end{equation}
+$$
+
+此时Jacobi行列式结果如下, 这可以由几何关系推导得到, 具体见[Water et al. 2007](https://www.graphics.cornell.edu/~bjw/microfacetbsdf.pdf).
+
+$$
+\begin{equation}
+\frac{d\omega_m}{d\omega_i}=\frac{\omega_o\cdot\omega_m}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2}
+\end{equation}
+$$
+
+![refract jacobi](refract-jacobi.png)
+
+### 粗糙绝缘体BSDF
+
+根据PDF可以得到BTDF.
+
+$$
+\begin{equation}
+f_t(p,\omega_o,\omega_i)=\frac{D(\omega_m)(1-F(\omega_o\cdot\omega_m))G(\omega_i,\omega_o)}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2}\frac{|\omega_i\cdot\omega_m||\omega_o\cdot\omega_m|}{|\cos\theta_i||\cos\theta_o|}
+\end{equation}
+$$
+
+### 粗糙绝缘体采样
+
+与之前章节描述的一样, 对法线进行重要性抽样并随机选取反射或折射.
