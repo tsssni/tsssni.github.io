@@ -352,6 +352,17 @@ F_r = \frac{1}{2}(r_{||}^2 + r_{\perp}^2)
 \end{equation}
 $$
 
+实时渲染中通常使用Schlick近似.
+
+$$
+\begin{equation}
+\begin{aligned}
+F_r &= F_{r_0}+(1-F_{r_0})(1-\cos\theta_i)^5\\\\
+F_{r_0} &= \left(\frac{\eta_i - \eta_t}{\eta_i + \eta_t}\right)^2
+\end{aligned}
+\end{equation}
+$$
+
 ### 导体Fresnel方程
 
 导体的IOR需要用复数表示, 实部描述光线速度的减小, 虚部描述光线在材质内传播时的衰减. 尽管渲染中不需要考虑导体折射的部分, 它所带来的能量衰减也会影响反射. 复数的2范数为实部与虚部和的平方, 此时即可泛化上述Fresnel反射率的计算.
@@ -617,3 +628,165 @@ G(\omega_o,\omega_i)
 \end{aligned}
 \end{equation}
 $$
+
+### 采样可见法线分布
+
+根据法线分布函数与遮蔽阴影函数我们可以得到视线为\\(\omega\\)时法线的分布.
+
+$$
+\begin{equation}
+D_\omega(\omega_m)=\frac{G_1(\omega)}{\cos\theta}D(\omega_m)\max(0,\omega\cdot\omega_m)
+\end{equation}
+$$
+
+pbrt的采样方式如下, 将GGX分布看作一个被缩放的半球, 因此没有采用重要性抽样, 这里通过乘上\\(alpha\\)来缩放是因为方向的缩放变换用到的是矩阵的转置逆.
+
+```c++
+PBRT_CPU_GPU
+Vector3f Sample_wm(Vector3f w, Point2f u) const {
+    // Transform _w_ to hemispherical configuration
+    Vector3f wh = Normalize(Vector3f(alpha_x * w.x, alpha_y * w.y, w.z));
+    if (wh.z < 0)
+        wh = -wh;
+
+    // Find orthonormal basis for visible normal sampling
+    Vector3f T1 = (wh.z < 0.99999f) ? Normalize(Cross(Vector3f(0, 0, 1), wh))
+                                    : Vector3f(1, 0, 0);
+    Vector3f T2 = Cross(wh, T1);
+
+    // Generate uniformly distributed points on the unit disk
+    Point2f p = SampleUniformDiskPolar(u);
+
+    // Warp hemispherical projection for visible normal sampling
+    Float h = std::sqrt(1 - Sqr(p.x));
+    p.y = Lerp((1 + wh.z) / 2, h, p.y);
+
+    // Reproject to hemisphere and transform normal to ellipsoid configuration
+    Float pz = std::sqrt(std::max<Float>(0, 1 - LengthSquared(Vector2f(p))));
+    Vector3f nh = p.x * T1 + p.y * T2 + pz * wh;
+    CHECK_RARE(1e-5f, nh.z == 0);
+    return Normalize(
+        Vector3f(alpha_x * nh.x, alpha_y * nh.y, std::max<Float>(1e-6f, nh.z)));
+}
+```
+
+实时渲染IBL的重要性抽样中, 法线与视线方向是一致的, 因此可以对下式进行球面坐标上的重要性抽样.
+
+$$
+\begin{equation}
+\int_{-\pi}^{\pi}\int_0^{\frac{\pi}{2}}D(\theta,\phi)\cos\theta\sin\theta d\theta d\phi = 1
+\end{equation}
+$$
+
+各向同性的GGX在\\(\theta,\phi\\)上的PDF如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+p(\theta)
+&=\int_{0}^{2\pi}D(\theta,\phi)\cos\theta\sin\theta d\phi\\\\
+&=\int_{0}^{2\pi}\frac{1}{\pi\alpha^2\cos^4\theta(1+\frac{\tan^2\theta}{\alpha^2})^2}\cos\theta\sin\theta d\phi\\\\
+&=\frac{2\alpha^2\cos\theta\sin\theta}{\cos^4\theta(\alpha^2+\tan^2\theta)^2}\\\\
+&=\frac{2\alpha^2\cos\theta\sin\theta}{(\alpha^2\cos^2\theta+\sin^2\theta)^2}\\\\
+&=\frac{2\alpha^2\cos\theta\sin\theta}{((\alpha^2-1)\cos^2\theta+1)^2}\\\\
+p(\phi)&=\frac{p(\theta,\phi)}{p(\theta)}=\frac{1}{2\pi}
+\end{aligned}
+\end{equation}
+$$
+
+由于逆变换法的需要, 计算二者的CDF.
+
+$$
+\begin{equation}
+\begin{aligned}
+P(\theta)
+&=\int_0^{\theta}p(\theta_0)d\theta_0\\\\
+&=\int_0^{\theta}\frac{-2\alpha^2\cos\theta_0}{((\alpha^2-1)\cos^2\theta_0+1)^2}d\cos\theta_0\\\\
+&=\int_1^{\cos\theta}\frac{-2\alpha^2x}{((\alpha^2-1)x^2+1)^2}dx\\\\
+&=\int_1^{\cos\theta}\frac{\alpha^2}{(\alpha^2-1)}d\frac{1}{(\alpha^2-1)x^2+1}\\\\
+&=\frac{\alpha^2}{(\alpha^2-1)}(\frac{1}{(\alpha^2-1)\cos^2\theta+1}-\frac{1}{\alpha^2})\\\\
+&=\frac{1-\cos^2\theta}{((\alpha^2-1)\cos^2\theta+1)}\\\\
+P(\phi)
+&=\int_0^{\phi}p(\phi_0)d\phi_0=\frac{\phi}{2\pi}
+\end{aligned}
+\end{equation}
+$$
+
+通过逆变换法得到最终变换.
+
+$$
+\begin{equation}
+\begin{aligned}
+\theta
+&=P^{-1}(u_0)
+=\cos^{-1}\sqrt{\frac{1-u_0}{(\alpha^2-1)u_0+1}}\\\\
+\phi
+&=P^{-1}(u_1)
+=2\pi u_1
+\end{aligned}
+\end{equation}
+$$
+
+### Torrance-Sparrow模型
+
+#### 半向量变换
+
+对于镜面反射表面法线\\(\omega_m\\)是位于\\(\omega_o\\)和\\(\omega_o\\)之间的, 因此也可以被称为半向量. 三者的天顶角满足以下关系, 注意到若满足该条件则\\(\theta_i<0\\), 这使得\\(\phi_o=\phi_i\\).
+
+$$
+\begin{equation}
+\theta_m = \frac{\theta_o+\theta_i}{2}
+\end{equation}
+$$
+
+此时可以获取Jacobi行列式的变换结果.
+
+$$
+\begin{equation}
+\begin{aligned}
+\frac{d\omega_m}{d\omega_i}
+&= \frac{\sin\theta_m d\theta_m d\phi_m}{\sin\theta_i d\theta_i d\phi_i}\\\\
+&= \frac{\sin\theta_m d\theta_m d\phi_m}{\sin2\theta_m 2d\theta_m d\phi_m}\\\\
+&= \frac{\sin\theta_m}{4\cos\theta_m\sin\theta_m}\\\\
+&= \frac{1}{4(\omega_i\cdot\omega_m)}\\\\
+&= \frac{1}{4(\omega_o\cdot\omega_m)}
+\end{aligned}
+\end{equation}
+$$
+
+#### Torrance-Sparrow PDF
+
+\\(\omega_i\\)的分布如下.
+
+$$
+\begin{equation}
+p(\omega_i)=D_{\omega_o}(\omega_m)\frac{d\omega_m}{d\omega_i}=\frac{D_{\omega_o}(\omega_m)}{4(\omega_o\cdot\omega_m)}
+\end{equation}
+$$
+
+#### Torrance-Sparrow BRDF
+
+在Monte Carlo下反射方程可以做如下近似.
+
+$$
+\begin{equation}
+\begin{aligned}
+L_o(p,\omega_o)
+&=\int_\Omega f_r(p,\omega_o,\omega_i)L_i(p,\omega_i)\cos\theta_id\omega_i\\\\
+&\approx \frac{f_r(p,\omega_o,\omega_i)L_i(p,\omega_i)\cos\theta_i}{p(\omega_i)}\\\\
+&=F(\omega_o\cdot\omega_m)G(\omega_i,\omega_o)L_i(p,\omega_i)
+\end{aligned}
+\end{equation}
+$$
+
+由此可得Torrance-Sparrow BRDF.
+
+$$
+\begin{equation}
+f_r(p,\omega_o,\omega_i)=\frac{D_{\omega_o}(\omega_m)F(\omega_o,\omega_m)G(\omega_i,\omega_o)}{4(\omega_o\cdot\omega_m)\cos\theta_i}
+\end{equation}
+$$
+
+#### Torrance-Sparrow采样
+
+若`Sample_wm`得到的\\(omega_i\\)朝向表面下方, 则判定为无效并重新采样.
