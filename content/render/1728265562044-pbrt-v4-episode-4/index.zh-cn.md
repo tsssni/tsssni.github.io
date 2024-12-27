@@ -390,7 +390,7 @@ $$
 
 ## 光谱分布
 
-本节主要介绍pbrt中对光谱的抽象, pbrt只会存储可见光.
+本节主要介绍pbrt中对光谱的抽象, 注意这里并不特指辐射光谱分布, 可以是任意值的分布. pbrt只会存储可见光.
 
 ```c++
 constexpr Float Lambda_min = 360, Lambda_max = 830;
@@ -410,7 +410,7 @@ class Spectrum : public TaggedPointer<ConstantSpectrum, DenselySampledSpectrum,
 };
 ```
 
-`Spectrum`通过函数子返回特定波长下的功率. `Dispatch`用于确定分派函数到具体实现.
+`Spectrum`通过函数子返回特定波长下的分布. `Dispatch`用于确定分派函数到具体实现.
 
 ```c++
 inline Float Spectrum::operator()(Float lambda) const {
@@ -429,11 +429,11 @@ Float MaxValue() const;
 
 #### ConstantSpectrum
 
-返回常数密度.
+返回常数值.
 
 #### DenselySampledSpectrum
 
-`DenselySampledSpectrum`存储\\([\lambda_min, \lambda_max]\\)下以1nm为区间采样到的功率.
+`DenselySampledSpectrum`存储\\([\lambda_min, \lambda_max]\\)下以1nm为区间采样到的值.
 这通过采样另一个`Spectrum`来实现. 显然这种查表方法会分配较大的内存.
 
 ```c++
@@ -449,7 +449,7 @@ DenselySampledSpectrum(Spectrum spec, int lambda_min = Lambda_min,
 
 #### PiecewiseLinearSpectrum
 
-`PiecewiseLinearSpectrum`定义少量插值点再插值得到各个波长下的密度,
+`PiecewiseLinearSpectrum`定义少量插值点再插值得到各个波长下的值,
 对于部分区间比较平滑的分布这可以有效节省内存.
 构造函数中会对插值点排序, 读取功率时`PiecewiseLinearSpectrum`找到对应区间并插值.
 
