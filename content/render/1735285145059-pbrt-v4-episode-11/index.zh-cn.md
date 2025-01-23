@@ -110,31 +110,62 @@ $$
 
 ### 空散射
 
-定义一个\\(\sigma_{\text{maj}}\\)作为主衰减系数(为减小方差, pbrt将其设置为大于等于任意一处的衰减系数), 此时可以定义空散射(null-scattering)系数, 由此可得\\(\sigma_{\text{maj}}=\sigma_a(p,\omega)+\sigma_s(p,\omega)+\sigma_n(p,\omega)\\)在介质中为常数.
+定义一个\\(\sigma_{\text{maj}}(p,\omega)\\)作为主衰减系数(为减小方差, pbrt将其设置为大于等于任意一处的衰减系数), 此时可以定义空散射(null-scattering)系数, 由此可得\\(\sigma_{\text{maj}}(p,\omega)=\sigma_a(p,\omega)+\sigma_s(p,\omega)+\sigma_n(p,\omega)\\)在介质中为常数或分段常数.
 
 $$
 \begin{equation}
-\sigma_n(p,\omega)=\sigma_{\text{maj}}-\sigma_t(p,\omega)
+\sigma_n(p,\omega)=\sigma_{\text{maj}}(p,\omega)-\sigma_t(p,\omega)
 \end{equation}
 $$
 
-此时已知\\(-\frac{dL(p,\omega)}{dt}+\sigma_{\text{maj}}(p,\omega)L(p,\omega)=\sigma_n(p,\omega)L(p,\omega)\\), 令\\(h(t)=e^{-\int_0^t \sigma_{\text{maj}} dt}\\), \\(g(t)=\sigma_n(p+t\omega,\omega)L(p+t\omega,\omega)\\), 根据\\(\frac{dh(t)}{dt}=-h(t)\sigma_{\text{maj}}\\), 微分方程两边同乘\\(h(t)\\)可得\\(-h(t)\frac{dL(p+t\omega,\omega)}{dt}-L(p+t\omega,\omega)\frac{h(t)}{dt}=h(t)g(t)\\), 在路径上积分可得\\(h(0)L(p,\omega)-h(d)L(p+d\omega,\omega)=\int_0^d h(t)g(t)dt\\), 两边同除\\(h(0)L(p+d\omega,\omega)\\)后可得下式.
+此时微分方程转为如下形式.
+
+$$
+\begin{equation}
+-\frac{dL(p,\omega)}{dt}+\sigma_{\text{maj}}(p,\omega)L(p,\omega)=\sigma_n(p,\omega)L(p,\omega)
+\end{equation}
+$$
+
+定义\\(h(t)\\)与\\(g(t)\\), 可以得到如下结果.
+
+$$
+\begin{equation}
+\begin{aligned}
+h(t)&=e^{-\int_0^t \sigma_{\text{maj}}(p+t'\omega,\omega) dt'}\\\\
+\frac{dh(t)}{dt}&=-h(t)\sigma_{\text{maj}}(p+t\omega,\omega)\\\\
+g(t)&=\sigma_n(p+t\omega,\omega)L(p+t\omega,\omega)
+\end{aligned}
+\end{equation}
+$$
+
+微分方程两边同乘\\(h(t)\\)以及之后再次积分可得如下结果.
+
+$$
+\begin{equation}
+\begin{aligned}
+-h(t)\frac{dL(p+t\omega,\omega)}{dt}-L(p+t\omega,\omega)\frac{dh(t)}{dt}&=h(t)g(t)\\\\
+h(0)L(p,\omega)-h(d)L(p+d\omega,\omega)&=\int_0^d h(t)g(t)dt
+\end{aligned}
+\end{equation}
+$$
+
+两边同除\\(h(0)L(p+d\omega,\omega)\\)后可得下式.
 
 $$
 \begin{equation}
 \begin{aligned}
 T_r(p \leftarrow p+d\omega)
 &=\frac{h(d)}{h(0)}+\int_0^d \frac{h(t)g(t)}{h(0){L(p+d\omega,\omega)}}\\\\
-&=e^{-\sigma_\text{maj}d}+\int_0^d e^{-\sigma_\text{maj}t}\sigma_n(p+t\omega,\omega)T_r(p+t\omega \leftarrow p+d\omega)dt
+&=e^{-\int_0^d \sigma_\text{maj}(p+t\omega,\omega)dt}+\int_0^d e^{-\int_0^t \sigma_\text{maj}(p+t'\omega,\omega)dt'}\sigma_n(p+t\omega,\omega)T_r(p+t\omega \leftarrow p+d\omega)dt
 \end{aligned}
 \end{equation}
 $$
 
-计算上式的Monte Carlo需要使用一个与积分项成比例的分布, pbrt使用\\(p_{\text{maj}}(t) \propto e^{-\sigma_{\text{maj}}}\\), 归一化后得到以下PDF.
+计算上式的Monte Carlo需要使用一个与积分项成比例的分布, pbrt使用\\(p_{\text{maj}}(t) \propto e^{\int_0^t -\sigma_{\text{maj}}(p+t'\omega, \omega)dt'}\\), 归一化后得到以下PDF.
 
 $$
 \begin{equation}
-p_{\text{maj}}(t)=\sigma_{\text{maj}}e^{-\sigma_{\text{maj}}}
+p_{\text{maj}}(t)=\sigma_{\text{maj}}(p,\omega)e^{-\int_0^t \sigma_{\text{maj}}(p+t'\omega,\omega) dt'}
 \end{equation}
 $$
 
@@ -142,15 +173,15 @@ $$
 
 $$
 \begin{equation}
-T_r(p \leftarrow p+d\omega) \approx e^{-\sigma_{\text{maj}d}}+
+T_r(p \leftarrow p+d\omega) \approx e^{-\int_0^d\sigma_{\text{maj}}(p+t\omega,\omega)dt}+
 \begin{cases}
-\frac{\sigma_n(p+t'\omega)}{\sigma_{\text{maj}}}T_r(p+t'\omega \leftarrow p+d\omega) & t'<d\\\\
+\frac{\sigma_n(p+t'\omega,\omega)}{\sigma_{\text{maj}}(p+t'\omega,\omega)}T_r(p+t'\omega \leftarrow p+d\omega) & t'<d\\\\
 0 & \text{otherwise}
 \end{cases}
 \end{equation}
 $$
 
-随机选取其中一项也可以进行Monte Carlo, 由于CDF具有\\(P(t' \ge d)=e^{-\sigma_{\text{maj}}d}\\)的性质, 可以将该值作为选择概率. 注意到下一跳估计器中是在\\((0,\infty)\\)上的积分, 而这里是在\\((0,d)\\)上的积分, 因此需要通过除以\\(1-e^{-\sigma_{\text{maj}}d}\\)来归一化. 此时可以得到比率跟踪(ratio-tracking)估计器, 这是pbrt采用的算法.
+随机选取其中一项也可以进行Monte Carlo, 由于CDF具有\\(P(t' \ge d)=e^{-\int_0^d\sigma_{\text{maj}}dt}\\)的性质, 可以将该值作为选择概率. 注意到下一跳估计器中是在\\((0,\infty)\\)上的积分, 而这里是在\\((0,d)\\)上的积分, 因此需要通过将PDF除以\\(1-e^{-\int_0^d\sigma_{\text{maj}}(p+t\omega,\omega)dt}\\)来归一化, Monte Carlo时正好与\\(\frac{1}{1-p_e}\\)抵消. 此时可以得到比率跟踪(ratio-tracking)估计器, 这是pbrt采用的算法.
 
 $$
 \begin{equation}
@@ -158,21 +189,21 @@ $$
 T_r(p \leftarrow p+d\omega)
 &\approx
 \begin{cases}
-\frac{e^{-\sigma_{\text{maj}}d}}{p_e} & \text{with}\ \text{probability}\ p_e\\\\
-\frac{1}{1-p_e}\int_0^d e^{-\sigma_{\text{maj}}t}\sigma_n(p+t\omega,\omega)T_r(p+t\omega \leftarrow p+d\omega)dt & \text{otherwise}
+\frac{e^{-\int_0^d\sigma_{\text{maj}}(p+t\omega,\omega)dt}}{p_e} & \text{with}\ \text{probability}\ p_e\\\\
+\frac{1}{1-p_e}\int_0^d e^{-\int_0^t\sigma_{\text{maj}}(p+t'\omega,\omega)dt'}\sigma_n(p+t\omega,\omega)T_r(p+t\omega \leftarrow p+d\omega)dt & \text{otherwise}
 \end{cases}\\\\
 &\approx
 \begin{cases}
 1 & t' > d\\\\
-\frac{\sigma_n(p+t'\omega,\omega)}{\sigma_{\text{maj}}}T_r(p+t'\omega \leftarrow p+d\omega) & \text{otherwise}
+\frac{\sigma_n(p+t'\omega,\omega)}{\sigma_{\text{maj}}(p+t'\omega,\omega)}T_r(p+t'\omega \leftarrow p+d\omega) & \text{otherwise}
 \end{cases}\\\\
 &\approx
-\prod_{i=1}^n \frac{\sigma_n(p+t_i\omega,\omega)}{\sigma_{\text{maj}}}
+\prod_{i=1}^n \frac{\sigma_n(p+t_i\omega,\omega)}{\sigma_{\text{maj}}(p+t_i\omega,\omega)}
 \end{aligned}
 \end{equation}
 $$
 
-比率跟踪估计器在透射率已经很小时仍然会继续采样, 可以通过俄罗斯轮盘解决该问题, 将俄罗斯轮盘概率设置为\\(\frac{\sigma_n(p+t'\omega,\omega)}{\sigma_{\text{maj}}d}\\)可以将其抵消, 这被称为差值跟踪(delta-tracking)估计器.
+比率跟踪估计器在透射率已经很小时仍然会继续采样, 可以通过俄罗斯轮盘解决该问题, 将俄罗斯轮盘概率设置为\\(\frac{\sigma_n(p+t'\omega,\omega)}{\sigma_{\text{maj}}(p+t'\omega,\omega)}\\)可以将其抵消, 这被称为差值跟踪(delta-tracking)估计器, 透射率只能为0或1.
 
 $$
 \begin{equation}

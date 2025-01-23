@@ -187,9 +187,9 @@ SampledSpectrum BxDF::rho(pstd::span<const Point2f> u1, pstd::span<const Float> 
 }
 ```
 
-### BSDF中的delta分布
+### BSDF中的Delta分布
 
-delta分布主要用于完美镜面反射, 但是对于`Sample_f`与`PDF`方法, 返回delta函数对应的无穷大密度在c++中是无法得到正确的渲染结果的. 对于`Sample_f`方法, 将delta函数从PDF与BSDF分离, 可以发现delta函数会被抵消, 由于PDF与delta函数一致, 因此PDF设置为1即可. 对于`PDF`方法, 它的返回值为0, 因为恰好位于delta函数对应的反射方向的概率过小.
+Delta分布主要用于完美镜面反射, 但是对于`Sample_f`与`PDF`方法, 返回Delta函数对应的无穷大密度在c++中是无法得到正确的渲染结果的. 对于`Sample_f`方法, 将Delta函数从PDF与BSDF分离, 可以发现Delta函数会被抵消, 由于PDF与Delta函数一致, 因此PDF设置为1即可. 对于`PDF`方法, 它的返回值为0, 因为恰好位于Delta函数对应的反射方向的概率过小.
 
 $$
 \begin{equation}
@@ -639,7 +639,7 @@ D_\omega(\omega_m)=\frac{G_1(\omega)}{\cos\theta}D(\omega_m)\max(0,\omega\cdot\o
 \end{equation}
 $$
 
-pbrt的采样方式如下, 将GGX分布看作一个被缩放的半球, 因此没有采用逆变换法, 这里通过乘上\\(alpha\\)来缩放是因为方向的缩放变换用到的是矩阵的转置逆.
+pbrt的采样方式如下, 将GGX分布看作一个被缩放的半球, 因此没有采用逆变换法, 这里通过乘上\\(\alpha\\)来缩放是因为方向的缩放变换用到的是矩阵的转置逆.
 
 ```c++
 PBRT_CPU_GPU
@@ -843,7 +843,7 @@ M^{(k)} = \frac{f_r(\omega_o, \omega_i^{(k)})\cos\theta_i^{(k)}}{p(\omega_i^{(k)
 \end{equation}
 $$
 
-#### BRDF检验
+#### BRDF求解
 
 令\\(M\\)为样本插值, \\(R(\omega_o, u)=\omega_i\\)为重要性抽样, 数据驱动的BRDF可以按如下方式表示.
 
@@ -868,7 +868,7 @@ p(\omega_i)
 \end{equation}
 $$
 
-此时可以检验BRDF.
+此时可以求解BRDF.
 
 $$
 \begin{equation}
@@ -921,7 +921,7 @@ struct MeasuredBxDFData {
 };
 ```
 
-### 检验
+### 求解
 
 `MeasuredBxDF`中存储`MeasuredBxDFData`指针并实现相应的功能.
 
@@ -1069,7 +1069,7 @@ s=\sqrt{\frac{\pi}{8}}(0.265\beta_n+1.194\beta_n^2+5.372\beta_n^{22})
 \end{equation}
 $$
 
-### 散射模型检验
+### 散射模型求解
 
 头发表面的凸起角度\\(\alpha\\)会影响\\(\theta\\), pbrt估计\\(R\\)偏移\\(2\alpha\\), \\(TT\\)偏移\\(-\alpha\\), \\(TRT\\)会偏移\\(-4\alpha\\). 角度的偏移会导致高光瓣的偏移, 在头发上呈现出来的就是不同颜色的分层高光, 因为反射不影响颜色而折射会吸收光线.
 

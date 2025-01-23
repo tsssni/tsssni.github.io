@@ -2,7 +2,7 @@
 title: "pbrt-v4 Ep. XIII: 光线传播: 表面反射"
 date: 2025-01-18
 draft: false
-description: "pbrt-v4 episode 12"
+description: "pbrt-v4 episode 13"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
@@ -28,7 +28,7 @@ $$
 
 ### LTE表面形式
 
-LTE的复杂度部分原因为光线投射方程只能隐式表达场景中几何物体的关系, pbrt通过过将LTE的积分转为面积上的积分来显示表达几何物体的分布. 令\\(L(p' \to p)=L(p',\omega)\\), \\(f(p'' \to p' \to p)=f(p',\omega_o,\omega_i)\\), 根据立体角转面积的Jacobian行列式, 可以得到如下LTE. 其中\\(V\\)为可见性方程, 两点互相可见为1, 否则为0, 这可以通过追踪光线获取.
+LTE的复杂度部分原因为光线投射方程只能隐式表达场景中几何物体的关系, pbrt通过过将LTE的积分转为面积上的积分来显示表达几何物体的分布. 令\\(L(p' \to p)=L(p',\omega)\\), \\(f(p'' \to p' \to p)=f(p',\omega_o,\omega_i)\\), 根据立体角转面积的Jacobian行列式, 可以得到如下LTE. 其中\\(V\\)为可见性方程, 两点互相可见为1, 否则为0, 这可以通过追踪光线获取, \\(G\\)为几何方程.
 
 $$
 \begin{equation}
@@ -40,16 +40,16 @@ L(p' \to p)
 \end{equation}
 $$
 
-### 路径积分
+### 路径空间积分
 
-所有具有\\(n+1\\)个顶点的光线传播路径的积分如下, T为路径通量.
+\\(p_0\\)为相机位置, 所有具有\\(n+1\\)个顶点的光线传播路径的积分如下, T为路径通量.
 
 $$
 \begin{equation}
 \begin{aligned}
 P(\bar{p}_n)
-&=\underbrace{\int_A\int_A\cdots\int_A}\_{n-1} L_e(p_n \to p\_{n-1})(\prod\_{i=1}^{n-1} f(p\_{i+1} \to p_i \to p\_{i-1})G(p\_{i+1} \longleftrightarrow p_i))dA(p_2) \cdots dA(p_n)\\\\
-&=\underbrace{\int_A\int_A\cdots\int_A}\_{n-1} L_e(p_n \to p\_{n-1})T(\bar{p}_n)dA(p_2) \cdots dA(p_n)
+&=\underbrace{\int_A\int_A\cdots\int_A}\_{n} L_e(p_n \to p\_{n-1})(\prod\_{i=1}^{n-1} f(p\_{i+1} \to p_i \to p\_{i-1})G(p\_{i+1} \longleftrightarrow p_i))dA(p_1) \cdots dA(p_n)\\\\
+&=\underbrace{\int_A\int_A\cdots\int_A}\_{n} L_e(p_n \to p\_{n-1})T(\bar{p}_n)dA(p_1) \cdots dA(p_n)
 \end{aligned}
 \end{equation}
 $$
@@ -58,13 +58,13 @@ $$
 
 $$
 \begin{equation}
-L(p_1 \to p_0) \approx \sum_{n=1}^\infty \frac{P(\bar{p}_n)}{p(\bar{p}_n)}
+L(p_0) \approx \sum_{n=1}^\infty \frac{P(\bar{p}_n)}{p(\bar{p}_n)}
 \end{equation}
 $$
 
 ### 被积函数中的Delta分布
 
-部分光源与BSDF是Delta分布, 此时可以将积分转为解析式.
+部分光源的BSDF是Delta分布, 此时可以将积分转为解析式.
 
 ### 被积函数分解
 
@@ -121,7 +121,7 @@ class SimplePathIntegrator : public RayIntegrator {
 };
 ```
 
-路径传播过程中会记录路径通量权重, 每次到达新顶点都会更新, 其定义如下. \\(beta\\)中包含了历史顶点的信息, 因此只有当前顶点的状态需要被记录.
+路径传播过程中会记录路径通量权重, 每次到达新顶点都会更新, 其定义如下. \\(\beta\\)中包含了历史顶点的信息, 因此只有当前顶点的状态需要被记录.
 
 $$
 \begin{equation}
@@ -370,7 +370,7 @@ if (!f || !Unoccluded(intr, ls->pLight))
     return {};
 ```
 
-Delta光源无需采样, 直接计算即可, 否则执行MIS.
+pbrt假设散射光线不可能接触到Delta光源, 因此BSDF的MIS权重为0, 直接光照的MIS权重为1, 否则计算幂启发式.
 
 ```c++
 Float p_l = sampledLight->p * ls->pdf;
@@ -405,7 +405,7 @@ prevIntrCtx = si->intr;
 ray = isect.SpawnRay(ray, bsdf, bs->wi, bs->flags, bs->eta);
 ```
 
-相交时若相交失败则使用环境光, 否则使用相交表面的自发光. 第一次相交或镜面反射的情况不需要MIS, 反之则加上BSDF采样对应的MIS权重.
+相交时若相交失败则使用环境光, 否则使用相交表面的自发光. 第一次相交或镜面反射的情况选择直接光照概率为0, 因此直接光照MIS权重为0, BSDF的MIS权重为1. 其余情况则加上BSDF采样对应的MIS权重.
 
 ```c++
 // Trace ray and find closest path vertex and its BSDF

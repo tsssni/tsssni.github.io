@@ -615,7 +615,7 @@ void StartPixelSample(Point2i p, int sampleIndex, int dim) {
 }
 ```
 
-### 效果检验
+### 效果求解
 
 Owen扰动后的Halton采样器的PSD与一维抖动采样的PSD类似, 低频接近0, 高频接近1. 未随机化的Halton采样器则在高频上具有较大的方差, 某些高频点的功率较大, 这会造成走样. 随机扰动的PSD则介于二者之间.
 
@@ -878,7 +878,7 @@ uint64_t GetSampleIndex() const {
 }
 ```
 
-### 效果检验
+### 效果求解
 
 Owen采样后的Sobol'采样器可以取得较好的PSD, 同时适合计算机执行的二进制操作也大大提高了采样效率.
 

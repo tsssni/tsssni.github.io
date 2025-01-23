@@ -8,7 +8,7 @@ tags: ["graphics", "rendering", "pbrt"]
 
 {{<katex>}}
 
-纹理描述表面上标量或光谱量在空间上的变化, 材质通过检验表面上某个点的纹理来决定其BSDF参数.
+纹理描述表面上标量或光谱量在空间上的变化, 材质通过求解表面上某个点的纹理来决定其BSDF参数.
 
 ## 纹理采样与反走样
 
@@ -392,7 +392,7 @@ if (auto iter = textureCache.find(texInfo); iter != textureCache.end()) {
 lock.unlock();
 ```
 
-### 图像纹理检验
+### 图像纹理求解
 
 pbrt中图像以左下角为原点, 而纹理坐标位于左上角, 这需要手动处理.
 
@@ -443,7 +443,7 @@ $$
 
 ## 材质接口与实现
 
-材质用于检验纹理获取参数后初始化BSDF, 其定义如下.
+材质用于求解纹理获取参数后初始化BSDF, 其定义如下.
 
 ```c++
 class Material
@@ -545,7 +545,7 @@ inline BSSRDF Material::GetBSSRDF(TextureEvaluator texEval, MaterialEvalContext 
 }
 ```
 
-`MaterialEvalContext`与`TextureEvalContext`类似, 包含了检验材质的必要信息, 这些信息包含在`TextureEvalContext`中, 因此pbrt采用了继承.
+`MaterialEvalContext`与`TextureEvalContext`类似, 包含了求解材质的必要信息, 这些信息包含在`TextureEvalContext`中, 因此pbrt采用了继承.
 
 ```c++
 struct MaterialEvalContext : public TextureEvalContext {
@@ -562,7 +562,7 @@ struct MaterialEvalContext : public TextureEvalContext {
 };
 ```
 
-pbrt通过`TextureEvaluator`检验纹理, 而非直接调用`Texture::Evaluate`, 这使得pbrt可以在GPU上根据`TextureEvaluator::CanEvaluate`返回的信息预先判断材质是否具有重量级的纹理, 并将这两种纹理分离. 在CPU上pbrt只使用`UniversalTextureEvaluator`, 它内部直接调用`Evaluate`.
+pbrt通过`TextureEvaluator`求解纹理, 而非直接调用`Texture::Evaluate`, 这使得pbrt可以在GPU上根据`TextureEvaluator::CanEvaluate`返回的信息预先判断材质是否具有重量级的纹理, 并将这两种纹理分离. 在CPU上pbrt只使用`UniversalTextureEvaluator`, 它内部直接调用`Evaluate`.
 
 ```c++
 SampledSpectrum UniversalTextureEvaluator::operator()(SpectrumTexture tex,
@@ -619,7 +619,7 @@ PBRT_CPU_GPU DielectricBxDF GetBxDF(TextureEvaluator texEval, MaterialEvalContex
 
 #### 混合材质
 
-混合材质无法返回BSDF, 因此这里的混合是概率上的混合, 每次随机选取一个材质来执行材质检验.
+混合材质无法返回BSDF, 因此这里的混合是概率上的混合, 每次随机选取一个材质来执行材质求解.
 
 ```c++
 template <typename TextureEvaluator>
