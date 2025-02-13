@@ -8,44 +8,40 @@ tags: ["graphics", "rendering", "pbrt"]
 
 {{<katex>}}
 
-随机模拟, 或者说Monte Carlo方法,
-是很常用的统计学方法, 渲染任务往往通过大量采样来渲染方程积分结果.
-pbrt中基本都采用无偏采样器, `SPPMIntegrator`是个例外.
-Monte Carlo通用形式如下.
+随机模拟, 或者说Monte Carlo方法, 是很常用的统计学方法, 渲染任务往往通过大量采样来渲染方程积分结果. pbrt中基本都采用无偏采样器, `SPPMIntegrator`是个例外. Monte Carlo通用形式如下.
 
 $$
 \begin{equation}
-F \approx F_n = \frac{1}{n} \sum_{i=1}^n \frac{f(X_i)}{p(X_i)}
+\begin{aligned}
+F_n &\approx E(\frac{1}{n} \sum_{i=1}^n \frac{f(X_i)}{p(X_i)})=\int \frac{f(x)}{p(x)}p(x)dx
+\end{aligned}
 \end{equation}
 $$
 
-这部分可以结合北大的
-[统计计算](https://www.math.pku.edu.cn/teachers/lidf/docs/statcomp/html/_statcompbook/sim-intro.html),
-想起来本科时还上过这个课, 一点都不记得, 很惭愧.
+这部分可以结合北大的[统计计算](https://www.math.pku.edu.cn/teachers/lidf/docs/statcomp/html/_statcompbook/sim-intro.html), 想起来本科时还上过这个课, 一点都不记得, 很惭愧.
 
 ## 效率优化
 
 ### 分层抽样
 
-将样本空间划分为多份, 每个空间被称为“层”, 采样时从各层中分别采样.
-每层的Monte Carlo积分值可用下式表示.
+将样本空间划分为多份, 每个空间被称为“层”, 采样时从各层中分别采样. 每层的Monte Carlo积分值可用下式表示.
 
 $$
 \begin{equation}
-F_i = \frac{1}{n} \sum_{j=1}^{n_i} \frac{f(X_{i,j})}{p(X_{i,j})}
+F_i = \frac{1}{n_i} \sum_{j=1}^{n_i} \frac{f(X_{i,j})}{p(X_{i,j})}
 \end{equation}
 $$
 
-由于分层, 各层的概率积分不再为1, 将第i层的概率积分值表示为\\(v_i\\).
-此时\\(F_i\\)期望值的证明见下式.
+pbrt中认为使用的PDF仍然分布在未分层的空间中, 因此需要除以第i层对应区域的CDF\\(v_i\\), 此时\\(F_i\\)期望值的证明见下式.
 
 $$
 \begin{equation}
 \begin{aligned}
 E(F_i)
-&= \frac{1}{n_i} n_i E(\frac{f(X_{i,j})}{p(X_{i,j})})\\\\
-&= \mu_i\\\\
-&= \int_{\Lambda_i} \frac{f(x)}{p(x)} \frac{p(x)}{v_i} dx\\\\
+&= E(\frac{1}{n_i}\sum_{j=1}^{n_i}\frac{f(X_{i,j})}{p(X_{i,j})})\\\\
+&= \frac{1}{n_i}E(\sum_{j=1}^{n_i}\frac{f(X_{i,j})}{p(X_{i,j})})\\\\
+&= \frac{1}{n_i}n_iE(\frac{f(X)}{p(X)})\\\\
+&\approx \int_{\Lambda_i} \frac{f(x)}{p(x)} \frac{p(x)}{v_i} dx\\\\
 &= \frac{1}{v_i} \int_{\Lambda_i} f(x) dx
 \end{aligned}
 \end{equation}
@@ -59,14 +55,16 @@ F = \sum_{i=1}^n v_i F_i
 \end{equation}
 $$
 
-分层抽样主要用于降低方差, 每一层的方差见下式.
+分层抽样主要用于降低方差, 对于独立变量\\(X\\)和\\(Y\\), 有\\(Var(X+Y)=Var(X)+Var(Y)\\), 因此每一层的方差如下.
 
 $$
 \begin{equation}
 \begin{aligned}
 Var(F_i)
-&= \frac{n_i}{n_i^2} Var(\frac{f(X_{i,j})}{p(X_{i,j})})\\\\
-&= \frac{1}{n_i}\sigma_{i}^2 
+&= Var(\frac{1}{n_i}\sum_{j=1}^{n_i}\frac{f(X_{i,j})}{p(X_{i,j})})\\\\
+&= \frac{1}{n^2_i}Var(\sum_{j=1}^{n_i}\frac{f(X_{i,j})}{p(X_{i,j})})\\\\
+&= \frac{1}{n^2_i}n_i Var(\frac{f(X)}{p(X)})\\\\
+&\approx \frac{1}{n_i}\sigma_{i}^2 
 \end{aligned}
 \end{equation}
 $$
@@ -84,8 +82,7 @@ Var(F)
 \end{equation}
 $$
 
-令每层的样本数与每层的样本范围线性正相关, 此时每层\\(n_i=nv_i\\),
-方差可以简化为下式.
+令每层的样本数与每层的样本范围线性正相关, 此时每层\\(n_i=nv_i\\), 方差可以简化为下式.
 
 $$
 \begin{equation}
@@ -93,9 +90,7 @@ Var(F)=\frac{1}{n} \sum_{i=1}^m v_i\sigma_i^2
 \end{equation}
 $$
 
-对于非分层抽样, 可以看作是先随机选择一个层, 然后在该层中随机抽样出一个值,
-此时抽样出的值\\(X_i\\)是依赖于选择到该层\\(I_i\\)的概率的.
-此时积分的方差可以表示为下式.
+对于非分层抽样, 可以看作是先随机选择一个层, 然后在该层中随机抽样出一个值, 抽样出的值\\(X_i\\)是依赖于选择到该层\\(I_i\\)的概率的. 此时积分的方差可以表示为下式.
 
 $$
 \begin{equation}
@@ -107,16 +102,38 @@ Var(F)
 \end{equation}
 $$
 
-记\\(G=\frac{f(X)}{P(X)}\\), 后续证明会用到如下的性质.
+全概率定理如下.
 
 $$
 \begin{equation}
-Var(G) = E(Var(G|I)) + Var(E(G|I))
+\begin{aligned}
+E(E(X|Y))
+&=\int p(y) \int x p(x|y) dx dy\\\\
+&=\int \int x p(x,y) dx dy\\\\
+&=\int x p(x) dx\\\\
+&=E(X)
+\end{aligned}
 \end{equation}
 $$
 
-已知落入某层的概率即为该层在积分中的占比,
-即\\(p(I = v) = v\\), 此时可以解出下式.
+全方差定理如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+Var(X)&=E(Var(X|Y))+Var(E(X|Y))\\\\
+E(Var(X|Y))
+&=E(E(X^2|Y)-E^2(X|Y))\\\\
+&=E(E(X^2|Y))-E(E^2(X|Y))\\\\
+&=E(X^2)-E(E^2(X|Y))\\\\
+Var(E(X|Y))
+&=E(E^2(X|Y))-E^2(E(X|Y))\\\\
+&=E(E^2(X|Y))-E^2(X)
+\end{aligned}
+\end{equation}
+$$
+
+已知落入某层的概率即为该层在积分中的占比, 即\\(p(I = v) = v\\), 记\\(G=\frac{f(X)}{P(X)}\\), 此时可以解出下式.
 
 $$
 \begin{equation}
@@ -151,14 +168,11 @@ Var(F)
 \end{equation}
 $$
 
-可以看到非分层抽样的方差是大于等于分层抽样的方差的, 但是需要估计每一层的积分和.
-同时分层数量也随维度指数增加, 通常只会在某一维上增加层数, 其它维度只有少量的层.
+可以看到非分层抽样的方差是大于等于分层抽样的方差的, 但是需要估计每一层的积分和. 同时分层数量也随维度指数增加, 通常只会在某一维上增加层数, 其它维度只有少量的层.
 
 ### 重要性抽样
 
-重要性抽样的核心思想就是让采样点的分布与积分函数相似,
-此时样本会集中在函数值较大处, 有利于积分计算的收敛.
-根据Jensen不等式可以得到下式, 当且仅当\\(\frac{|f(X)|}{p(X)}\\)时成立.
+重要性抽样的核心思想就是让采样PDF与积分函数相似, 此时样本会集中在函数值较大处, 有利于积分计算的收敛.根据Jensen不等式可以得到下式, 当且仅当\\(\frac{|f(X)|}{p(X)}\\)为常数时成立.
 
 $$
 \begin{equation}
@@ -170,19 +184,21 @@ Var(\frac{f(X)}{p(X)})
 \end{equation}
 $$
 
-对于分层抽样, 可以在每一层内部使用重要性抽样来进一步降低方差.
-但显然想找到这样的分布函数是比较困难的.
+对于分层抽样, 可以在每一层内部使用重要性抽样来进一步降低方差. 但显然想找到这样的PDF是比较困难的.
 
 #### 多重重要性抽样
 
-积分式往往是由多个方程组成的, 我们可以分别选取与各个方程相似的密度函数,
-这被称为多重重要性抽样, 简称MIS, 其一般形式如下式,
-若为无偏估计则其中\\(\sum_{i=1}^n \omega_i(x) = 1\\)
-且当\\(p_i(x) = 0\\)时\\(\omega_i(x) = 0\\).
+积分式往往是由多个方程组成的, 我们可以分别选取与各个方程相似的PDF, 这被称为多重重要性抽样, 简称MIS, 若为无偏估计则在采样结果相同时\\(\sum_{i=1}^n \omega_i(x) = 1\\), 且当\\(p_i(x) = 0\\)时\\(\omega_i(x) = 0\\)否则由于概率为0使得权重不产生影响上一个条件不成立, 证明如下.
 
 $$
 \begin{equation}
-F=\sum_{i=1}^n \frac{1}{n_i} \sum_{j=1}^{n_i} \omega_i(X_{i,j})\frac{f(X_{i,j})}{p_i(X_{i,j})}
+\begin{aligned}
+F
+&=E(\sum_{i=1}^n \frac{1}{n_i} \sum_{j=1}^{n_i} \omega_i(X_{i,j})\frac{f(X_{i,j})}{p_i(X_{i,j})})\\\\
+&\approx\sum_{i=1}^n\int\omega_i(x)\frac{f(x)}{p_i(x)}p_i(x)dx\\\\
+&=\int\sum_{i=1}^n\omega_i(x)\frac{(f(x))}dx\\\\
+&=\int f(x)dx
+\end{aligned}
 \end{equation}
 $$
 
@@ -202,12 +218,17 @@ $$
 \end{equation}
 $$
 
-令选择分布\\(p_i(x)\\)的概率为\\(q_i\\), 此时可以得到单抽样模型.
-pbrt说这也是无偏的, 没说怎么证明.
+若某次采样过程只使用一种PDF, 令选择\\(p_i(x)\\)的概率为\\(q_i\\), 此时可以得到单抽样模型, 同样也是无偏的.
 
 $$
 \begin{equation}
-F=\frac{w_i(X)}{q_i}\frac{f(X)}{p_i(X)}
+\begin{aligned}
+F
+&=E(\frac{w_i(X)}{q_i}\frac{f(X)}{p_i(X)})\\\\
+&=\sum_{i=1}^n\int\frac{\omega_i(x)}{q_i}\frac{f(x)}{p_i(x)}p_i(x)q_i dx\\\\
+&=\int\sum_{i=1}^n\omega_i(x)\frac{(f(x))}dx\\\\
+&=\int f(x)dx
+\end{aligned}
 \end{equation}
 $$
 
@@ -215,8 +236,7 @@ $$
 
 #### MIS补偿
 
-MIS中每个概率分布都可以单独用于Monte Carlo, 函数值非0处只需要有一个概率分布不为0即可.
-将分布密度较小处调整为0可以进一步缩小方差, 这被称为MIS补偿, 一种补偿方法如下.
+MIS中每个PDF都可以单独用于Monte Carlo, 函数值非0处只需要有一个概率分布不为0即可. 将PDF较小处调整为0可以进一步缩小方差, 这被称为MIS补偿, 一种补偿方法如下.
 
 $$
 \begin{equation}
@@ -226,8 +246,7 @@ $$
 
 ### 俄罗斯轮盘
 
-俄罗斯轮盘主要用于跳过函数值较小处的计算, 提高效率的同时可以保持无偏.
-选择概率值\\(q\\)与常数\\(c\\), 可以得到下式. \\(c\\)通常为0.
+俄罗斯轮盘主要用于跳过估计值较小处的计算, 提高效率的同时可以保持无偏. 选择概率值\\(q\\)与常数\\(c\\), 可以得到下式. \\(c\\)通常为0.
 
 $$
 \begin{equation}
@@ -260,14 +279,11 @@ $$
 \end{equation}
 $$
 
-例如在渲染中, 初始光线方向与相交后的反射方向都是随机变量,
-我们可以只发射一次然后对反射方向多次采样来减少初次发射的开销.
+例如在渲染中, 初始光线方向与相交后的反射方向都是随机变量, 我们可以只发射一次然后对反射方向多次采样来减少初次发射的开销.
 
 ## 逆变换法
 
-逆变换法可以通过采样容易构造的均匀分布来得到选定分布中的样本.
-在分布已知的情况下, 将均匀分布采样结果输入该分布CDF的逆函数即可获取该分布中的样本.
-这里主要证明逆变换法得到的采样结果遵循选定的分布.
+逆变换法可以通过采样容易构造的均匀分布来得到选定PDF中的样本. 在PDF已知的情况下, 将均匀分布采样结果输入CDF的逆函数即可获取PDF中的样本. 这里主要证明逆变换法得到的采样结果遵循选定的分布.
 
 $$
 \begin{equation}
