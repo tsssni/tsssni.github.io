@@ -495,8 +495,7 @@ Spectrum GetNamedSpectrum(std::string name);
 
 ### 采样光谱分布
 
-pbrt不提供复杂的积分计算功能, 但是会提供采样函数以执行Monte Carlo积分.
-相比于传统的RGB渲染使用3个固定的波长, pbrt默认会采样4个不同的波长.
+pbrt不提供复杂的积分计算功能, 但是会提供采样函数以执行Monte Carlo积分, 默认采样4个不同的波长.
 
 #### SampledSpectrum
 
@@ -596,9 +595,13 @@ bool SecondaryTerminated() const {
 pbrt基于光谱分布而非颜色, 但是由于处理渲染图像输出、部分场景描述使用颜色来表示反射率等信息等原因,
 pbrt需要正确的处理颜色与光谱分布的转换.
 
-三刺激理论中使用三个光谱匹配函数计算得到的刺激值即可表示颜色, 这三个值构成了3D的色彩空间.
-由于刺激值由积分得到, 在色彩空间中颜色的加法与缩放是允许的, 但是颜色之间并不能相乘, 这也是RGB渲染的问题之一.
-匹配积分如下, S为光谱分布, \\(m_{1,2,3}\\)为三刺激理论中RGB对应的波长各自的匹配函数.
+三刺激理论中使用三个光谱匹配函数计算得到的刺激值即可表示颜色.
+匹配函数是以波长为参数的函数, 值代表某个波长的光对应的刺激值.
+某种颜色的光通常由多个波长上的光混合得到, 与匹配函数内积相当于把每个波长上的光转为刺激值后再线性相加.
+由于人眼对光刺激的响应是线性的, 在色彩空间中颜色的加法与缩放是允许的,
+但是颜色之间并不能相乘, 这也是RGB渲染的问题之一.
+
+颜色匹配积分如下, S为光谱分布, \\(m_{1,2,3}\\)为三刺激理论中RGB对应的波长各自的匹配函数.
 
 $$
 \begin{equation}
@@ -608,11 +611,20 @@ $$
 
 ### XYZ色彩空间
 
-CIE通过大量实验定义了RGB色彩空间, 由于有负值, 经过变换后得到XYZ色彩空间.
+CIE通过大量实验定义了RGB色彩空间, 通过将选定的三原色混合来形成所测量的颜色,
+根据三种颜色的功率获取对应的当前波长的颜色在色彩匹配函数中的值.
+其中R是有负值的, 因为部分颜色无法表示, 需要从相反方向添加红色形成该颜色.
+
+RGB色度图边缘代表光谱颜色, 即某个波长的光形成的颜色.
+非光谱颜色由多个波长的光混合得到, 即对色度图边缘上的点做线性插值.
+由于色度图边缘形成凸包, 因此非光谱颜色一定位于色度图的内部.
+
+由于RGB空间有负值不便于计算, 经过线性变换后得到XYZ色彩空间.
 XYZ色彩空间是设备无关的, 通常用于色彩空间转换的中介.
 
-pbrt中使用Y归一化后的色彩值. Y上的匹配函数与用于计算亮度的光谱响应曲线成正比,
+Y上的匹配函数在设计时特地与用于计算亮度的光谱响应曲线成正比,
 满足\\(V(\lambda) = 683 Y(\lambda)\\).
+pbrt中使用Y归一化后的色彩值, 这使得常数光谱的Y值仍然为相同的常数.
 
 $$
 \begin{equation}
@@ -678,50 +690,38 @@ $$
 
 ### RGB颜色
 
-每个显示器都具有不同的RGB响应曲线 在RGB响应曲线已知的情况下,
-可以利用XYZ空间得到色彩变换矩阵. 下式以红色为例展示了这一转换的过程.
+每个显示器都具有不同的RGB响应曲线, 这代表着显示器三原色的光谱响应特性, 其它颜色都通过三原色的线性相加获取.
+在RGB响应曲线已知的情况下, 通过XYZ匹配函数获取原色色度, 根据白点添加色度变换, 即可定义到XYZ空间的色彩变换矩阵.
 
 $$
 \begin{equation}
-\begin{aligned}
-r
-&= \int_\lambda R(\lambda)S(\lambda)d\lambda\\\\
-&= \int_\lambda R(\lambda)(x_\lambda X(\lambda) + y_\lambda Y(\lambda) + z_\lambda Z(\lambda)) d\lambda\\\\
-&= x_\lambda \int_\lambda R(\lambda) X(\lambda) d\lambda +  y_\lambda \int_\lambda R(\lambda) Y(\lambda) d\lambda +  z_\lambda \int_\lambda R(\lambda) Z(\lambda) d\lambda
-\end{aligned}
-\end{equation}
-$$
-
-$$
-\begin{equation}
-\begin{bmatrix}
-r\\\\
-g\\\\
-b
-\end{bmatrix} =
-\begin{pmatrix}
-\int_\lambda R(\lambda) X(\lambda)d\lambda & \int_\lambda R(\lambda) Y(\lambda)d\lambda & \int_\lambda R(\lambda) Z(\lambda)d\lambda\\\\
-\int_\lambda G(\lambda) X(\lambda)d\lambda & \int_\lambda G(\lambda) Y(\lambda)d\lambda & \int_\lambda G(\lambda) Z(\lambda)d\lambda\\\\
-\int_\lambda B(\lambda) X(\lambda)d\lambda & \int_\lambda B(\lambda) Y(\lambda)d\lambda & \int_\lambda B(\lambda) Z(\lambda)d\lambda
-\end{pmatrix}
 \begin{bmatrix}
 x_\lambda\\\\
 y_\lambda\\\\
 z_\lambda
+\end{bmatrix} =
+\begin{pmatrix}
+\int_\lambda R(\lambda) X(\lambda)d\lambda & \int_\lambda G(\lambda) X(\lambda)d\lambda & \int_\lambda B(\lambda) X(\lambda)d\lambda\\\\
+\int_\lambda R(\lambda) Y(\lambda)d\lambda & \int_\lambda G(\lambda) Y(\lambda)d\lambda & \int_\lambda B(\lambda) Y(\lambda)d\lambda\\\\
+\int_\lambda R(\lambda) Z(\lambda)d\lambda & \int_\lambda G(\lambda) Z(\lambda)d\lambda & \int_\lambda B(\lambda) Z(\lambda)d\lambda
+\end{pmatrix}
+\begin{bmatrix}
+r\\\\
+g\\\\
+b
 \end{bmatrix}
 \end{equation}
 $$
 
+pbrt中通过三刺激值直接得到对应的光谱, 这步是不对的, 代码里没有这么做, 同时矩阵也是反的.
+
+
 ### RGB色彩空间
 
-某种响应曲线对应下三原色(R为当前响应曲线下的(1, 0, 0)对应的颜色, G、B同理)的色度在色度图上构成的三角形就是RGB色彩空间.
-该色彩空间下三色值为1的颜色在色度图上的色度为白点, 由于人眼感知的问题白色通常在短波具有更高的功率, 一般选用D65作为白点.
+某种响应曲线对应下三原色(R为当前响应曲线下的(1, 0, 0)对应的颜色, G、B同理)的色度在色度图上构成的三角形定义了当前色彩空间的范围.
+该色彩空间下三色值为1的颜色在色度图上的色度为白点, 由于人眼感知的问题白色通常在短波具有更高的功率, 一般选用D65作为白点. 根据白点的不同, 需要对色彩空间添加对应的变换.
 
-`RGBColorSpace`的构造需要提供白色光照对应的光谱分布, 以便于后续用户通过RGB指定光源颜色.
-同时由于R、G、B的色度已知, 可以得到Y=1下它们对应的XYZ颜色.
-结合白色光照的XYZ颜色, 此时只有三原色的亮度信息是缺失的, 
-即下式中的常数, 可以在构造函数中计算出来.
-以XYZ空间为中转可以实现快速的颜色空间转换.
+`RGBColorSpace`的构造需要提供三原色的色度以及白点光谱分布. 通过三原色可以确定从XYZ到当前色彩空间的变换矩阵. 白点色度转换首先将白点从XYZ转到当前色彩空间, 然后应用缩放矩阵, 这使得当前色彩空间下的白色\\((1.0, 1.0, 1.0)\\)可以映射到正确的颜色上. 矩阵表达式与构造函数代码如下.
 
 $$
 \begin{equation}
@@ -832,7 +832,7 @@ b
 \begin{bmatrix}
 R(\lambda)\\\\
 G(\lambda)\\\\
-G(\lambda)
+B(\lambda)
 \end{bmatrix}
 S(\lambda, c_0, c_1, c_2)
 W(\lambda)
