@@ -798,6 +798,8 @@ Monte Carlo下需要每个像素生成多个不同光线路径的样本来减小
 2. 反射光谱, 用于描述可吸收光照的表面的反射率, 由于能量守恒RGB位于[0,1]中
 3. 无界光谱, 自发光之外的其他无界值, 如折射率与介质散射
 
+#### 反射光谱
+
 首先解决反射光谱转换, 它需要满足以下三点性质.
 
 1. 一致性, 转换得到光谱可以通过一般方法转换为当前的RGB
@@ -816,7 +818,9 @@ S(\lambda) &= s(c_2 \lambda^2 + c_1 \lambda + c_0)\\\\
 \end{equation}
 $$
 
-pbrt通过数值优化来求解参数, 优化方程中加入白点是为了保证在三原色上具有均匀分布.
+pbrt通过数值优化来求解参数, 由于反照率表示的是白光垂直照在材质上的漫反射颜色, 优化方程中需要加入白点.
+这也使得解出的白色是均匀分布的光谱, 因为本身色彩空间响应曲线就会将白点映射到\\((1,1,1)\\),
+只有与均匀光谱内积才能得到三个通道上值相同的颜色.
 pbrt选用CIE76\\(\Delta E\\)作为优化范式, 利用Gauss-Newton方法求解.
 
 $$
@@ -861,7 +865,9 @@ RGBAlbedoSpectrum::RGBAlbedoSpectrum(const RGBColorSpace &cs, RGB rgb) {
 
 #### 无界光谱
 
-无界光谱定义在`RGBUnboundedSpectrum`中, 通过将最大值归一化为\\(\frac{1}{2}\\)来提升参数优化的效果.
+无界光谱定义在`RGBUnboundedSpectrum`中, 由于同样与白点相关, 可以通过缩放复用反射光谱.
+pbrt通过将颜色除以两倍的最大值以提升参数优化的效果, 如果按照一般的除以最大值的归一化方法,
+得到的高饱和度颜色会使得优化求解出的光谱在非饱和区域分布过多.
 
 ```c++
 RGBUnboundedSpectrum::RGBUnboundedSpectrum(const RGBColorSpace &cs,
@@ -878,7 +884,7 @@ Float RGBUnboundedSpectrum::MaxValue() const { return scale * rsp.MaxValue(); }
 
 自发光光谱定义在`RGBIlluminantSpectrum`中, 在`RGBUnboundedSpectrum`的基础上,
 自发光光源在取值时会乘上当前色彩空间的标准光源在该波长下的值,
-这是为了模拟人眼对颜色的自适应, 或者说白平衡.
+因为反照率乘上白点光谱是可以得到对应颜色的光照的.
 
 ```c++
 RGBIlluminantSpectrum::RGBIlluminantSpectrum(const RGBColorSpace &cs,
@@ -899,7 +905,7 @@ Float RGBIlluminantSpectrum::operator()(Float lambda) const {
 这章对辐射度量学与光谱渲染进行了详细的介绍, 反射模型相关内容也有涉及,
 由于它直接影响渲染过程中光线传播显示的颜色, 后面第9章会有单独的章节细化这些内容.
 
-RGB渲染只能说是光谱渲染的一个简化版本, 不过考虑到现有GPU架构,
+RGB渲染只能说是光谱渲染的hack, 不过考虑到现有GPU架构,
 光谱渲染应用在实时渲染应该还有一段距离, 积分的计算有点为难shader了.
 
 另外, `TaggedPointer`这种显示指明子类的多态实现属实有点丑陋,
