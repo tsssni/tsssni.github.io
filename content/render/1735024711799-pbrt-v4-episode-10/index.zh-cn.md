@@ -14,9 +14,96 @@ tags: ["graphics", "rendering", "pbrt"]
 
 纹理反走样比光线渲染结果反走样要容易, 某些纹理具有解析形式, 同时也可以做预滤波, 通常来说每个像素不会需要多于一个的纹理样本.
 
-`GenerateRayDifferential`获取相邻像素发出的光线的相交结果, 此时可以计算当前像素的\\(\frac{\partial p}{\partial u}\\)和\\(\frac{\partial p}{\partial v}\\). 对于不支持`GenerateRayDifferential`的相机, pbrt会遍历屏幕对角线上的像素获取最小的光线微分, 然后在每个像素上将添加微分后的新光线与交点对应的切平面相交.
+`GenerateRayDifferential`获取相邻像素发出的光线的相交结果, 此时可以计算当前像素的\\(\frac{\partial p}{\partial u}\\)和\\(\frac{\partial p}{\partial v}\\), pbrt会根据交点的位置与法线构建切平面, 让相交光线与切平面相交来获取微分估计值.
 
-根据交点的法线可以获取\\(\frac{\partial p}{\partial x}\\)和\\(\frac{\partial p}{\partial y}\\), 通过链式法则可以获取\\(\frac{\partial u}{\partial x}\\), \\(\frac{\partial u}{\partial y}\\), \\(\frac{\partial v}{\partial x}\\)和\\(\frac{\partial v}{\partial y}\\). 这可以通过最小二乘法求解, 其计算过程如下, 此时\\(\bold{A}=\begin{bmatrix}\frac{\partial p}{\partial u}\ \frac{\partial p}{\partial v}\end{bmatrix}\\),\\(\bold{b}=\begin{bmatrix}\frac{\partial p}{\partial x}\end{bmatrix}\\),\\(\bold{x}=\begin{bmatrix}\frac{\partial u}{\partial x}\\\\\frac{\partial v}{\partial x}\end{bmatrix}\\).
+对于例如漫反射的难以计算微分的情况以及不支持`GenerateRayDifferential`的相机, pbrt会将相机变换到朝向交点的方向, 根据相机提供的最小光线位置与方向的微分来生成微分光线, 再变换回渲染空间.
+
+```c++
+PBRT_CPU_GPU
+void Approximate_dp_dxy(Point3f p, Normal3f n, Float time, int samplesPerPixel,
+                        Vector3f *dpdx, Vector3f *dpdy) const {
+    // Compute tangent plane equation for ray differential intersections
+    Point3f pCamera = CameraFromRender(p, time);
+    Transform DownZFromCamera =
+        RotateFromTo(Normalize(Vector3f(pCamera)), Vector3f(0, 0, 1));
+    Point3f pDownZ = DownZFromCamera(pCamera);
+    Normal3f nDownZ = DownZFromCamera(CameraFromRender(n, time));
+    Float d = nDownZ.z * pDownZ.z;
+
+    // Find intersection points for approximated camera differential rays
+    Ray xRay(Point3f(0, 0, 0) + minPosDifferentialX,
+                Vector3f(0, 0, 1) + minDirDifferentialX);
+    Float tx = -(Dot(nDownZ, Vector3f(xRay.o)) - d) / Dot(nDownZ, xRay.d);
+    Ray yRay(Point3f(0, 0, 0) + minPosDifferentialY,
+                Vector3f(0, 0, 1) + minDirDifferentialY);
+    Float ty = -(Dot(nDownZ, Vector3f(yRay.o)) - d) / Dot(nDownZ, yRay.d);
+    Point3f px = xRay(tx), py = yRay(ty);
+
+    // Estimate $\dpdx$ and $\dpdy$ in tangent plane at intersection point
+    Float sppScale =
+        GetOptions().disablePixelJitter
+            ? 1
+            : std::max<Float>(.125, 1 / std::sqrt((Float)samplesPerPixel));
+    *dpdx =
+        sppScale * RenderFromCamera(DownZFromCamera.ApplyInverse(px - pDownZ), time);
+    *dpdy =
+        sppScale * RenderFromCamera(DownZFromCamera.ApplyInverse(py - pDownZ), time);
+}
+```
+
+正交投影各个像素上的光线位置变化与渲染空间一致, 光线方向不变, 因此可以直接获取微分. 其它相机会遍历屏幕对角线上的像素, 计算各个像素发射的光线, 比较这些光线以获取光线位置与方向的最小变化值作为微分.
+
+```c++
+void CameraBase::FindMinimumDifferentials(Camera camera) {
+    minPosDifferentialX = minPosDifferentialY = minDirDifferentialX =
+        minDirDifferentialY = Vector3f(Infinity, Infinity, Infinity);
+
+    CameraSample sample;
+    sample.pLens = Point2f(0.5, 0.5);
+    sample.time = 0.5;
+    SampledWavelengths lambda = SampledWavelengths::SampleVisible(0.5);
+
+    int n = 512;
+    for (int i = 0; i < n; ++i) {
+        sample.pFilm.x = Float(i) / (n - 1) * film.FullResolution().x;
+        sample.pFilm.y = Float(i) / (n - 1) * film.FullResolution().y;
+
+        pstd::optional<CameraRayDifferential> crd =
+            camera.GenerateRayDifferential(sample, lambda);
+        if (!crd)
+            continue;
+
+        RayDifferential &ray = crd->ray;
+        Vector3f dox = CameraFromRender(ray.rxOrigin - ray.o, ray.time);
+        if (Length(dox) < Length(minPosDifferentialX))
+            minPosDifferentialX = dox;
+        Vector3f doy = CameraFromRender(ray.ryOrigin - ray.o, ray.time);
+        if (Length(doy) < Length(minPosDifferentialY))
+            minPosDifferentialY = doy;
+
+        ray.d = Normalize(ray.d);
+        ray.rxDirection = Normalize(ray.rxDirection);
+        ray.ryDirection = Normalize(ray.ryDirection);
+
+        Frame f = Frame::FromZ(ray.d);
+        Vector3f df = f.ToLocal(ray.d);  // should be (0, 0, 1);
+        Vector3f dxf = Normalize(f.ToLocal(ray.rxDirection));
+        Vector3f dyf = Normalize(f.ToLocal(ray.ryDirection));
+
+        if (Length(dxf - df) < Length(minDirDifferentialX))
+            minDirDifferentialX = dxf - df;
+        if (Length(dyf - df) < Length(minDirDifferentialY))
+            minDirDifferentialY = dyf - df;
+    }
+
+    LOG_VERBOSE("Camera min pos differentials: %s, %s", minPosDifferentialX,
+                minPosDifferentialY);
+    LOG_VERBOSE("Camera min dir differentials: %s, %s", minDirDifferentialX,
+                minDirDifferentialY);
+}
+```
+
+令\\((u, v)\\)为纹理坐标, \\((x,y)\\)为像素坐标, 根据与形状的相交结果可以获取\\(\frac{\partial p}{\partial u}\\)和\\(\frac{\partial p}{\partial v}\\), 根据光线微分可以获取\\(\frac{\partial p}{\partial x}\\)和\\(\frac{\partial p}{\partial y}\\), 通过链式法则可以获取\\(\frac{\partial u}{\partial x}\\), \\(\frac{\partial u}{\partial y}\\), \\(\frac{\partial v}{\partial x}\\)和\\(\frac{\partial v}{\partial y}\\). 这可以通过最小二乘法求解, 其计算过程如下, 此时\\(\bold{A}=\begin{bmatrix}\frac{\partial p}{\partial u}\ \frac{\partial p}{\partial v}\end{bmatrix}\\),\\(\bold{b}=\begin{bmatrix}\frac{\partial p}{\partial x}\end{bmatrix}\\),\\(\bold{x}=\begin{bmatrix}\frac{\partial u}{\partial x}\\\\\frac{\partial v}{\partial x}\end{bmatrix}\\).
 
 $$
 \begin{equation}
