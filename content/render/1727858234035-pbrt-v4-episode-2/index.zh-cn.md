@@ -226,7 +226,7 @@ $$
 F
 &=E(\frac{w_i(X)}{q_i}\frac{f(X)}{p_i(X)})\\\\
 &=\sum_{i=1}^n\int\frac{\omega_i(x)}{q_i}\frac{f(x)}{p_i(x)}p_i(x)q_i dx\\\\
-&=\int\sum_{i=1}^n\omega_i(x)\frac{(f(x))}dx\\\\
+&=\int\sum_{i=1}^n\omega_i(x)f(x)dx\\\\
 &=\int f(x)dx
 \end{aligned}
 \end{equation}
