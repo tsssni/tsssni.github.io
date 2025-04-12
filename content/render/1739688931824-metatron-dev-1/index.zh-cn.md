@@ -6,7 +6,7 @@ description: "metatron development log"
 tags: ["graphics", "rendering", "metatron"]
 ---
 
-今天正式开始开发metatron-renderer, 名字由来第一版发布再说.
+今天正式开始开发metatron, 名字由来第一版发布再说. 这些文章主要记录一些相对独有的开发成果, 烂大街的就不提了.
 
 ## 工具链
 
@@ -35,7 +35,7 @@ CompileFlags:
 
 整体结构分为以下处理单元集合:
 
-- lib: 第三方依赖
+- ext: 第三方依赖
 - src: 项目内模块
 - exe: 可执行程序
 
@@ -44,7 +44,7 @@ CompileFlags:
 
 ### 分批处理
 
-将lib/src/exe下面的子文件作为最小处理单元, `metatron_classify`负责收集处理单元. `path`是单元集合目录, 目录下的单元会使用相似的构建方式, 例如`exe`下的单元都会通过`add_executable`创建target. `mode`记录当前处理模式, 同样可设置为`"lib"|"src"|"exe"`, 主要用于单元构建时选择不同的策略. 为防止冲突模块名会添加`metatron-`的前缀.
+将ext/src/exe下面的子文件作为最小处理单元, `metatron_classify`负责收集处理单元. `path`是单元集合目录, 目录下的单元会使用相似的构建方式, 例如`exe`下的单元都会通过`add_executable`创建target. `mode`记录当前处理模式, 同样可设置为`"ext"|"src"|"exe"`, 主要用于单元构建时选择不同的策略. 为防止冲突模块名会添加`metatron-`的前缀.
 
 ```cmake
 function(metatron_classify path mode)
@@ -87,7 +87,7 @@ include(cmake/link.cmake)
 add_library(metatron-build INTERFACE)
 set_property(TARGET metatron-build PROPERTY metatron-units)
 
-metatron_classify(${metatron-root}/lib "lib")
+metatron_classify(${metatron-root}/lib "ext")
 metatron_classify(${metatron-root}/src "src")
 metatron_classify(${metatron-root}/exe "exe")
 
@@ -125,10 +125,10 @@ list(APPEND metatron-deps mimalloc)
 
 模块生成过程在`metatron_evaluate`中.
 
-对于lib, 创建interface target, 用于传递与第三方库的依赖关系, 并不会生成实际构建结果.
+对于ext, 创建interface target, 用于传递与第三方库的依赖关系, 并不会生成实际构建结果.
 
 ```cmake
-message(STATUS "build 3rd-party library ${target}")
+message(STATUS "build external library ${target}")
 add_library(${target} INTERFACE)
 ```
 
@@ -163,7 +163,7 @@ set(mode "inc")
 ```cmake
 set_property(TARGET ${target} PROPERTY metatron-path ${path})
 set_property(TARGET ${target} PROPERTY metatron-mode ${mode})
-if(${mode} STREQUAL "lib" OR ${mode} STREQUAL "inc")
+if(${mode} STREQUAL "ext" OR ${mode} STREQUAL "inc")
     set_property(TARGET ${target} PROPERTY metatron-access INTERFACE)
 else()
     set_property(TARGET ${target} PROPERTY metatron-access PUBLIC)
@@ -198,7 +198,7 @@ endif()
 # solve dependencies
 set(linked-libs)
 foreach(dep ${metatron-deps})
-    if(${mode} STREQUAL "lib")
+    if(${mode} STREQUAL "ext")
         list(APPEND linked-libs ${dep})
     else()
         list(APPEND linked-libs metatron-${dep})
