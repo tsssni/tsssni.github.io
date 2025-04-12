@@ -1,8 +1,8 @@
 {
-	description = "metatron engine devenv";
+	description = "tsssni.github.io devenv";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 	};
 
 	outputs = {
@@ -27,7 +27,7 @@
 					"${system}".default = pkgs.mkShellNoCC {
 						packages = with pkgs; [
 							hugo
-							nodejs_22
+							nodejs
 						];
 					};
 				}
