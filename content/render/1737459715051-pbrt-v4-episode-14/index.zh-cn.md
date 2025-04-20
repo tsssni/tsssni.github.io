@@ -64,22 +64,6 @@ L_i(p,\omega)=L_o(p_s,-\omega)T_{\text{maj}}(p_s \to p)+\int_0^{t_s} \sigma_{\te
 \end{equation}
 $$
 
-### 辐射转移方程求解
-
-添加空散射后重要性抽样的PDF为\\(\sigma_{\text{maj}}(p)e^{-\int_0^t \sigma_{\text{maj}}(p') dt'}\\), 令选择\\(L_i(p,\omega)\\)第一项的概率为\\(q=T_{\text{maj}}(p_s \to p)\\), 其求解方法如下. 由于之前章节所介绍的归一化, 这里\\(1-q\\)被抵消, 同时\\(L_n\\)可以按照上述方式求解.
-
-$$
-\begin{equation}
-\begin{aligned}
-L_i(p,\omega)\approx
-\begin{cases}
-\frac{T_{\text{maj}}(p_s \to p)L_o(p_s,\omega)}{q}=L_o(p_s,-\omega) & \text{with probability}\ q\\\\
-\frac{\int_0^t \sigma_{\text{maj}}(p')T_{\text{maj}}(p' \to p)L_n(p',-\omega)dt}{1-q}\approx\frac{\sigma_{\text{maj}}(p')T_{\text{maj}}(p' \to p)L_n(p',-\omega)}{p(p')}=L_n(p',-\omega) & \text{otherwise}
-\end{cases}
-\end{aligned}
-\end{equation}
-$$
-
 ### 采样主透射率
 
 pbrt中`Medium`是\\(\sigma_{\text{maj}}\\)的分段函数, 积分可以按如下方式表示. 此时可以执行递归采样, 首先采样\\(T_{\text{maj}}^1\\), 若得到的\\(t'_1<t_1\\)则采样第一项, 采样结果为\\(\frac{\sigma\_{\text{maj}}^1 T\_{\text{maj}}^1(p \to p')f(p')}{p_1(t'_1)}=f(p')\\), 若\\(t'_1>t_2\\)则采样第二项, 采样结果为\\(\frac{T\_{\text{maj}}^1(p \to p_1)\sigma\_{\text{maj}}^2 T\_{\text{maj}}^2(p \to p')f(p')}{P(t'_1 > t_1)p_1(t'_1)}=f(p')\\), 如此一直递归, 可以看出采样结果始终为\\(f(p')\\).
@@ -96,7 +80,7 @@ $$
 \end{equation}
 $$
 
-pbrt通过在`SampleT_maj`中实现\\(\sigma_{\text{maj}}\\)的采样, 每个样本都通过当前\\(\sigma_{\text{maj}}\\)对应的指数分布采样获取, 其中`T_maj`是当前样本与上个样本之间的\\(T_{\text{maj}}\\). 也就是说, 这里第\\(n\\)次采样对应\\(\sigma_{\text{maj}}^n\\), 而不是分段函数\\(\sigma_{\text{maj}}(p)\\)的每一段对应一个\\(\sigma_{\text{maj}}^n\\), 可以看出在每段内使用指数分布仍然是符合重要性抽样的.  由于比率跟踪等算法需要多个样本, pbrt通过`callback`不断获取样本并返回是否需要更多样本.
+pbrt通过在`SampleT_maj`中实现采样RTE中的积分项, 上式中的\\(f\\)对应\\(L_n\\). pbrt会根据概率选择\\(L_n\\)的三项, 这会在`callback`中实现. 选择\\(\sigma_a\\)或\\(\sigma_s\\)项会完成本次采样, 而由于\\(\sigma_n\\)项包含\\(L_i\\), pbrt会继续递归计算\\(L_i\\), 在`SampleT_maj`中表现为不退出循环.
 
 ```c++
 template <typename ConcreteMedium, typename F>
