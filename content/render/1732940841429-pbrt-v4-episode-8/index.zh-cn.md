@@ -960,13 +960,34 @@ FilterSample Sample(Point2f u) const {
 
 ### 三角形滤波器
 
-三角形滤波器的权重在坐标轴上是线性减小的, pbrt中将滤波器的斜率设置为1, 可以看出三角形滤波器是可分离的.
+三角形滤波器的权重在坐标轴上是线性减小的, pbrt中将滤波器的斜率设置为1, 半径为r时归一化形式如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+f(x) &= \max(0, \frac{1}{r} - \frac{|x|}{r^2})
+\end{aligned}
+\end{equation}
+$$
+
+二维上三角形滤波器是可分离的, 投影到\\(x=c\\)或\\(y=c\\)后仍为三角形.
 
 ```c++
 PBRT_CPU_GPU
 Float Evaluate(Point2f p) const {
     return std::max<Float>(0, radius.x - std::abs(p.x)) *
            std::max<Float>(0, radius.y - std::abs(p.y));
+}
+```
+
+三角形函数在正负两侧分别为线性函数, 且已知采样到两侧概率相同, 因此分别执行之前章节介绍的线性函数重要性抽样即可. 由于三角形滤波器本身即为三角形分布, 返回权重为1.
+
+```c++
+PBRT_CPU_GPU inline Float SampleTent(Float u, Float r) {
+    if (SampleDiscrete({0.5f, 0.5f}, u, nullptr, &u) == 0)
+        return -r + r * SampleLinear(u, 0, 1);
+    else
+        return r * SampleLinear(u, 1, 0);
 }
 ```
 

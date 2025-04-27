@@ -293,6 +293,32 @@ P(P_F^{-1}(U) < x)
 \end{equation}
 $$
 
+### 线性函数采样
+
+线性函数及其PDF与CDF定义如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+f(x)&=(1-x)a+xb\\\\
+p(x)&=\frac{2((1-x)a+xb)}{a+b}\\\\
+P(x)&=\frac{x(a(2-x)+bx)}{a+b}
+\end{aligned}
+\end{equation}
+$$
+
+求解CDF逆变换即\\(U=P(X)\\)这一二次方程的结果如下, 为保证\\(a=b\\)时结果稳定对结果做简单变换.
+
+$$
+\begin{equation}
+\begin{aligned}
+X
+&=\frac{a-\sqrt{(1-U)a^2+Ub^2}}{a-b}\\\\
+&=\frac{U(a+b)}{a+\sqrt{(1-U)a^2+Ub^2}}
+\end{aligned}
+\end{equation}
+$$
+
 ## 分布变换
 
 为了使得变换后的CDF具有如下性质, 我们要求\\(Y=T(X)\\)在每个维度上都单调递增.
