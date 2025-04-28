@@ -1063,6 +1063,75 @@ Point2f Sample(Point2f u, Float *pdf = nullptr,
 }
 ```
 
+#### 窗口二维分段函数
+
+`WindowedPiecewiseConstant2D`支持采样二维函数的部分矩形区域, 主要用于实现门户光源. pbrt实现了`SummedAreaTable`来存储二维分段函数某个位置到左下角的积分和, 这加速来计算任意矩形区域的积分和.
+
+对于浮点数的`SummedAreaTable`, pbrt通过对相邻整数对应的积分和做双线性插值实现.
+
+```c++
+PBRT_CPU_GPU
+Float Lookup(Float x, Float y) const {
+    // Rescale $(x,y)$ to table resolution and compute integer coordinates
+    x *= sum.XSize();
+    y *= sum.YSize();
+    int x0 = (int)x, y0 = (int)y;
+
+    // Bilinearly interpolate between surrounding table values
+    Float v00 = LookupInt(x0, y0), v10 = LookupInt(x0 + 1, y0);
+    Float v01 = LookupInt(x0, y0 + 1), v11 = LookupInt(x0 + 1, y0 + 1);
+    Float dx = x - int(x), dy = y - int(y);
+    return (1 - dx) * (1 - dy) * v00 + (1 - dx) * dy * v01 + dx * (1 - dy) * v10 +
+            dx * dy * v11;
+}
+```
+
+`WindowedPiecewiseConstant2D`的采样函数如下, `Px`用于返回窗口区域归一化后到某行的CDF. `SampleBisection`实现二分查找, 最后一个参数为底层`PiecewiseConstant2D`的行数量, 当搜索区间小于一行时进行插值并返回结果. 由于矩形长或宽为\\(0\\)时无法采样, pbrt将窗口宽度缩小到当前行, 在列上再次二分查找, 实际上缩小后的行可能略微超出原本的矩形区域了.
+
+```c++
+PBRT_CPU_GPU
+pstd::optional<Point2f> Sample(Point2f u, Bounds2f b, Float *pdf) const {
+    // Handle zero-valued function for windowed sampling
+    if (sat.Integral(b) == 0)
+        return {};
+
+    // Define lambda function _Px_ for marginal cumulative distribution
+    Float bInt = sat.Integral(b);
+    auto Px = [&, this](Float x) -> Float {
+        Bounds2f bx = b;
+        bx.pMax.x = x;
+        return sat.Integral(bx) / bInt;
+    };
+
+    // Sample marginal windowed function in $x$
+    Point2f p;
+    p.x = SampleBisection(Px, u[0], b.pMin.x, b.pMax.x, func.XSize());
+
+    // Sample conditional windowed function in $y$
+    // Compute 2D bounds _bCond_ for conditional sampling
+    int nx = func.XSize();
+    Bounds2f bCond(Point2f(pstd::floor(p.x * nx) / nx, b.pMin.y),
+                    Point2f(pstd::ceil(p.x * nx) / nx, b.pMax.y));
+    if (bCond.pMin.x == bCond.pMax.x)
+        bCond.pMax.x += 1.f / nx;
+    if (sat.Integral(bCond) == 0)
+        return {};
+
+    // Define lambda function for conditional distribution and sample $y$
+    Float condIntegral = sat.Integral(bCond);
+    auto Py = [&, this](Float y) -> Float {
+        Bounds2f by = bCond;
+        by.pMax.y = y;
+        return sat.Integral(by) / condIntegral;
+    };
+    p.y = SampleBisection(Py, u[1], b.pMin.y, b.pMax.y, func.YSize());
+
+    // Compute PDF and return point sampled from windowed function
+    *pdf = Eval(p) / bInt;
+    return p;
+}
+```
+
 ### 盒形滤波器
 
 盒形滤波器对半径内的采样点都具有相同的权重, 在频域下会导致高频信息泄漏至低频, 导致走样. 盒形滤波器本身就是均匀分布, 因此`Sample`方法只需要对传入的均匀分布样本进行缩放.
