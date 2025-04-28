@@ -1008,7 +1008,7 @@ FilterSample Sample(Point2f u) const {
 $$
 \begin{equation}
 \begin{aligned}
-g(x,\mu,\sigma) &= \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}\\\\
+g(x,\mu,\sigma) &= \frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}\\\\
 f(x) &=
 \begin{cases}
 g(x,0,\sigma)-g(r,0,\sigma) &|x|<r\\\\
@@ -1017,6 +1017,30 @@ g(x,0,\sigma)-g(r,0,\sigma) &|x|<r\\\\
 \end{aligned}
 \end{equation}
 $$
+
+Gaussian函数的CDF如下, 可以看出它不是可逆的.
+
+$$
+\begin{equation}
+\begin{aligned}
+P(x,\mu,\sigma)
+&=\int_{-\infty}^x \frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}} dx\\\\
+&=\int_{-\infty}^z \frac{1}{\sqrt{2\pi}}e^{-\frac{z^2}{2}} dz\\\\
+&=\int_{-\infty}^0 \frac{1}{\sqrt{2\pi}}e^{-\frac{z^2}{2}} dz + \int_0^z \frac{1}{\sqrt{2\pi}}e^{-\frac{z^2}{2}} dz\\\\
+&=\frac{1}{2} + \int_0^z \frac{1}{\sqrt{\pi}}e^{-\frac{z^2}{2}} d\frac{z}{\sqrt{2}}\\\\
+&=\frac{1}{2}(1+\text{erf}(\frac{z}{\sqrt{2}}))
+\end{aligned}
+\end{equation}
+$$
+
+pbrt通过某种多项式来你和误差函数的逆函数, 以实现重要性抽样.
+
+```c++
+PBRT_CPU_GPU
+Float SampleNormal(Float u, Float mu = 0, Float sigma = 1) {
+    return mu + Sqrt2 * sigma * ErfInv(2 * u - 1);
+}
+```
 
 ### Mitchell滤波器
 
