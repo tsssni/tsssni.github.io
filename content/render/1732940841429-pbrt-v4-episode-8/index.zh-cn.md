@@ -946,6 +946,79 @@ FilterSample Sample(Point2f u) const {
 }
 ```
 
+#### 一维分段函数
+
+pbrt支持在\\((0-1)\\)上均匀划分区间的分段函数重要性抽样, 其归一化因子, PDF以及CDF如下, PDF需要保证为正, 因此使用绝对值. 对于重要性抽样, 只需要找到\\(P(x_i) \le U \le P(x_{i+1})\\)并线性插值即可.
+
+$$
+\begin{equation}
+\begin{aligned}
+c&=\sum_{i=0}^{n-1}\frac{|v_i|}{n}\\\\
+p(x_i)&=\frac{|v_i|}{c}\\\\
+P(x_i)&=
+\begin{cases}
+0 & i=0\\\\
+P(x_{i-1})+\frac{|v_i|}{nc} & \text{otherwise}
+\end{cases}
+\end{aligned}
+\end{equation}
+$$
+
+`PiecewiseConstant1D`的构造函数如下. 对于积分和为\\(0\\)的情况, pbrt将其转为均匀分布, 在二维采样中这种情况很常见, 由于最终获取的权重为\\(0\\)转为均匀分布在统计上正确.
+
+```c++
+PiecewiseConstant1D(pstd::span<const Float> f, Float min, Float max,
+                    Allocator alloc = {})
+    : func(f.begin(), f.end(), alloc), cdf(f.size() + 1, alloc), min(min), max(max) {
+    CHECK_GT(max, min);
+    // Take absolute value of _func_
+    for (Float &f : func)
+        f = std::abs(f);
+
+    // Compute integral of step function at $x_i$
+    cdf[0] = 0;
+    size_t n = f.size();
+    for (size_t i = 1; i < n + 1; ++i) {
+        CHECK_GE(func[i - 1], 0);
+        cdf[i] = cdf[i - 1] + func[i - 1] * (max - min) / n;
+    }
+
+    // Transform step function integral into CDF
+    funcInt = cdf[n];
+    if (funcInt == 0)
+        for (size_t i = 1; i < n + 1; ++i)
+            cdf[i] = Float(i) / Float(n);
+    else
+        for (size_t i = 1; i < n + 1; ++i)
+            cdf[i] /= funcInt;
+}
+```
+
+`PiecewiseConstant1D`的采样实现如下, `FindInterval`实现二分搜索, `min`和`max`是用户设置的缩放系数.
+
+```c++
+PBRT_CPU_GPU
+Float Sample(Float u, Float *pdf = nullptr, int *offset = nullptr) const {
+    // Find surrounding CDF segments and _offset_
+    int o = FindInterval((int)cdf.size(), [&](int index) { return cdf[index] <= u; });
+    if (offset)
+        *offset = o;
+
+    // Compute offset along CDF segment
+    Float du = u - cdf[o];
+    if (cdf[o + 1] - cdf[o] > 0)
+        du /= cdf[o + 1] - cdf[o];
+    DCHECK(!IsNaN(du));
+
+    // Compute PDF for sampled offset
+    if (pdf)
+        *pdf = (funcInt > 0) ? func[o] / funcInt : 0;
+
+    // Return $x$ corresponding to sample
+    return Lerp((o + du) / size(), min, max);
+}
+```
+
 ### 盒形滤波器
 
 盒形滤波器对半径内的采样点都具有相同的权重, 在频域下会导致高频信息泄漏至低频, 导致走样. 盒形滤波器本身就是均匀分布, 因此`Sample`方法只需要对传入的均匀分布样本进行缩放.
