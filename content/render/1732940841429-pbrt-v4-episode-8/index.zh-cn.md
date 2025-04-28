@@ -1261,7 +1261,7 @@ Float Integral() const { return radius.x * radius.y / 4; }
 
 ### Lanczos滤波器
 
-Lanczos滤波器基于\\(\text{sinc}\\)函数, 通过将\\(\text{sinc}\\)函数与一个周期缩放后的\\(text{sinc}\\)函数相乘并截断实现. 缩放后的\\(text{sinc}\\)函数被称为窗口函数, 因此该滤波也叫窗口化\\(\text{sinc}\\)滤波器. 与直接使用\\(\text{sinc}\\)相比Lanczos滤波器具有更少的振荡. Lanczos滤波器的积分较难求解, pbrt通过Riemann和来估计.
+Lanczos滤波器基于\\(\text{sinc}\\)函数, 通过将\\(\text{sinc}\\)函数与一个周期缩放后的\\(\text{sinc}\\)函数相乘并截断实现. 缩放后的\\(\text{sinc}\\)函数被称为窗口函数, 因此该滤波也叫窗口化\\(\text{sinc}\\)滤波器. 与直接使用\\(\text{sinc}\\)相比Lanczos滤波器具有更少的振荡. Lanczos滤波器的积分较难求解, pbrt通过Riemann和来估计.
 
 $$
 \begin{equation}
@@ -1270,7 +1270,7 @@ $$
 w(x) &= \text{sinc}(\frac{x}{\tau})\\\\
 f(x) &=
 \begin{cases}
-\text{sinc}(x)w(x) &|x|\le r\\\\
+\text{sinc}(x)w(x) &|x|\le \tau\\\\
 0 &\text{otherwise}
 \end{cases}
 \end{aligned}
