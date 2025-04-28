@@ -948,7 +948,7 @@ FilterSample Sample(Point2f u) const {
 
 #### 一维分段函数
 
-pbrt支持在\\((0-1)\\)上均匀划分区间的分段函数重要性抽样, 其归一化因子, PDF以及CDF如下, PDF需要保证为正, 因此使用绝对值. 对于重要性抽样, 只需要找到\\(P(x_i) \le U \le P(x_{i+1})\\)并线性插值即可.
+pbrt支持在\\((0-1)\\)上均匀划分区间的分段函数重要性抽样, 可以通过自定义参数缩放采样结果, 其归一化因子, PDF以及CDF如下, PDF需要保证为正, 因此使用绝对值. 对于重要性抽样, 只需要找到\\(P(x_i) \le U \le P(x_{i+1})\\)并线性插值即可.
 
 $$
 \begin{equation}
@@ -1016,6 +1016,50 @@ Float Sample(Float u, Float *pdf = nullptr, int *offset = nullptr) const {
 
     // Return $x$ corresponding to sample
     return Lerp((o + du) / size(), min, max);
+}
+```
+
+#### 二维分段函数
+
+基于一维分段函数, pbrt支持\\(n_u \times n_v\\)上的二维分段函数重要性抽样.
+
+`PiecewiseConstant2D`的构造函数如下, 计算并存储每行的积分和.
+
+```c++
+PiecewiseConstant2D(pstd::span<const Float> func, int nu, int nv, Bounds2f domain,
+                    Allocator alloc = {})
+    : domain(domain), pConditionalV(alloc), pMarginal(alloc) {
+    CHECK_EQ(func.size(), (size_t)nu * (size_t)nv);
+    pConditionalV.reserve(nv);
+    for (int v = 0; v < nv; ++v)
+        // Compute conditional sampling distribution for $\tilde{v}$
+        pConditionalV.emplace_back(func.subspan(v * nu, nu), domain.pMin[0],
+                                    domain.pMax[0], alloc);
+
+    // Compute marginal sampling distribution $p[\tilde{v}]$
+    pstd::vector<Float> marginalFunc;
+    marginalFunc.reserve(nv);
+    for (int v = 0; v < nv; ++v)
+        marginalFunc.push_back(pConditionalV[v].Integral());
+    pMarginal =
+        PiecewiseConstant1D(marginalFunc, domain.pMin[1], domain.pMax[1], alloc);
+}
+```
+
+`PiecewiseConstant2D`的采样函数如下, 现在列上做一维重要性抽样, 然后再采样对应行.
+
+```c++
+Point2f Sample(Point2f u, Float *pdf = nullptr,
+               Point2i *offset = nullptr) const {
+    Float pdfs[2];
+    Point2i uv;
+    Float d1 = pMarginal.Sample(u[1], &pdfs[1], &uv[1]);
+    Float d0 = pConditionalV[uv[1]].Sample(u[0], &pdfs[0], &uv[0]);
+    if (pdf)
+        *pdf = pdfs[0] * pdfs[1];
+    if (offset)
+        *offset = uv;
+    return Point2f(d0, d1);
 }
 ```
 
