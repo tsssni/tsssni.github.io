@@ -451,7 +451,7 @@ $$
 \begin{equation}
 \begin{aligned}
 a &= \sum_{i=1}^{n} d_i(a) b^{i - 1}\\\\
-\phi_b(a) &= \sum_{i=1}^{n} d_i(a) b{-i}
+\phi_b(a) &= \sum_{i=1}^{n} d_i(a) b^{-i}
 \end{aligned}
 \end{equation}
 $$
