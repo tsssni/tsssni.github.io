@@ -8,7 +8,7 @@ tags: ["graphics", "rendering", "pbrt"]
 
 {{< katex >}}
 
-pbrt中只有符合物理的光源, 例如带有距离衰减, 只照亮某些物体这类不符合物理的光源是没有实现的. 为提高效率, pbrt会根据概率选择光源.
+pbrt中不实现无法参与几何光学的光源, 例如只照亮某些物体的光源. 为提高效率, pbrt会根据概率选择光源.
 
 ## 光源接口
 
@@ -124,9 +124,7 @@ class LightBase {
 
 ## 点光源
 
-部分光源可以被抽象为从某个点发光, 在角度上遵循某种分布.
-
-如之前章节所介绍的, 由于没有空间上的体积, 点光源需要通过辐射强度来描述. 由于点光源均匀的向任意方向发射光线, 通过除以距离的平方可以将单位转为辐亮度.
+点光源没有实体, 只能通过在立体角上的分布即辐射强度来描述. 这导致辐亮度无法被描述, pbrt通过除以距离的平方使得单位相同, 以及保持能量守恒.
 
 ```c++
 pstd::optional<LightLiSample>
@@ -201,13 +199,19 @@ SampleLi(LightSampleContext ctx, Point2f u, SampledWavelengths lambda,
 }
 ```
 
-远距离光的功率通过乘上场景包围球对应的圆盘的面积得到.
+获取场景内所有物体被照射的面积不现实, 远距离光的功率通过乘上场景包围球对应的圆盘的面积来估计, 形式如下.
+
+$$
+\begin{equation}
+\Phi = \pi r_s^2 \int_\Theta L_e \delta(\omega - \omega_e) d\omega = \pi r_s^2 L_e
+\end{equation}
+$$
 
 ## 面积光源
 
-面积光源通过将`Shape`与在其表面上的辐亮度分布结合来实现, 其光照计算通常没有解析形式.
+面积光源通过将`Shape`与在其表面上的辐亮度分布结合来实现, 认为某个点的光源方向为法线方向, 其光照计算通常没有解析形式.
 
-`DiffuseAreaLight`定义了在`Shape`表面均匀分布的光源, 支持通过`Image`确定各个点的光照, 以及通过`alpha`使得某些点不发光. pbrt通过调用`Shape::Sample`实现面积光源的采样.
+`DiffuseAreaLight`定义了在`Shape`表面均匀分布的光源, 支持通过`Image`确定各个点的光照, 以及通过`alpha`使得某些点不发光. pbrt通过调用`Shape::Sample`实现面积光源的采样. pbrt只支持双线性片使用图片面积光源, 否则图片采样需要对几何物体类做出不必要的扩展.
 
 ```c++
 class DiffuseAreaLight : public LightBase {
@@ -231,7 +235,7 @@ class DiffuseAreaLight : public LightBase {
 };
 ```
 
-由于对于面积光源上的某个点\\(E(p)=L\int_0^{2\pi}\int_0^{\frac{\pi}{2}}\cos\theta\sin\theta d\theta=\pi L\\), 功率计算方式如下. 对于通过`Image`指定光照的光源, pbrt会计算平均辐亮度.
+由于对于面积光源上的某个点\\(E(p)=L\int_0^{2\pi}\int_0^{\frac{\pi}{2}}\cos\theta\sin\theta d\theta=\pi L\\), 功率计算方式如下. 对于通过`Image`指定光照的光源, 物体面积除以图片面积可以近似每个像素的面积.
 
 ```c++
 SampledSpectrum DiffuseAreaLight::Phi(SampledWavelengths lambda) const {
@@ -261,6 +265,14 @@ SampledSpectrum DiffuseAreaLight::Phi(SampledWavelengths lambda) const {
 ### 均匀无限光源
 
 均匀无限光源通过`UniformInfiniteLight`定义, 从各个方向发出相同的光. 执行`SampleLi`时`UniformInfiniteLight`可以传入`allowIncompletePDF`参数, 此时会返回未设置的样本, 因为光源辐亮度为常数, 为避免影响MIS的效果此时不应采样光源.
+
+`UniformInfiniteLight`的功率计算方式如下, 直接在场景包围球上求积分即可.
+
+```c++
+SampledSpectrum UniformInfiniteLight::Phi(SampledWavelengths lambda) const {
+    return 4 * Pi * Pi * Sqr(sceneRadius) * scale * Lemit->Sample(lambda);
+}
+```
 
 ### 图像无限光源
 
@@ -298,6 +310,29 @@ pbrt通过`PiecewiseConstant2D`构建光照分布, 若`allowIncompletePDF`则在
 
 ```c++
 Float pdf = mapPDF / (4 * Pi);
+```
+
+`ImageInfiniteLight`的功率计算方式如下, 由于图片采用等面积映射, 每个像素对应的球面面积可以较为简单的获取.
+
+```c++
+SampledSpectrum ImageInfiniteLight::Phi(SampledWavelengths lambda) const {
+    // We're computing fluence, then converting to power...
+    SampledSpectrum sumL(0.);
+
+    int width = image.Resolution().x, height = image.Resolution().y;
+    for (int v = 0; v < height; ++v) {
+        for (int u = 0; u < width; ++u) {
+            RGB rgb;
+            for (int c = 0; c < 3; ++c)
+                rgb[c] = image.GetChannel({u, v}, c, WrapMode::OctahedralSphere);
+            sumL +=
+                RGBIlluminantSpectrum(*imageColorSpace, ClampZero(rgb)).Sample(lambda);
+        }
+    }
+    // Integrating over the sphere, so 4pi for that.  Then one more for Pi
+    // r^2 for the area of the disk receiving illumination...
+    return 4 * Pi * Pi * Sqr(sceneRadius) * scale * sumL / (width * height);
+}
 ```
 
 ### 门户无限光源
