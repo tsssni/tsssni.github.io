@@ -393,7 +393,7 @@ class LightSampler : public TaggedPointer<UniformLightSampler, PowerLightSampler
 
 `BVHLightSampler`通过对光源构建包围结构来加速光源采样.
 
-每个光源都在空间上影响某块区域, pbrt通过`LightBounds`表示, 显然这不适用于无限光源, 需要单独处理. \\(\omega\\)指定主要光源表面法线, \\(\theta_o\\)表示光源表面上最大的法线变化角度, \\(\theta_e\\)表示相对于某个法线的最大的可以接收光照的角度.
+每个光源都在空间上影响某块区域, pbrt通过`LightBounds`表示, 显然这不适用于无限光源, 需要单独处理. \\(\omega\\)指定主要光源表面法线\\(\bold{n_m}\\), \\(\theta_o\\)表示光源表面法线相对主法线的最大变化角度, \\(\theta_e\\)表示相对于某个法线的最大的可以接收光照的角度.
 
 ```c++
 class LightBounds {
@@ -420,7 +420,11 @@ class LightBounds {
 };
 ```
 
-`Importance`是`LightBounds`的关键方法, 负责返回光源对表面上某个点的贡献. 连接表面点与光源包围盒中心, 法线与该向量形成的角度为\\(\theta_w\\), 包围盒对应的包围球与改点的切线和该向量形成的角度为\\(\theta_b\\). 令\\(\theta'=\max(0,\theta_w-\theta_o-\theta_b)\\), 这是该点与光源上某点的法线所形成的最小角度, 若大于\\(\theta_e\\)则可以认为该点无法被照亮. 令表面法线与该向量形成的角度为\\(\theta_i\\), 令\\(\theta'_i=\theta_i-\theta_b\\), 该角度影响光源对表面的最大贡献. 此时可以得到贡献值\\(I=\frac{\phi\cos\theta'\cos\theta'_i}{d^2}\\).
+`Importance`是`LightBounds`的关键方法, 负责返回光源对表面上某个点的贡献. 连接表面点与光源包围盒中心, 令该向量为\\(\bold{d_b}\\), 与\\(\bold{n_m}\\)形成的角度为\\(\theta_w\\), 包围盒对应的包围球与该点的切线和该向量形成的角度为\\(\theta_b\\).
+
+\\(\theta_w-\theta_o\\)代表使用最接近表面点的法线\\(\bold{n_p}\\), 与\\(\bold{d_b}\\)形成的角度为\\(\theta_n\\). \\(\bold{n_p}\\)实际位于的光源表面可以是光源包围盒内的任意位置, 令某具有\\(\bold{n_p}\\)的位置与表面点连接的向量\\(\bold{d_p}\\)和\\(\bold{n_p}\\)的夹角为\\(\theta_p\\), 和\\(\bold{d_b}\\)夹角为\\(\bold{\theta_s}\\).
+
+根据\\(\bold{d_b}\\), \\(\bold{d_p}\\), \\(\bold{n_p}\\)形成的三角形, 可以看出\\(\theta_p=\theta_n-\theta_s\\), 而\\(\theta_s\\)最小为\\(\theta_b\\), 此时得到最小值\\(\theta'=\max(0,\theta_w-\theta_o-\theta_b)\\), 若大于\\(\theta_e\\)则可以认为该点无法被照亮. 令表面法线与\\(\bold{d_b}\\)形成的角度为\\(\theta_i\\), 令\\(\theta'_i=\max(0,\theta_i-\theta_b)\\), 该角度为\\(\bold{d_p}\\)与表面法线的最大角度, 即光源产生最大贡献的角度. 此时可以得到贡献值\\(I=\frac{\phi\cos\theta'\cos\theta'_i}{d^2}\\).
 
 ```c++
 PBRT_CPU_GPU Float LightBounds::Importance(Point3f p, Normal3f n) const {
@@ -635,7 +639,7 @@ static Float QuantizeBounds(Float c, Float min, Float max) {
 
 `BVHLightSampler`是pbrt中大部分积分器的默认采样器, 通过根据`LightBounds`构建BVH提高效率.
 
-`LightBVHNode`存储BVH节点, 在`CompactLightBounds`的基础上添加数列化后的节点编号与叶节点标记, 采用32位对齐以提高cache效率.
+`LightBVHNode`存储BVH节点, 在`CompactLightBounds`的基础上添加序列化后的节点编号与叶节点标记, 采用32位对齐以提高cache效率.
 
 ```c++
 struct alignas(32) LightBVHNode {
@@ -681,7 +685,7 @@ M_\Omega=\int_0^{2\pi}(\int_0^{\theta_o}\sin\theta'd\theta'+\int_{\theta_o}^{\mi
 \end{equation}
 $$
 
-此外开销还与功率, 包围盒面积以及对角线相对于当前分割轴的关系有关. 若包围盒较为细长开销会减小, 因为它们占据较大的立体角但实际上贡献不大.
+此外开销还与功率, 包围盒面积以及对角线相对于当前分割轴的关系有关. 若包围盒较为细长则面积会减小, 同时导致开销减小, 因为它们占据较大的立体角但实际上贡献不大.
 
 ```c++
 Float Kr = MaxComponentValue(bounds.Diagonal()) / bounds.Diagonal()[dim];
