@@ -722,7 +722,7 @@ if (!ls || !ls->L || ls->pdf == 0)
 Float p_l = sampledLight->p * ls->pdf;
 ```
 
-分别处理BSDF与相位方程. BSDF的计算方式与`PathIntegrator`一致, 注意这里\\(\hat{f}\\)把\\(D(p,p')\\)即余弦项包括进去了. 相位方程的\\(\hat{f}\\)没有包含\\(\sigma_s\\), 因为已经包括在\\(\beta\\)中了.
+分别处理BSDF与相位方程. BSDF的计算方式与`PathIntegrator`一致, 注意这里\\(\hat{f}\\)把\\(D(p,p')\\)即余弦项包括进去了. \\(\hat{f}\\)没有包含\\(\sigma_s\\), 因为已经包括在\\(\beta\\)中了.
 
 ```c++
 // Evaluate BSDF or phase function for light sample direction
@@ -806,7 +806,7 @@ if (!si) break;
 lightRay = si->intr.SpawnRayTo(ls->pLight);
 ```
 
-在发生散射之前\\(r_u\\)和\\(r_l\\)是相等的, 因此这里将这里单独计算的\\(r_u\\)和\\(r_l\\)直接乘上\\(r_{\text{path}}\\)即可. 与`PathIntegrator`一样, Delta光源无法通过散射接触到, 这使得\\(r_u\\)为0, 因此只统计\\(r_l\\).
+在发生散射之前\\(r_u\\)和\\(r_l\\)是相等的, 因此这里将这里单独计算的\\(r_u\\)和\\(r_l\\)直接乘上\\(r_{\text{path}}\\)即可. 理论上这里应该`beta = beta / lightPDF; r_l /= lightPDF; r_u /= lightPDF`, 由于`lightPDF`被抵消因此这里省略. 与`PathIntegrator`一样, Delta光源无法通过散射接触到, 这使得\\(r_u\\)为0, 因此只统计\\(r_l\\).
 
 ```c++
 r_l *= r_p * lightPDF;
