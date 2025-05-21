@@ -8,6 +8,6 @@ tags: []
 
 现在&未来从事图形学与游戏开发工作.
 
-Nix/Neovim/Hyprland/AGS工作中.
+Nix/Nixvim/Hyprland/Astal工作中.
 
 喜欢JRPG!
