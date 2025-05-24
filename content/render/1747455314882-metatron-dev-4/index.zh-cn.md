@@ -8,6 +8,8 @@ tags: ["graphics", "rendering", "restir", "metatron"]
 
 {{<katex>}}
 
+图片与部分证明来自[Understanding The Math Behind ReSTIR DI](https://agraphicsguynotes.com/posts/understanding_the_math_behind_restir_di/)
+
 ## 重采样重要性抽样
 
 令\\(x\\)的目标概率分布为\\(\hat{p}(x)\\), 它可能难以被重要性抽样. 我们为每个样本选择一个容易抽样的提议分布\\(p_i(X)\\), 选出\\(M\\)个样本组成序列\\(\bold{x}\\), 然后将每个样本的权重设置为\\(w_i(x_i)=m(x_i)\frac{\hat{p}(x_i)}{p_i(x_i)}\\), 随机选择其中一个样本\\(x_z\\), 此时概率如下.
@@ -72,3 +74,5 @@ for qi in {q1, ..., qk} do
         Z += ri.M
 m = 1 / Z
 ```
+
+![restir](ReSTIR.png)
