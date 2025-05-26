@@ -491,9 +491,9 @@ PBRT_CPU_GPU DirectionCone Triangle::NormalBounds() const {
 
 ### 相交测试
 
-三角形的光纤测试是一个独立函数, 而非实现了`Shape`的接口. pbrt首先变换到以光线起始点为原点, 光线方向为\\(z\\)轴的空间, 这样可以避免恰好打到边上的光线被认为不相交, 后续章节会解释. 由于浮点精度问题, 需要判断转换后的三角形是否退化为线段.
+三角形的光线测试是一个独立函数, 而非实现了`Shape`的接口. pbrt首先变换到以光线起始点为原点, 光线方向为\\(z\\)轴的空间, 这样可以避免恰好打到边上的光线被认为不相交, 后续章节会解释. 由于浮点精度问题, 需要判断转换后的三角形是否退化为线段.
 
-变换分为三步, 首先平移变换将光线起始点移到原点, 其次将绝对值最大的轴置换为\\(z\\)轴, 最后通过切变变换将光线与z轴对齐. 切变变换定义如下, 与旋转相比切变的开销较小. 经过变换后, 只需要判断\\((0, 0)\\)是否位于三角形在\\(xy\\)平面的投影上.
+变换分为三步, 首先平移变换将光线起始点移到原点, 其次将绝对值最大的轴置换为\\(z\\)轴以保证\\(z\\)非0, 最后通过切变变换将光线方向与z轴对齐. 切变变换定义如下, 用于将光线方向中\\(x\\),\\(y\\)置0, \\(z\\)置1, 与旋转相比切变的开销较小. 经过变换后, 只需要判断\\((0, 0)\\)是否位于三角形在\\(xy\\)平面的投影上.
 
 $$
 \begin{equation}
@@ -502,14 +502,14 @@ S =
 \begin{pmatrix}
 1 & 0 & -\frac{\bold{d}_x}{\bold{d}_z} & 0\\\\
 0 & 1 & -\frac{\bold{d}_y}{\bold{d}_z} & 0\\\\
-0 & 0 & -\frac{1}{\bold{d}_z} & 0\\\\
+0 & 0 & \frac{1}{\bold{d}_z} & 0\\\\
 0 & 0 & 0 & 1
 \end{pmatrix}
 \end{aligned}
 \end{equation}
 $$
 
-利用叉乘结果具有方向的特性, 利用行列式可以构造边方程, 用于判断判断点\\(p\\)在边\\(p_0p_1\\)的哪一侧. 若某点位于三角形三条边的同侧, 可以认为它位于三角形内部. 由于行列式也可以用于计算两条边组成的平行四边形的面积, 边方程同时计算了重心坐标.
+叉乘结果具有方向, 利用行列式可以构造边方程, 用于判断判断点\\(p\\)在边\\(p_0p_1\\)的哪一侧. 若某点位于三角形三条边的同侧, 可以认为它位于三角形内部. 由于行列式也可以用于计算两条边组成的平行四边形的面积, 边方程同时计算了重心坐标.
 
 $$
 \begin{equation}
@@ -523,7 +523,7 @@ p_{1x} - p_{0x} & p_{1y} - p_{0y}
 \end{equation}
 $$
 
-为避免除以分母带来的误差, pbrt计算交点是否超过光线最大\\(t\\)值时采用尚未归一化的插值, 由于经过了变换\\(z\\)与\\(t\\)是相同的. 判断完成后可以计算重心坐标与相交的\\(t\\)值.
+为避免除以分母带来的误差, pbrt计算交点时不使用面积归一化边方程结果. 经过变换后\\(z\\)与\\(t\\)相同, 相交测试完成后可计算重心坐标与相交的\\(t\\)值.
 
 ```c++
 // Compute scaled hit distance to triangle and test against ray $t$ range
@@ -542,7 +542,7 @@ Float b0 = e0 * invDet, b1 = e1 * invDet, b2 = e2 * invDet;
 Float t = tScaled * invDet;
 ```
 
-为了使得GPU也能调用, `Triangle`的`InteractionFromIntersection`是静态函数而不是成员函数. 根据贴图\\(uv\\)与顶点位置可以得到如下关系, 此时可以计算得到对应的偏导数. 如果没有\\(uv\\)值pbrt会使用默认值. `SurfaceInteraction`将几何法线初始化为p在\\(uv\\)偏导的叉乘, 三角网格由于贴图\\(uv\\)的缘故无法采用这种方式, pbrt采用边的叉乘来得到几何边线. 若顶点拥有法线与切线pbrt会采用插值结果, 且采用类似的方式计算法线在\\(uv\\)的偏导.
+三角形内部各个值根据重心坐标线性插值, 包括\\(uv\\)也是线性变化, 因此各个值在\\(uv\\)上的偏导数在三角形内部相同. 因此求解线性方程即可获取位置, 法线等关于\\(uv\\)的偏导数. 位置偏导数主要用于法线纹理, 法线偏导数则用于视差纹理.
 
 $$
 \begin{equation}
@@ -563,9 +563,13 @@ p_1 - p_2
 \end{equation}
 $$
 
+pbrt每次相交都会重新计算偏导数, 以时间换空间. 如果没有\\(uv\\)值pbrt会使用默认值. `SurfaceInteraction`将几何法线初始化为p在\\(uv\\)偏导的叉乘, 三角网格由于贴图\\(uv\\)的缘故无法采用这种方式, pbrt采用边的叉乘来得到几何边线. 若顶点拥有法线与切线, pbrt会采用插值结果, 且采用类似的方式计算法线在\\(uv\\)的偏导.
+
 ### 表面采样
 
-采样通过将均匀采样结果转化为重心坐标来实现. 通过将正方形中关于对角线对称的采样结果视为同一个点可以得到均匀的采样分布, 但这会使得原本相距较远的采样点变为同一个采样点, 这会影响部分采样器的效果. pbrt采用如下转换方式, 此时Jacobi行列式为常数, 所以具有面积保持的特征.
+采样通过将均匀采样结果转化为重心坐标来实现, 因此在任意形状的三角形上采样均不影响结果. 通过将正方形中关于对角线对称的采样结果视为同一个点可以得到均匀的采样分布, 但这会使得原本相距较远的采样点变为同一个采样点, 这会影响部分采样器的效果.
+
+pbrt采用如下转换方式. 更直观地说, 这将\\(y=1-x\\),\\(x=0\\)和\\(y=0\\)围成的三角形根据\\(y=x\\)分割, 每部分映射到\\(y=x\\),\\(y=1-x\\)和\\(x=0\\)或\\(y=0\\)围成的三角形中. 此时Jacobi行列式为常数, 所以具有面积保持的特征.
 
 $$
 \begin{equation}
@@ -580,7 +584,7 @@ f(x, y) = (x - \delta, y - \delta),
 \end{equation}
 $$
 
-假设三角形光源各个点发射相同的光, BSDF为常数值, 利用面积与立体角微分的转换可以得到如下的采样公式, 其中\\(V\\)为可见性方程, \\(p\\)为观察点位置, \\(p'\\)为光源上的采样点的位置. 由于分母上的平方项, 距离光源较近的物体会有较大的采样误差, 因此直接将立体角采样转为面积采样并不合适.
+假设三角形光源各个点发射相同的光, BSDF为常数值, 在三角形面积上均匀采样, 利用面积与立体角微分的转换可以得到如下的采样公式, 其中\\(V\\)为可见性方程, \\(p\\)为观察点位置, \\(p'\\)为光源上的采样点的位置. 由于分母上的平方项, 距离光源较近的物体会有较大的采样误差, 因此直接将立体角采样转为面积采样并不合适. 对于立体角范围过小和过大的三角形, 由于浮点误差pbrt仍然采用面积采样.
 
 $$
 \begin{equation}
@@ -588,41 +592,226 @@ $$
 \end{equation}
 $$
 
-对于立体角范围过小和过大的三角形, 由于浮点误差pbrt仍然采用上述面积采样. 对于其他情况, pbrt首先计算当前三角形在单位球上的投影形成的球面角, 获得球面三角形的面积\\(A\\) 采样获取\\(\epsilon_0\\)使得\\(ac\\)边上的点\\(c'\\)形成的\\(abc'\\)的面积为\\(\epsilon_0 A\\), 然后在\\(bc'\\)上采样, 由于均匀采样会使得采样点集中在\\(b\\)附近, 概率密度是由\\(b\\)到\\(c'\\)增长的. pbrt直接计算球面三角形内角和, 而非减去\\(\pi\\)的球面角超, 以此减少浮点误差.
+对于其他情况, pbrt使用[Stratified Sampling of Spherical Triangles](https://www.graphics.cornell.edu/pubs/1995/Arv95c.pdf)提出的球面三角形采样. 首先根据参考点构建单位球, 将三角形投影到单位球上形成球面三角形\\(abc\\), 在\\(abc\\)上执行均匀面积采样. 各个边均可与球心构成平面, 计算平面法线, 各个面法线的夹角的补角为平面夹角, 等价于球面三角形的内角, 使用\\(\alpha\\), \\(\beta\\), \\(\gamma\\)分别表示.
 
-pbrt通过计算\\(\bar{\bold{b}}'\\)边的长度来进行第一次采样, 经过球面三角公式的推导可以获得如下的求解公式.
+实际采样算法如下: 令\\(abc\\)面积为A, 首先根据\\(\epsilon_0\\)获取在\\(\overset{\frown}{ac}\\)上的点\\(c'\\), 使形成的三角形\\(abc'\\)面积为\\(\epsilon_0 A\\). 然后令在\\(c'\\)处与\\(\overset{\frown}{bc'}\\)垂直的微分底边与\\(b\\)形成的微分三角形面积为\\(A_{\overset{\frown}{bc'}}\\), 在\\(\overset{\frown}{bc'}\\)上根据\\(\epsilon_1\\)采样, 获取\\(c''\\)使得构成的微分三角形\\(A_{\overset{\frown}{bc''}}\\)面积为\\(\epsilon_1A_{\overset{\frown}{bc'}}\\).
+
+由于\\(A_\pi=\alpha+\beta+\gamma=A+\pi\\), pbrt直接使用\\(A_\pi\\)执行采样, 以减少小三角形计算\\(A_\pi-\pi\\)导致的浮点误差, 这通过均匀采样并在\\(\pi\\)与\\(A_\pi\\)间插值实现.
+
+\\(abc'\\)的内角为\\(\alpha\\),\\(\beta'\\),\\(\gamma'\\), \\(\alpha\\)与\\(A'_\pi\\)已知, \\(\beta'\\)与\\(\gamma'\\)未知. 求解\\(c'\\)需求解\\(\overset{\frown}{ac'}\\)的长度, 此时根据球面三角公式可得如下关系.
 
 $$
 \begin{equation}
 \begin{aligned}
-\cos\bar{\bold{b}}' &= \frac{k_2 + (k_2\cos\phi - k_1\sin\phi)\cos\alpha}{(k_2\sin\phi + k_1\cos\phi)\sin\alpha}\\\\
-\phi &= \beta' + \gamma'\\\\
-k_1 &= \cos\phi + \cos\alpha\\\\
-k_2 &= \sin\phi - \sin\alpha\cos{\bar{\bold{c}}}
+\cos\beta'&=-\cos\gamma'\cos\alpha+\sin\gamma'\sin\alpha\cos\overset{\frown}{ac'}\\\\
+\cos\overset{\frown}{ac'}
+&=\frac{\cos\beta'+\cos(A'\_\pi-\alpha-\beta')\cos\alpha}{\sin(A'\_\pi-\alpha-\beta')\sin\alpha}\\\\
+&=\frac{\cos\beta'+\cos(\phi-\beta')\cos\alpha}{\sin(\phi-\beta')\sin\alpha}\\\\
+&=\frac{\cos\beta'+(\cos\phi\cos\beta' + \sin\phi\sin\beta')\cos\alpha}{(\sin\phi\cos\beta'-\cos\phi\sin\beta')\sin\alpha}\\\\
 \end{aligned}
 \end{equation}
 $$
 
-最终的采样点与\\(\bold{b}\\)形成的夹角可以按如下方式计算, 此时可以得到均匀的采样结果.
+此时\\(\beta'\\)仍然未知, 引入已知量\\(\overset{\frown}{ab}\\), 可得如下关系, 其中\\(k_1\\),\\(k_2\\)皆为已知量.
 
 $$
 \begin{equation}
-\cos\theta = 1 - \epsilon_1 (1 - (\bold{c}' \cdot \bold{b}))
+\begin{aligned}
+\cos(\phi-\beta')&=-\cos\beta'\cos\alpha+\sin\beta'\sin\alpha\cos\overset{\frown}{ab}\\\\
+0
+&=(\cos\phi+\cos\alpha)\cos\beta'+(\sin\phi-\sin\alpha\cos\overset{\frown}{ab})\sin\beta'\\\\
+&=k_1\cos\beta'+k_2\sin\beta'\\\\
+\cos\beta'&=\frac{\pm k_2}{\sqrt{k_1^2+k_2^2}}\\\\
+\sin\beta'&=\frac{\mp k_1}{\sqrt{k_1^2+k_2^2}}
+\end{aligned}
 \end{equation}
 $$
 
-Kajiya方程中的\\(\cos\theta\\)项同样也会影响方差, pbrt将其包括在pdf中. 由于在\\(uv\\)坐标上它是平滑变化的, pbrt通过双线性采样来获取pdf. `InvertSphericalTriangleSample`通过当前提供的立体角方向确定可以得到该采样点的采样值.
+将上式代入, \\(\cos\overset{\frown}{ac'}\\)求解结果如下, 获取\\(\overset{\frown}{ac'}\\)后即可计算\\(c'\\)的实际位置.
+
+$$
+\begin{equation}
+\begin{aligned}
+\cos\overset{\frown}{ac'}&=\frac{k_2+(k_2\cos\phi-k_1\sin\phi)\cos\alpha}{(k_2\sin\phi+k_1\cos\phi)\sin\alpha}\\\\
+\bold{c'}&=\cos\overset{\frown}{ac'}\bold{a}+\sin\overset{\frown}{ac'}\bold{c_\perp}
+\end{aligned}
+\end{equation}
+$$
+
+将\\(b\\)变换到球的北极, 根据微分立体角转微分面积的公式, 以及经过\\(b\\)的两平面的夹角\\(\beta\\)与所占方位角\\(\phi\\)相等这一关系, \\(c''\\)处与\\(\overset{\frown}{bc'}\\)垂直的微分圆弧长度为\\(\sin\overset{\frown}{bc'}d\overset{\frown}{bc'}d\beta\\). 此时可根据\\(\overset{\frown}{bc'}\\)上的积分求出微分三角形的面积.
+
+$$
+\begin{equation}
+\begin{aligned}
+A_{\overset{\frown}{bc''}}=\int\_0^{\overset{\frown}{bc''}} \sin\theta d\theta d\beta=(1-\cos\overset{\frown}{bc''})d\beta
+\end{aligned}
+\end{equation}
+$$
+
+根据\\(A_{\overset{\frown}{bc''}}\\)与\\(A_{\overset{\frown}{bc'}}\\)的比值, 可得根据\\(\epsilon_1\\)采样\\(c''\\)的方式, 向量\\(\bold{c''}\\)即为采样方向\\(\omega\\). 由于不再需要判断光线是否相交, 此时根据\\(o+t\bold{d}=(1-b_1-b_2)v_0+b_1v_1+b_2v_2\\)求解重心坐标即可.
+
+$$
+\begin{equation}
+\begin{aligned}
+\epsilon_1&=\frac{1-\cos\overset{\frown}{bc''}}{1-\cos\overset{\frown}{bc'}}\\\\
+\cos\overset{\frown}{bc''}&=1-\epsilon_1(1-\cos\overset{\frown}{bc'})
+\end{aligned}
+\end{equation}
+$$
+
+完整采样过程实现在`SampleSphericalTriangle`.
 
 ```c++
-Float pdf = 1 / solidAngle;
-// Adjust PDF for warp product sampling of triangle $\cos\theta$ factor
-if (ctx.ns != Normal3f(0, 0, 0)) {
-    // Get triangle vertices in _p0_, _p1_, and _p2_
-    const TriangleMesh *mesh = GetMesh();
-    const int *v = &mesh->vertexIndices[3 * triIndex];
-    Point3f p0 = mesh->p[v[0]], p1 = mesh->p[v[1]], p2 = mesh->p[v[2]];
+// Sampling Function Definitions
+PBRT_CPU_GPU pstd::array<Float, 3> SampleSphericalTriangle(const pstd::array<Point3f, 3> &v, Point3f p,
+                                              Point2f u, Float *pdf) {
+    if (pdf)
+        *pdf = 0;
+    // Compute vectors _a_, _b_, and _c_ to spherical triangle vertices
+    Vector3f a(v[0] - p), b(v[1] - p), c(v[2] - p);
+    CHECK_GT(LengthSquared(a), 0);
+    CHECK_GT(LengthSquared(b), 0);
+    CHECK_GT(LengthSquared(c), 0);
+    a = Normalize(a);
+    b = Normalize(b);
+    c = Normalize(c);
 
-    Point2f u = InvertSphericalTriangleSample({p0, p1, p2}, ctx.p(), wi);
+    // Compute normalized cross products of all direction pairs
+    Vector3f n_ab = Cross(a, b), n_bc = Cross(b, c), n_ca = Cross(c, a);
+    if (LengthSquared(n_ab) == 0 || LengthSquared(n_bc) == 0 || LengthSquared(n_ca) == 0)
+        return {};
+    n_ab = Normalize(n_ab);
+    n_bc = Normalize(n_bc);
+    n_ca = Normalize(n_ca);
+
+    // Find angles $\alpha$, $\beta$, and $\gamma$ at spherical triangle vertices
+    Float alpha = AngleBetween(n_ab, -n_ca);
+    Float beta = AngleBetween(n_bc, -n_ab);
+    Float gamma = AngleBetween(n_ca, -n_bc);
+
+    // Uniformly sample triangle area $A$ to compute $A'$
+    Float A_pi = alpha + beta + gamma;
+    Float Ap_pi = Lerp(u[0], Pi, A_pi);
+    if (pdf) {
+        Float A = A_pi - Pi;
+        *pdf = (A <= 0) ? 0 : 1 / A;
+    }
+
+    // Find $\cos\beta'$ for point along _b_ for sampled area
+    Float cosAlpha = std::cos(alpha), sinAlpha = std::sin(alpha);
+    Float sinPhi = std::sin(Ap_pi) * cosAlpha - std::cos(Ap_pi) * sinAlpha;
+    Float cosPhi = std::cos(Ap_pi) * cosAlpha + std::sin(Ap_pi) * sinAlpha;
+    Float k1 = cosPhi + cosAlpha;
+    Float k2 = sinPhi - sinAlpha * Dot(a, b) /* cos c */;
+    Float cosBp = (k2 + (DifferenceOfProducts(k2, cosPhi, k1, sinPhi)) * cosAlpha) /
+                  ((SumOfProducts(k2, sinPhi, k1, cosPhi)) * sinAlpha);
+    // Happens if the triangle basically covers the entire hemisphere.
+    // We currently depend on calling code to detect this case, which
+    // is sort of ugly/unfortunate.
+    CHECK(!IsNaN(cosBp));
+    cosBp = Clamp(cosBp, -1, 1);
+
+    // Sample $c'$ along the arc between $a$ and $c$
+    Float sinBp = SafeSqrt(1 - Sqr(cosBp));
+    Vector3f cp = cosBp * a + sinBp * Normalize(GramSchmidt(c, a));
+
+    // Compute sampled spherical triangle direction and return barycentrics
+    Float cosTheta = 1 - u[1] * (1 - Dot(cp, b));
+    Float sinTheta = SafeSqrt(1 - Sqr(cosTheta));
+    Vector3f w = cosTheta * b + sinTheta * Normalize(GramSchmidt(cp, b));
+    // Find barycentric coordinates for sampled direction _w_
+    Vector3f e1 = v[1] - v[0], e2 = v[2] - v[0];
+    Vector3f s1 = Cross(w, e2);
+    Float divisor = Dot(s1, e1);
+    CHECK_RARE(1e-6, divisor == 0);
+    if (divisor == 0) {
+        // This happens with triangles that cover (nearly) the whole
+        // hemisphere.
+        return {1.f / 3.f, 1.f / 3.f, 1.f / 3.f};
+    }
+    Float invDivisor = 1 / divisor;
+    Vector3f s = p - v[0];
+    Float b1 = Dot(s, s1) * invDivisor;
+    Float b2 = Dot(w, Cross(s, e1)) * invDivisor;
+
+    // Return clamped barycentrics for sampled direction
+    b1 = Clamp(b1, 0, 1);
+    b2 = Clamp(b2, 0, 1);
+    if (b1 + b2 > 1) {
+        b1 /= b1 + b2;
+        b2 /= b1 + b2;
+    }
+    return {Float(1 - b1 - b2), Float(b1), Float(b2)};
+}
+```
+
+对于需要根据采样方向倒推PDF的情况, 由于\\(c''\\)已知, 根据\\(\overset{\frown}{bc''}\\)与\\(\overset{\frown}{ac}\\)的交点可求得\\(c'\\). 交点为圆弧构成的平面的相交直线与球的交点, 直线方向通过两平面法线叉乘求得, 选择与\\(\bold{a}+\bold{c}\\)同向的交点, 同时已知交线会经过球心, 此时可以确定\\(c'\\)以及\\(abc'\\)的面积, 以此求得\\(\epsilon_0\\). \\(\epsilon_1\\)根据概率公式直接求出即可.
+
+pbrt实现了`InvertSphericalTriangleSample`执行倒推过程, 对于\\(ac'\\)长度较小的情况, 为避免浮点误差\\(\beta'\\)较小时认为\\(\epsilon_0=0\\).
+
+```c++
+// Via Jim Arvo's SphTri.C
+PBRT_CPU_GPU Point2f InvertSphericalTriangleSample(const pstd::array<Point3f, 3> &v, Point3f p,
+                                      Vector3f w) {
+    // Compute vectors _a_, _b_, and _c_ to spherical triangle vertices
+    Vector3f a(v[0] - p), b(v[1] - p), c(v[2] - p);
+    CHECK_GT(LengthSquared(a), 0);
+    CHECK_GT(LengthSquared(b), 0);
+    CHECK_GT(LengthSquared(c), 0);
+    a = Normalize(a);
+    b = Normalize(b);
+    c = Normalize(c);
+
+    // Compute normalized cross products of all direction pairs
+    Vector3f n_ab = Cross(a, b), n_bc = Cross(b, c), n_ca = Cross(c, a);
+    if (LengthSquared(n_ab) == 0 || LengthSquared(n_bc) == 0 || LengthSquared(n_ca) == 0)
+        return {};
+    n_ab = Normalize(n_ab);
+    n_bc = Normalize(n_bc);
+    n_ca = Normalize(n_ca);
+
+    // Find angles $\alpha$, $\beta$, and $\gamma$ at spherical triangle vertices
+    Float alpha = AngleBetween(n_ab, -n_ca);
+    Float beta = AngleBetween(n_bc, -n_ab);
+    Float gamma = AngleBetween(n_ca, -n_bc);
+
+    // Find vertex $\VEC{c'}$ along $\VEC{a}\VEC{c}$ arc for $\w{}$
+    Vector3f cp = Normalize(Cross(Cross(b, w), Cross(c, a)));
+    if (Dot(cp, a + c) < 0)
+        cp = -cp;
+
+    // Invert uniform area sampling to find _u0_
+    Float u0;
+    if (Dot(a, cp) > 0.99999847691f /* 0.1 degrees */)
+        u0 = 0;
+    else {
+        // Compute area $A'$ of subtriangle
+        Vector3f n_cpb = Cross(cp, b), n_acp = Cross(a, cp);
+        CHECK_RARE(1e-5, LengthSquared(n_cpb) == 0 || LengthSquared(n_acp) == 0);
+        if (LengthSquared(n_cpb) == 0 || LengthSquared(n_acp) == 0)
+            return Point2f(0.5, 0.5);
+        n_cpb = Normalize(n_cpb);
+        n_acp = Normalize(n_acp);
+        Float Ap = alpha + AngleBetween(n_ab, n_cpb) + AngleBetween(n_acp, -n_cpb) - Pi;
+
+        // Compute sample _u0_ that gives the area $A'$
+        Float A = alpha + beta + gamma - Pi;
+        u0 = Ap / A;
+    }
+
+    // Invert arc sampling to find _u1_ and return result
+    Float u1 = (1 - Dot(w, b)) / (1 - Dot(cp, b));
+    return Point2f(Clamp(u0, 0, 1), Clamp(u1, 0, 1));
+}
+```
+
+Kajiya方程中的\\(\cos\theta\\)项同样也会影响方差, pbrt将其包括在pdf中. 由于在\\(\epsilon_0\epsilon_1\\)上它是平滑变化的, 已知\\(a\\)对应\\((0, 1)\\), \\(b\\)对应\\((0, 0)\\)与\\((1, 0)\\), \\(c\\)对应\\((1, 1)\\), 通过在单位正方形将顶点对应的\\(\cos\theta\\)作为采样权重, 内部采样权重为顶点双线性插值结果, 可执行重要性抽样, 将双线性采样拆解为两次线性采样即可.
+
+```c++
+// Sample spherical triangle from reference point
+// Apply warp product sampling for cosine factor at reference point
+Float pdf = 1;
+if (ctx.ns != Normal3f(0, 0, 0)) {
     // Compute $\cos\theta$-based weights _w_ at sample domain corners
     Point3f rp = ctx.p();
     Vector3f wi[3] = {Normalize(p0 - rp), Normalize(p1 - rp), Normalize(p2 - rp)};
@@ -632,7 +821,23 @@ if (ctx.ns != Normal3f(0, 0, 0)) {
                               std::max<Float>(0.01, AbsDot(ctx.ns, wi[0])),
                               std::max<Float>(0.01, AbsDot(ctx.ns, wi[2]))};
 
-    pdf *= BilinearPDF(u, w);
+    u = SampleBilinear(u, w);
+    DCHECK(u[0] >= 0 && u[0] < 1 && u[1] >= 0 && u[1] < 1);
+    pdf = BilinearPDF(u, w);
+}
+```
+
+```c++
+PBRT_CPU_GPU inline Point2f SampleBilinear(Point2f u, pstd::span<const Float> w) {
+    DCHECK_EQ(4, w.size());
+    Point2f p;
+    // Sample $y$ for bilinear marginal distribution
+    p.y = SampleLinear(u[1], w[0] + w[1], w[2] + w[3]);
+
+    // Sample $x$ for bilinear conditional distribution
+    p.x = SampleLinear(u[0], Lerp(p.y, w[0], w[2]), Lerp(p.y, w[1], w[3]));
+
+    return p;
 }
 ```
 
