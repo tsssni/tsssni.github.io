@@ -561,7 +561,7 @@ $$
 \begin{equation}
 \begin{aligned}
 (x_{\tilde{m}},y_{\tilde{m}})&=(-\frac{x_m}{z_m},-\frac{y_m}{z_m})=-\tan\theta_m(\cos\phi_m,\sin\phi_m)\\\\
-(x_m, y_m, z_m)&=\frac{(-x_{\tilde{m}},-y_{\tilde{m}},1)}{\sqrt{x_{\tilde{m}}^2+y_{\tilde{m}}^2+1}}=\frac{(-x_{\tilde{m}},-y_{\tilde{m}},1)}{\cos\theta_m}
+(x_m, y_m, z_m)&=\frac{(-x_{\tilde{m}},-y_{\tilde{m}},1)}{\sqrt{x_{\tilde{m}}^2+y_{\tilde{m}}^2+1}}=(-x_{\tilde{m}},-y_{\tilde{m}},1)\cos\theta_m
 \end{aligned}
 \end{equation}
 $$
@@ -611,11 +611,11 @@ $$
 
 $$
 \begin{equation}
-\int_\Omega D(\omega_m)G_1(\omega,\omega_m)\max(0,\omega\cdot\omega_m)d\omega_m=\omega\cdot\bold{n}=\cos\theta
+\int_\Omega D(\omega_m)G_1(\omega,\omega_m)(\omega\cdot\omega_m)d\omega_m=\omega\cdot\bold{n}=\cos\theta
 \end{equation}
 $$
 
-Smith遮蔽函数认为法线与高度是独立的, 即微表面类似于一个一个浮动的小片段, 此时可以将遮蔽函数分解为局部遮蔽与全部遮蔽, 局部遮蔽只需要法线可见, 此时遮蔽函数不再依赖于微表面法线. 不失一般性, 令表面为各向同性的, 法线为局部空间中的\\((0,0,1)\\), 视线沿\\(x\\)轴为\\((\sin\theta, 0, \cos\theta)\\), 已知由于对称性\\(\int_{-\infty}^{\infty}x_{\tilde{m}}P^{2-}(x_{\tilde{m}})dx_{\tilde{m}}=0\\),\\(\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}})dx_{\tilde{m}}=1\\),此时可以得到如下结果.
+Smith遮蔽函数认为法线与高度是独立的, 即微表面类似于一个一个浮动的小片段, 此时可以将遮蔽函数分解为局部遮蔽与全部遮蔽, 局部遮蔽只需要法线可见, 即\\(\omega\cdot\omega_m>0\\), 此时遮蔽函数不再依赖于微表面法线. 不失一般性, 令表面为各向同性的, 法线为局部空间中的\\((0,0,1)\\), 视线沿\\(x\\)轴为\\((\sin\theta, 0, \cos\theta)\\), 已知由于对称性\\(\int_{-\infty}^{\infty}x_{\tilde{m}}P^{2-}(x_{\tilde{m}})dx_{\tilde{m}}=0\\),\\(\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}})dx_{\tilde{m}}=1\\),此时可以得到如下结果.
 
 $$
 \begin{equation}
@@ -623,7 +623,7 @@ $$
 G_1(\omega)
 &=\frac{\cos\theta}{\int_\Omega D(\omega_m)\max(0,\omega\cdot\omega_m)d\omega_m}\\\\
 &=\frac{\cos\theta}{\int_\Omega D(\omega_m)\cos\theta_m\frac{\max(0,\omega\cdot\omega_m)}{\cos\theta_m}d\omega_m}\\\\
-&=\frac{\cos\theta}{\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}P^{22}(x_{\tilde{m}},y_{\tilde{m}}) \max(0, \frac{-x_{\tilde{m}}\sin\theta + \cos\theta}{\cos\theta_m})\cos\theta_m dx_{\tilde{m}} dy_{\tilde{m}}}\\\\
+&=\frac{\cos\theta}{\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}P^{22}(x_{\tilde{m}},y_{\tilde{m}}) \frac{\max(0, (-x_{\tilde{m}}\sin\theta + \cos\theta)\cos\theta_m)}{\cos\theta_m} dx_{\tilde{m}} dy_{\tilde{m}}}\\\\
 &=\frac{\cos\theta}{\int_{-\infty}^{\infty}\int_{-\infty}^{\cot\theta}P^{22}(x_{\tilde{m}},y_{\tilde{m}}) (-x_{\tilde{m}}\sin\theta + \cos\theta) dx_{\tilde{m}} dy_{\tilde{m}}}\\\\
 &=\frac{\cot\theta}{\int_{-\infty}^{\cot\theta}P^{2-}(x_{\tilde{m}}) (-x_{\tilde{m}} + \cot\theta) dx_{\tilde{m}}}\\\\
 &=\frac{\cot\theta}{\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}}) x_{\tilde{m}} dx_{\tilde{m}}-\cot\theta\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}}) dx_{\tilde{m}}+\cot\theta+\int_{-\infty}^{\cot\theta}P^{2-}(x_{\tilde{m}}) (-x_{\tilde{m}} + \cot\theta) dx_{\tilde{m}}}\\\\
@@ -695,17 +695,17 @@ S(0)=s(\mu_v-\mu(0))=
 \end{equation}
 $$
 
-令表面高度为\\(h(x)\\), 条件\\(\alpha\\)为\\(h(x)<h(0)+\mu_v x\\), 条件\\(\beta\\)为\\(h(x+dx)>h(0)+\mu_v\cdot(x+dx)\\), \\(P_3(h,\mu|x)\\)为\\(x\\)处斜率与高度的联合分布, 若在\\([x,x+dx]\\)处被遮挡需要满足\\(\mu(x)>\mu_v\\), 同时在Smith遮蔽函数下高度与斜率是不相关的, 此时可以定义\\(g(x)\\).
+令表面高度为\\(h(x)\\), 条件\\(\alpha\\)为\\(h(x)<h(0)+\mu_v x\\), 条件\\(\beta\\)为\\(h(x+dx)>h(0)+\mu_v\cdot(x+dx)\\), \\(P_3(h,\mu|x)\\)为\\(x\\)处斜率与高度的联合分布, 若在\\([x,x+dx]\\)处被遮挡需要满足\\(\mu(x)>\mu_v\\), 同时在Smith遮蔽函数下高度与斜率是不相关的, 此时可以定义\\(g(x)\\). \\(P(\alpha,\beta)\\)中对微分高度变化的积分使用微分面积计算.
 
 $$
 \begin{equation}
 \begin{aligned}
 g(x)
-&=\frac{1}{dx}P(\alpha|\beta)\\\\
-&=\frac{1}{dx}\frac{P(\alpha,\beta)}{P(\beta)}\\\\
+&=\frac{1}{dx}P(\beta|\alpha)\\\\
+&=\frac{1}{dx}\frac{P(\alpha,\beta)}{P(\alpha)}\\\\
 &=\frac{1}{dx}\frac{\int_{\mu_v}^\infty\int_{h(0)+\mu_v(x+dx)-\mu dx}^{h(0)+\mu_vx}P_3(h,\mu|x)dh d\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\\\
-&=\frac{1}{dx}\frac{\int_{\mu_v}^\infty(\mu_v-\mu)dxP_3(h(0)+\mu_vx,\mu|x)d\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\\\
-&=\frac{\int_{\mu_v}^\infty(\mu_v-\mu)P_h(h(0)+\mu_vx)P^{2-}(\mu)d\mu}{\int_{-\infty}^{h(0)+\mu_vx}P_h(h)dh}\\\\
+&=\frac{1}{dx}\frac{\int_{\mu_v}^\infty(\mu-\mu_v)dxP_3(h(0)+\mu_vx,\mu|x)d\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\\\
+&=\frac{\int_{\mu_v}^\infty(\mu-\mu_v)P_h(h(0)+\mu_vx)P^{2-}(\mu)d\mu}{\int_{-\infty}^{h(0)+\mu_vx}P_h(h)dh}\\\\
 &=\Lambda(\mu_v)\frac{\mu_vP_h(h(0)+\mu_vx)}{f(h(0)+\mu_vx)}
 \end{aligned}
 \end{equation}
@@ -719,7 +719,7 @@ $$
 S(h, \omega)
 &= e^{-\Lambda(\omega)\int_0^{\infty}\frac{\mu_vP_h(h+\mu_vx)}{f(h+\mu_vx)}dx}\\\\
 &= e^{-\Lambda(\omega)\left[\ln f(h+\mu_v x)\right]_0^{\infty}}\\\\
-&= e^{-\Lambda(\omega)((\ln 1 - \ln f(h))}\\\\
+&= e^{-\Lambda(\omega)(\ln 1 - \ln f(h))}\\\\
 &= e^{\Lambda(\omega)\ln f(h)}\\\\
 &= f(h)^{\Lambda(\omega)}
 \end{aligned}
@@ -855,15 +855,7 @@ $$
 
 #### 半向量变换
 
-对于镜面反射表面法线\\(\omega_m\\)是位于\\(\omega_o\\)和\\(\omega_o\\)之间的, 因此也可以被称为半向量. 三者的天顶角满足以下关系, 注意到若满足该条件则\\(\theta_i<0\\), 这使得\\(\phi_o=\phi_i\\).
-
-$$
-\begin{equation}
-\theta_m = \frac{\theta_o+\theta_i}{2}
-\end{equation}
-$$
-
-此时可以获取Jacobi行列式的变换结果.
+对于镜面反射表面法线\\(\omega_m\\)是位于\\(\omega_o\\)和\\(\omega_o\\)之间的, 因此也可以被称为半向量. 以\\(\omega_o\\)为中心即\\(\theta_o=0\\), 此时可以获取Jacobi行列式的变换结果.
 
 $$
 \begin{equation}
@@ -907,19 +899,24 @@ $$
 
 $$
 \begin{equation}
-f_r(p,\omega_o,\omega_i)=\frac{D_{\omega_o}(\omega_m)F(\omega_o,\omega_m)G(\omega_i,\omega_o)}{4(\omega_o\cdot\omega_m)\cos\theta_i}
+\begin{aligned}
+f_r(p,\omega_o,\omega_i)
+&=\frac{D_{\omega_o}(\omega_m)F(\omega_o,\omega_m)G(\omega_i)}{4(\omega_o\cdot\omega_m)\cos\theta_i}\\\\
+&=\frac{D(\omega_m)F(\omega_o,\omega_m)G(\omega_i)G(\omega_o)}{4\cos\theta_i\cos\theta_o}\\\\
+&\approx\frac{D(\omega_m)F(\omega_o,\omega_m)G(\omega_i, \omega_o)}{4\cos\theta_i\cos\theta_o}
+\end{aligned}
 \end{equation}
 $$
 
 #### Torrance-Sparrow采样
 
-若`Sample_wm`得到的\\(omega_i\\)朝向表面下方, 则判定为无效并重新采样.
+若`Sample_wm`得到的\\(\omega_i\\)朝向表面下方, 则判定为无效并重新采样.
 
 ## 粗糙绝缘体BSDF
 
 ### 粗糙绝缘体PDF
 
-根据Snell定律我们可以把投影到\\(x\\)上的部分抵消, 由此可得以下关系, 这里的符号是由\\(\eta_i>\eta_o\\)的假设得到的. 对于反射由于\\(\eta_i=\eta_o\\)这与半向量是等价的.
+根据Snell定律我们可以把投影到与半向量垂直的平面上的部分抵消, 由此可得以下关系. 此时得到的半向量总是指向光学密度较大的一侧, 需要后续修正. 对于反射由于\\(\eta_i=\eta_o\\)这与半向量是等价的.
 
 $$
 \begin{equation}
@@ -931,7 +928,11 @@ $$
 
 $$
 \begin{equation}
-\frac{d\omega_m}{d\omega_i}=\frac{\omega_o\cdot\omega_m}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2}
+\begin{aligned}
+\frac{d\omega_m}{d\omega_i}
+&=\frac{|\omega_i\cdot\omega_m|\eta_i^2}{((\eta_i\omega_i+\eta_o\omega_o)\cdot\omega_m)^2}\\\\
+&=\frac{|\omega_i\cdot\omega_m|}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2}
+\end{aligned}
 \end{equation}
 $$
 
@@ -943,7 +944,11 @@ $$
 
 $$
 \begin{equation}
-f_t(p,\omega_o,\omega_i)=\frac{D(\omega_m)(1-F(\omega_o\cdot\omega_m))G(\omega_i,\omega_o)}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2}\frac{|\omega_i\cdot\omega_m||\omega_o\cdot\omega_m|}{|\cos\theta_i||\cos\theta_o|}
+\begin{aligned}
+f_t(p,\omega_o,\omega_i)
+&=\frac{D_{\omega_o}(\omega_m)(1-F(\omega_o\cdot\omega_m))G(\omega_i)|\omega_i\cdot\omega_m|}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2|\cos\theta_i|}\\\\
+&=\frac{D(\omega_m)(1-F(\omega_o\cdot\omega_m))G(\omega_i,\omega_o)}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2}\frac{|\omega_i\cdot\omega_m||\omega_o\cdot\omega_m|}{|\cos\theta_i||\cos\theta_o|}
+\end{aligned}
 \end{equation}
 $$
 
