@@ -426,7 +426,7 @@ $$
 
 Fresnel方程描述了光线折射与反射的量, 它是Maxwell方程在光滑平面上的解.
 
-将光线分解为相对于表面的垂直与水平偏振, 它们因反射而产生的振幅的变化是不同的.
+将光线分解为相对于表面的垂直与水平偏振, 它们因反射而产生的振幅的变化是不同的. 若\\(\theta_t>\frac{\pi}{2}\\)可以认为是完全反射, Fresnel返回\\(1\\).
 
 $$
 \begin{equation}
@@ -458,7 +458,38 @@ $$
 
 ### 导体Fresnel方程
 
-导体的IOR需要用复数表示, 实部描述光线速度的减小, 虚部描述光线在材质内传播时的衰减. 尽管渲染中不需要考虑导体折射的部分, 它所带来的能量衰减也会影响反射. 复数的2范数为实部与虚部和的平方, 此时即可泛化上述Fresnel反射率的计算.
+导体的IOR需要用复数表示, 实部描述光线速度的减小, 虚部描述光线在材质内传播时的衰减.
+
+虚部为\\(0\\)时电磁波振幅如下, 只关心Euler公式分解后的实部, 此时为与距离\\(z\\)相关的三角函数, \\(\alpha\\)代表空间频率.
+
+$$
+\begin{equation}
+\begin{aligned}
+E(z)&=e^{i\alpha\eta z}\\\\
+\mathcal{R}(E(z))&=\cos\(\alpha\eta z)
+\end{aligned}
+\end{equation}
+$$
+
+当使用复数\\(\eta_c=\eta+ik\\)表示IOR后, 电磁波振幅会随着传播距离衰减, 形式如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathcal{R}(E(z))=e^{-\alpha zk}\cos\(\alpha\eta z)
+\end{aligned}
+\end{equation}
+$$
+
+复数的2范数为实部与虚部和的平方, 此时可泛化上述Fresnel反射率的计算.
+
+$$
+\begin{equation}
+\begin{aligned}
+||a+bi||_2=\sqrt{a^2+b^2}
+\end{aligned}
+\end{equation}
+$$
 
 ## 导体BRDF
 
