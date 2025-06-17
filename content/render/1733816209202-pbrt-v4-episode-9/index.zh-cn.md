@@ -594,7 +594,7 @@ P^{22}(x_{\tilde{m}},y_{\tilde{m}})
 \end{equation}
 $$
 
-对于渲染任务最常用的GGX法线分布函数定义如下.
+对于渲染任务最常用的Trowbridge-Reitz法线分布函数定义如下.
 
 $$
 \begin{equation}
@@ -633,7 +633,7 @@ G_1(\omega)
 \end{equation}
 $$
 
-各向同性的GGX的\\(\Lambda(\omega)\\)具有解析形式, 各向异性的粗糙度可以通过\\(\alpha=\sqrt{\alpha_x^2\cos^2\phi+\alpha_y^2\sin^2\phi}\\)得到.
+各向同性的Trowbridge-Reitz的\\(\Lambda(\omega)\\)具有解析形式, 各向异性的粗糙度可以通过\\(\alpha=\sqrt{\alpha_x^2\cos^2\phi+\alpha_y^2\sin^2\phi}\\)得到.
 
 $$
 \begin{equation}
@@ -763,35 +763,44 @@ D_\omega(\omega_m)=\frac{G_1(\omega)}{\cos\theta}D(\omega_m)\max(0,\omega\cdot\o
 \end{equation}
 $$
 
-pbrt的采样方式如下, 将GGX分布看作一个被缩放的半球, 因此没有采用逆变换法, 这里通过乘上\\(\alpha\\)来缩放是因为方向的缩放变换用到的是矩阵的转置逆.
+由于逆变换法没有解析形式, pbrt将Trowbridge-Reitz分布看作一个被缩放的半球, 投影到半球上为椭圆. 因此将法线变换到\\(z\\)轴, 对视线方向乘上由各向异性粗糙度定义的椭圆轴长, 执行逆椭圆变换, 在半球中采样更为简单.
 
 ```c++
-PBRT_CPU_GPU
-Vector3f Sample_wm(Vector3f w, Point2f u) const {
-    // Transform _w_ to hemispherical configuration
-    Vector3f wh = Normalize(Vector3f(alpha_x * w.x, alpha_y * w.y, w.z));
-    if (wh.z < 0)
-        wh = -wh;
+// Transform _w_ to hemispherical configuration
+Vector3f wh = Normalize(Vector3f(alpha_x * w.x, alpha_y * w.y, w.z));
+if (wh.z < 0)
+    wh = -wh;
+```
 
-    // Find orthonormal basis for visible normal sampling
-    Vector3f T1 = (wh.z < 0.99999f) ? Normalize(Cross(Vector3f(0, 0, 1), wh))
-                                    : Vector3f(1, 0, 0);
-    Vector3f T2 = Cross(wh, T1);
+构造以视线为\\(z\\)轴的正交坐标系, `T2`轴保证采样到缩放半圆的法线在该轴为负.
 
-    // Generate uniformly distributed points on the unit disk
-    Point2f p = SampleUniformDiskPolar(u);
+```c++
+// Transform _w_ to hemispherical configuration
+Vector3f wh = Normalize(Vector3f(alpha_x * w.x, alpha_y * w.y, w.z));
+if (wh.z < 0)
+    wh = -wh;
+```
 
-    // Warp hemispherical projection for visible normal sampling
-    Float h = std::sqrt(1 - Sqr(p.x));
-    p.y = Lerp((1 + wh.z) / 2, h, p.y);
+将半球投影到\\(xy\\)平面时, 只有一侧是完整半圆, 另一侧是缩放了\\(\cos\theta=\bold{n}\cdot\omega\\)即`wh.z`的半圆. 令\\(h=\sqrt{1-x^2}\\), 原本采样得到的\\(x\\)对应的\\(y\\)范围为\\((-h, h)\\), 缩放后为\\((-h\cos\theta, h)\\), 相当于\\(y'=\frac{h}{2}(1+\cos\theta)y+\frac{h}{2}(1-\cos\theta)\\), pbrt这里的`Lerp`与之等价.
 
-    // Reproject to hemisphere and transform normal to ellipsoid configuration
-    Float pz = std::sqrt(std::max<Float>(0, 1 - LengthSquared(Vector2f(p))));
-    Vector3f nh = p.x * T1 + p.y * T2 + pz * wh;
-    CHECK_RARE(1e-5f, nh.z == 0);
-    return Normalize(
-        Vector3f(alpha_x * nh.x, alpha_y * nh.y, std::max<Float>(1e-6f, nh.z)));
-}
+```c++
+// Generate uniformly distributed points on the unit disk
+Point2f p = SampleUniformDiskPolar(u);
+
+// Warp hemispherical projection for visible normal sampling
+Float h = std::sqrt(1 - Sqr(p.x));
+p.y = Lerp((1 + wh.z) / 2, h, p.y);
+```
+
+最后将采样得到的法线变换回原本的空间, 由于法线的变换为逆变换的转置, 这里仍然乘上粗糙度.
+
+```c++
+// Reproject to hemisphere and transform normal to ellipsoid configuration
+Float pz = std::sqrt(std::max<Float>(0, 1 - LengthSquared(Vector2f(p))));
+Vector3f nh = p.x * T1 + p.y * T2 + pz * wh;
+CHECK_RARE(1e-5f, nh.z == 0);
+return Normalize(
+    Vector3f(alpha_x * nh.x, alpha_y * nh.y, std::max<Float>(1e-6f, nh.z)));
 ```
 
 实时渲染IBL的重要性抽样中, 法线与视线方向是一致的, 因此可以对下式进行球面坐标上的重要性抽样.
@@ -802,7 +811,7 @@ $$
 \end{equation}
 $$
 
-各向同性的GGX在\\(\theta,\phi\\)上的PDF如下.
+各向同性的Trowbridge-Reitz在\\(\theta,\phi\\)上的PDF如下.
 
 $$
 \begin{equation}
@@ -852,6 +861,8 @@ $$
 $$
 
 ### Torrance-Sparrow模型
+
+综合以上结论我们可以推导出微表面上的Torrance-Sparrow BRDF并应用于材质中.
 
 #### 半向量变换
 
@@ -910,7 +921,14 @@ $$
 
 #### Torrance-Sparrow采样
 
-若`Sample_wm`得到的\\(\omega_i\\)朝向表面下方, 则判定为无效并重新采样.
+若`Sample_wm`得到的\\(\omega_i\\)朝向表面下方, 这意味着反射后仍然位于微表面, 需要执行多次散射. pbrt不考虑这种情况, 显然在极为粗糙的表面这会导致能量损失.
+
+```c++
+Vector3f wm = mfDistrib.Sample_wm(wo, u);
+Vector3f wi = Reflect(wo, wm);
+if (!SameHemisphere(wo, wi))
+    return {};
+```
 
 ## 粗糙绝缘体BSDF
 
@@ -940,7 +958,7 @@ $$
 
 ### 粗糙绝缘体BSDF
 
-根据PDF可以得到BTDF.
+根据PDF可以将Torrance-Sparrow BRDF拓展到BTDF, 得到完整的BSDF.
 
 $$
 \begin{equation}
