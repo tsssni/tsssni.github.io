@@ -775,13 +775,13 @@ if (wh.z < 0)
 构造以视线为\\(z\\)轴的正交坐标系, `T2`轴保证采样到缩放半圆的法线在该轴为负.
 
 ```c++
-// Transform _w_ to hemispherical configuration
-Vector3f wh = Normalize(Vector3f(alpha_x * w.x, alpha_y * w.y, w.z));
-if (wh.z < 0)
-    wh = -wh;
+// Find orthonormal basis for visible normal sampling
+Vector3f T1 = (wh.z < 0.99999f) ? Normalize(Cross(Vector3f(0, 0, 1), wh))
+                                : Vector3f(1, 0, 0);
+Vector3f T2 = Cross(wh, T1);
 ```
 
-将半球投影到\\(xy\\)平面时, 只有一侧是完整半圆, 另一侧是缩放了\\(\cos\theta=\bold{n}\cdot\omega\\)即`wh.z`的半圆. 令\\(h=\sqrt{1-x^2}\\), 原本采样得到的\\(x\\)对应的\\(y\\)范围为\\((-h, h)\\), 缩放后为\\((-h\cos\theta, h)\\), 相当于\\(y'=\frac{h}{2}(1+\cos\theta)y+\frac{h}{2}(1-\cos\theta)\\), pbrt这里的`Lerp`与之等价.
+将半球投影到\\(xy\\)平面时, 只有一侧是完整半圆, 另一侧是缩放了\\(\cos\theta=\bold{n}\cdot\omega\\)即`wh.z`的半圆. 令\\(h=\sqrt{1-x^2}\\), 原本采样得到的\\(x\\)对应的\\(y\\)范围为\\((-h, h)\\), 缩放后为\\((-h\cos\theta, h)\\), 相当于\\(y'=\frac{1+\cos\theta}{2}y+\frac{h(1-\cos\theta)}{2}\\), pbrt这里的`Lerp`与之等价.
 
 ```c++
 // Generate uniformly distributed points on the unit disk
