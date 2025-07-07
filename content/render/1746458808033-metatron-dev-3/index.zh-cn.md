@@ -8,7 +8,7 @@ tags: ["graphics", "rendering", "metatron"]
 
 pbrt通过`RayMajorantIterator`遍历体数据, 独立于体数据之外, 将体数据采样方式暴露给积分器. metatron开发时决定将采样细节封装在介质类中, 实现了`math::Grid`以及`media::Grid_Medium`以划分体素和访问体数据, 效果如下.
 
-![disney-cloud](disney-cloud.png "hugo/blowfish竟然没有色彩管理, linear srgb图片还得手动转")
+![disney-fire](disney-fire.png)
 
 ## 体素网格
 
