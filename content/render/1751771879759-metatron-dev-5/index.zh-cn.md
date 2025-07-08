@@ -6,7 +6,7 @@ description: "metatron development log"
 tags: ["graphics", "rendering", "metatron"]
 ---
 
-尝试在项目里用上proxy的多态, 目前版本3.4.0, 用官方的example研究一下源码与[compiler explorer](https://godbolt.org/z/PjP9obzoP)里的预处理展开结果, 内容会参考[C++ proxy库的多态是怎么实现的](https://zhuanlan.zhihu.com/p/22307747744).
+尝试在项目里用上proxy的多态, 目前版本为master上未发布的4.0.0, 用官方的example研究一下源码与[compiler explorer](https://godbolt.org/z/PjP9obzoP)里的预处理展开结果, 内容会参考[C++ proxy库的多态是怎么实现的](https://zhuanlan.zhihu.com/p/22307747744).
 
 ```c++
 #include "proxy.h"
