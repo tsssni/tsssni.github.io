@@ -340,7 +340,7 @@ return false;
 
 若为散射则根据相位方程采样散射方向, 由于是实散射路径深度会增加. 发生散射返回`false`, 因为路径已经被改变, 不能再执行当前`SampleT_maj`. 注意到由于可以直接从Henyey-Greenstein中采样, 而pbrt目前只实现了这一种相位函数. 这里`ps->p / ps->pdf`始终为1.
 
-```cpp
+```c++
 // Stop path sampling if maximum depth has been reached
 if (depth++ >= maxDepth) {
     terminated = true;
