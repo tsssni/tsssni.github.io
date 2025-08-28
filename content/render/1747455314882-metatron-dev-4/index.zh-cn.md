@@ -12,30 +12,30 @@ tags: ["graphics", "rendering", "restir", "metatron"]
 
 ## 重采样重要性抽样
 
-令\\(x\\)的目标概率分布为\\(\hat{p}(x)\\), 它可能难以被重要性抽样. 我们为每个样本选择一个容易抽样的提议分布\\(p_i(X)\\), 选出\\(M\\)个样本组成序列\\(\bold{x}\\), 然后将每个样本的权重设置为\\(w_i(x_i)=m(x_i)\frac{\hat{p}(x_i)}{p_i(x_i)}\\), 随机选择其中一个样本\\(x_z\\), 此时概率如下.
+令\\(x\\)的目标概率分布为\\(\hat{p}(x)\\), 它可能难以被重要性抽样. 我们为每个样本选择一个容易抽样的提议分布\\(p_i(X)\\), 选出\\(M\\)个样本组成序列\\(\bold{x}\\), 然后将每个样本的权重设置为\\(w_i(x_i)=\frac{\hat{p}(x_i)}{p_i(x_i)}\\), 随机选择其中一个样本\\(x_z\\), 此时概率如下.
 
 $$
 \begin{equation}
 \begin{aligned}
 p(z|\bold{x})
-&=\frac{w(x_z)}{\sum_{i=1}^M w(x_i)}
+&=\frac{w_z(x_z)}{\sum_{i=1}^M w_i(x_i)}
 \end{aligned}
 \end{equation}
 $$
 
-证明采用RIS进行Monte Carlo最终可以收敛的过程如下, 其中\\(y\\)为每次RIS所选择到的样本, \\(p'\\)为RIS后被选中的概率. 可以看出\\(\sum\_{k=1,p_k(x) \neq 0}^Mm_k(x)=1\\)即可无偏. 由于目标概率分布被抵消, 不要求为积分为\\(1\\), 渲染任务可选择Kajiya积分项为\\(\hat{p}(x)\\).
+证明采用RIS进行Monte Carlo最终可以收敛的过程如下, 其中\\(y\\)为每次RIS所选择到的样本, \\(p'\\)为RIS后被选中的概率. 可以看出\\(\sum\_{k=1,p_k(x) \neq 0}^Mm(x)=1\\)即可无偏. 由于目标概率分布被抵消, 不要求为积分为\\(1\\), 渲染任务可选择Kajiya积分项为\\(\hat{p}(x)\\).
 
 $$
 \begin{equation}
 \begin{aligned}
-E(\frac{1}{N}\sum_{i=1}^N\frac{f(y_i)}{\hat{p}(y_i)}\sum_{j=1}^Mw_j(x_{ij}))
-&=\frac{1}{N}\sum_{i=1}^NE(\frac{f(y)}{\hat{p}(y)}\sum_{j=1}^Mw_j(x_j))\\\\
-&=E(\frac{f(y)}{\hat{p}(y)}W)\\\\
-&=\sum_{k=1,p_k(x_k) \neq 0}^M\int\cdots\int\frac{f(x_k)}{\hat{p}(x_k)}Wp'(x_k)dx_1 \cdots dx_M\\\\
-&=\sum_{k=1,p_k(x_k) \neq 0}^M\int\cdots\int\frac{f(x_k)}{\hat{p}(x_k)}W\frac{w_k(x_k)}{W}\prod_{i=1}^Mp_i(x_i)dx_1 \cdots dx_M\\\\
-&=\sum_{k=1,p_k(x_k) \neq 0}^M\int\cdots\int f(x_k)m_k(x_k)\prod_{i=1,i \neq k}^Mp_i(x_i)dx_1 \cdots dx_M\\\\
-&=\sum_{k=1,p_k(x_k) \neq 0}^M\int f(x_k)m_k(x_k)dx_k\int\cdots\int\underbrace{\prod_{i=1,i \neq k}^Mp_i(x_i)\underbrace{dx_1 \cdots dx_M}_{\text{M - 1, except k}}}\_{1}\\\\
-&=\int \sum\_{k=1,p_k(x) \neq 0}^Mm_k(x)f(x)dx\\\\
+E(\frac{1}{N}\sum_{i=1}^N\frac{f(y_i)}{\hat{p}(y_i)}m(y_i)\sum_{j=1}^Mw_j(x_{ij}))
+&=\frac{1}{N}\sum_{i=1}^NE(\frac{f(y)}{\hat{p}(y)}m(y)\sum_{j=1}^Mw_j(x_j))\\\\
+&=E(\frac{f(y)}{\hat{p}(y)}m(y)w_{\text{sum}})\\\\
+&=\sum_{k=1,p_k(x_k) \neq 0}^M\int\cdots\int\frac{f(x_k)}{\hat{p}(x_k)}m(x_k)w_{\text{sum}}p'(x_k)dx_1 \cdots dx_M\\\\
+&=\sum_{k=1,p_k(x_k) \neq 0}^M\int\cdots\int\frac{f(x_k)}{\hat{p}(x_k)}m(x_k)w_{\text{sum}}\frac{w_k(x_k)}{w_{\text{sum}}}\prod_{i=1}^Mp_i(x_i)dx_1 \cdots dx_M\\\\
+&=\sum_{k=1,p_k(x_k) \neq 0}^M\int\cdots\int f(x_k)m(x_k)\prod_{i=1,i \neq k}^Mp_i(x_i)dx_1 \cdots dx_M\\\\
+&=\sum_{k=1,p_k(x_k) \neq 0}^M\int f(x_k)m(x_k)dx_k\int\cdots\int\underbrace{\prod_{i=1,i \neq k}^Mp_i(x_i)\underbrace{dx_1 \cdots dx_M}_{\text{M - 1, except k}}}\_{1}\\\\
+&=\int \sum\_{k=1,p_k(x) \neq 0}^Mm(x)f(x)dx\\\\
 \end{aligned}
 \end{equation}
 $$
@@ -55,9 +55,7 @@ if u < w / s.W then
 
 ## 时空复用
 
-空域复用具有不同的目标分布, 合并空域相邻蓄水池不可行, 需再次执行RIS, 将空域相邻的保留样本当作\\(1\\)个新样本添加到蓄水池, 提议分布为\\(\frac{\hat{p_i}(y)}{W}\\), 目标分布与当前像素一致, 若为时域复用原理相同. 
-
-由于经历RIS后这是质量较高的样本, 我们选择将当前与相邻像素保留的样本添加到当前蓄水池\\(M\\)次, 因此被选中的概率提高\\(M\\).
+假设所有样本提议分布相同, 则\\(m(y)=\frac{1}{M}\\), 使得\\(w_{\text{sum}}=\hat{p}(y)WM\\), 得到有偏结果.
 
 ```
 Reservoir s
@@ -66,7 +64,7 @@ for r in {r1, ..., rk} do
 s.M = s1.M + s2.M + ... + sk.M
 ```
 
-每个像素的RIS目标分布为未被遮挡的光照贡献函数, 而空间复用时需考虑提议分布的阴影遮蔽, 由于空域相邻的提议分布包含\\(\hat{p_i}(y)\\), 在相邻像素执行阴影测试即可. ReSTIR原文通过该方法确定\\(m_k(x_k)\\), 剔除遮挡样本保证无偏.
+为实现无偏需保证\\(p_k(y) > 0\\), 由于相邻像素来自于重采样, \\(p_k(y)\\)是未知的, 但由重采样过程可知, \\(\hat{p}(y)=0\\)时样本选中概率为0, 可用相邻像素的目标分布来测试\\(p_k(y) > 0\\), 即执行阴影测试.
 
 ```
 for qi in {q1, ..., qk} do
