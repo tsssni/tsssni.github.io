@@ -18,7 +18,9 @@ tags: ["graphics", "rendering", "pbrt"]
 
 #### Fourier级数
 
-对于一个函数集合中任意不同的函数\\(f(x),g(x)\\)若满足\\(\int_{-\infty}^{\infty} f(x)g(x) dx = 0\\), 则该集合被称为正交函数系. 根据Hilbert空间理论, 可以证明三角函数系\\(\lbrace\cos 0, \sin 0, \cos(\omega x), \sin(\omega x), \cos(2 \omega x), \sin(2 \omega x), ...\rbrace\\)为完备的正交函数系, 可以用于表示任意函数. 由此可以得到周期函数Fourier分解的一般形式, 其中频率采用\\(\omega = \frac{1}{T}\\)表示.
+对于一个函数集合中任意不同的函数\\(f(x),g(x)\\)若满足\\(\int_{-\infty}^{\infty} f(x)g(x) dx = 0\\), 则该集合被称为正交函数系. 根据Hilbert空间理论, 可以证明三角函数系\\(\lbrace\cos 0, \sin 0, \cos(\omega x), \sin(\omega x), \cos(2 \omega x), \sin(2 \omega x), ...\rbrace\\)为完备的正交函数系, 可以用于表示任意函数.
+
+由此可得周期函数Fourier分解的一般形式, 频率采用\\(\omega = \frac{1}{T}\\)表示.
 
 $$
 \begin{equation}
@@ -26,16 +28,19 @@ f(x) = \sum_{n = 0}^{\infty} \left(a_n \cos n 2\pi \omega x + b_n \sin n 2\pi \o
 \end{equation}
 $$
 
-各项系数可以基于正交理论得到并基于极坐标进一步转化以获取相位.
+各项系数可以基于正交理论得到.
 
 $$
 \begin{equation}
 \begin{aligned}
-a_n &= \frac{2}{T} \int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) \cos n 2\pi \omega x dx &= \frac{2}{T} \int_{-\frac{T}{2}}^{\frac{T}{2}} a_n \cos^2 n 2\pi \omega x dx\\\\
-b_n &= \frac{2}{T} \int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) \sin n 2\pi \omega x dx &= \frac{2}{T} \int_{-\frac{T}{2}}^{\frac{T}{2}} b_n \sin^2 n 2\pi \omega x dx\\\\
+\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x)dx &= Ta_0\\\\
+\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) \cos n 2\pi \omega x dx &= \int_{-\frac{T}{2}}^{\frac{T}{2}} a_n \cos^2 n 2\pi \omega x dx = \frac{T}{2}a_n\\\\
+\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) \sin n 2\pi \omega x dx &= \int_{-\frac{T}{2}}^{\frac{T}{2}} b_n \sin^2 n 2\pi \omega x dx = \frac{T}{2}b_n
 \end{aligned}
 \end{equation}
 $$
+
+系数转为极坐标可获取相位.
 
 $$
 \begin{equation}
@@ -55,7 +60,7 @@ $$
 f(x)
 &= \sum_{n=0}^{\infty} \left(a_n \frac{e^{i n 2\pi \omega x} + e^{-i n 2\pi \omega x}}{2} + b_n \frac{-i(e^{i n 2\pi \omega x} - e^{-i n 2\pi \omega x})}{2}\right)\\\\
 &= \sum_{n=0}^{\infty} \frac{e^{i n 2\pi \omega x}(a_n - i b_n) + e^{-i n 2\pi \omega x}(a_n + i b_n)}{2}\\\\
-&= \sum_{n=0}^{\infty} \frac{e^{i n 2\pi \omega x}(a_n - i b_n)}{2} + \sum_{n=-\infty}^{-1} \frac{e^{i n 2\pi \omega x}(a_{-n} + i b_{-n})}{2}\\\\
+&= a_0 + \sum_{n=1}^{\infty} \frac{e^{i n 2\pi \omega x}(a_n - i b_n)}{2} + \sum_{n=-\infty}^{-1} \frac{e^{i n 2\pi \omega x}(a_{-n} - i b_{-n})}{2}\\\\
 &= \sum_{n=-\infty}^{\infty} d_n e^{i n 2\pi \omega x}
 \end{aligned}
 \end{equation}
@@ -66,14 +71,17 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-d_{n \ge 0}
+d_{n=0}
+&= \frac{1}{T}\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x)dx\\\
+&= \frac{1}{T}\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) e^{-i n 2\pi \omega x} dx\\\\
+d_{n > 0}
 &= \frac{a_n - i b_n}{2}\\\\
 &= \frac{1}{T}\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) (\cos n 2\pi \omega x - i\sin n 2\pi \omega x) dx\\\\
-&= \frac{1}{T}\int_{\frac{T}{2}}^{\frac{T}{2}} f(x) e^{-i n 2\pi \omega x} dx\\\\
+&= \frac{1}{T}\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) e^{-i n 2\pi \omega x} dx\\\\
 d_{n < 0}
 &= \frac{a_{-n} + i b_{-n}}{2}\\\\
 &= \frac{1}{T}\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) (\cos (-n 2\pi \omega x) + i\sin (-n 2\pi \omega x)) dx\\\\
-&= \frac{1}{T}\int_0^{T} f(x) e^{-i n 2\pi \omega x} dx\\\\
+&= \frac{1}{T}\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) e^{-i n 2\pi \omega x} dx\\\\
 d_n &= \frac{1}{T}\int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) e^{-i n 2\pi \omega x} dx
 \end{aligned}
 \end{equation}
@@ -89,7 +97,7 @@ $$
 
 #### Fourier变换
 
-Fourier级数针对周期函数, 对于非周期函数可以看作\\(T \to +\infty\\)的周期函数, 此时各个余弦函数的频率\\(\frac{n}{T}\\)转化为连续变化的频率\\(\omega\\), \\(\frac{1}{T}\\)转化为无穷小\\(d\omega\\), 由此可得下式.
+Fourier级数针对周期函数, 对于非周期函数可以看作\\(T \to +\infty\\)的周期函数, 此时各项频率\\(\frac{n}{T}\\)转化为连续变化的频率\\(\omega\\), \\(\frac{1}{T}\\)转化为无穷小\\(d\omega\\), 由此可得下式.
 
 $$
 \begin{equation}
@@ -97,7 +105,7 @@ f(x) = \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} f(y) e^{-i 2 \pi \omega y
 \end{equation}
 $$
 
-从中可以提取出Fourier变换.
+从中可以提取出Fourier变换, 结果为偶函数.
 
 $$
 \begin{equation}
@@ -109,7 +117,7 @@ $$
 
 #### 冲激函数列
 
-利用Dirac方程构建周期为T的冲激函数列.
+利用Dirac方程构建周期为T的冲激函数列, 用于表示采样点分布.
 
 $$
 \begin{equation}
@@ -117,17 +125,18 @@ III_T(x) = T \sum_{n = -\infty}^{\infty} \delta(x - n T)
 \end{equation}
 $$
 
-冲激函数列的Fourier展开与Fourier变换如下. Fourier变换后周期变为倒数代表在空间上较远的样本在频域上较近.
+冲激函数列的Fourier展开与Fourier变换如下, Fourier变换后周期变为倒数, 在空间上较远的样本在频域上较近.
 
 $$
 \begin{equation}
 \begin{aligned}
 III_T(x)
-&= \sum_{n=-\infty}^{\infty} \int_{-\frac{T}{2}}^{\frac{T}{2}} T \sum_{j = -\infty}^{\infty} \delta(x - jT) e^{-i \frac{2\pi}{T} n x} dx\ e^{i \frac{2\pi}{T} n x}\\\\
-&= T \sum_{n=-\infty}^{\infty} e^{i \frac{2\pi}{T} n x}\\\\
+&= \sum_{n=-\infty}^{\infty} e^{i n 2\pi \omega x} \int_{-\frac{T}{2}}^{\frac{T}{2}} \sum_{j = -\infty}^{\infty} \delta(x - jT) e^{-i n 2\pi \omega x} dx\\\\
+&= \sum_{n=-\infty}^{\infty} e^{i n 2\pi \omega x} \int_{-\frac{T}{2}}^{\frac{T}{2}} \delta(x) e^{-i n 2\pi \omega x} dx\\\\
+&= \sum_{n=-\infty}^{\infty} e^{i n 2\pi \omega x}\\\\
 F_{III}(\omega)
 &= \sum_{j=-\infty}^{\infty} \int_{-\infty}^{\infty} T \delta(x - jT) e^{-i 2\pi \omega x} dx\\\\
-&= \sum_{n=-\infty}^{\infty} T e^{-i 2\pi \omega n T}\\\\
+&= \sum_{n=-\infty}^{\infty} T e^{-i n 2\pi \omega T}\\\\
 &= \frac{1}{\frac{1}{T}} \sum_{n=-\infty}^{\infty} e^{i \frac{2\pi}{\frac{1}{T}} n (-\omega)}\\\\
 &= III_{\frac{1}{T}}(-\omega)\\\\
 &= III_{\frac{1}{T}}(\omega)
@@ -174,7 +183,7 @@ $$
 
 #### 滤波
 
-对某个函数的采样结果添加滤波可以按如下方式表示.
+对某个函数的采样结果添加滤波形式如下.
 
 $$
 \begin{equation}
@@ -186,12 +195,12 @@ $$
 \end{equation}
 $$
 
-由此可得滤波结果的傅里叶变换.
+Fourier变换形式如下, 可见\\(\omega_{III} = \frac{1}{T} \rightarrow +\infty\\), \\(\mathcal{F} \lbrace f(x) \rbrace \otimes III_{\frac{1}{T}}(\omega) \rightarrow \mathcal{F} \lbrace f(x) \rbrace\\), \\(\omega_{III} \rightarrow 0\\)导致\\(\mathcal{F} \lbrace \omega \rbrace\\)被复制到\\(\mathcal{F} \lbrace \omega + n\omega_{III} \rbrace\\). 令\\(\omega_f\\)为\\(f(x)\\)的最高频率, \\(\omega_{III} < 2 \omega_f\\)会导致混叠, 即渲染中常见的走样现象, 系数2来自于偶函数的对称性质. 由此可得Nyquist采样定理: 采样频率高于原函数频率的两倍, 即高于Nyquist频率, 可消除混叠.
 
 $$
 \begin{equation}
 \begin{aligned}
-\tilde{f}(x)
+\mathcal{F} \lbrace \tilde{f}(x) \rbrace
 &= \mathcal{F} \lbrace III_T(x)f(x) \otimes r(x) \rbrace\\\\
 &= \mathcal{F} \lbrace III_T(x)f(x) \rbrace \mathcal{F} \lbrace r(x) \rbrace\\\\
 &= (\mathcal{F} \lbrace f(x) \rbrace \otimes III_{\frac{1}{T}}(\omega)) \mathcal{F} \lbrace r(x) \rbrace
@@ -199,65 +208,25 @@ $$
 \end{equation}
 $$
 
-盒形滤波定义如下, 其Fourier变换结果为\\(\text{sinc} (T\omega)\\). 由滤波的Fourier变换可知, 若在空间上采用盒形滤波即求附近的样本的均值, 由于\\(\text{sinc}\\)函数的范围是无限的, 在频域上会导致高频样本对滤波结果产生贡献. 同样的, 若在空间上使用高频\\(\text{sinc}\\)函数作为滤波, 在频域上可以获得最优的滤波结果, 但由于无限范围在空间上无法采用该滤波.
+当\\(\omega_{III}\\)大于Nyquist频率, 若有如下\\(\mathcal{F} \lbrace r(x) \rbrace\\), 可使\\(\mathcal{F} \lbrace \tilde{f}(x) \rbrace = \mathcal{F} \lbrace {f}(x) \rbrace\\). \\(\text{sinc}_T(x)\\)与\\(\Pi\_\frac{1}{T}(x)\\)可在空域与频率相互转化, 基于\\(\text{sinc}_T(x)\\)设计滤波器可接近理想情况. 同样的若在空域使用\\(\Pi_T\\)会导致高频无法消除, 但优势在于计算量小.
 
 $$
 \begin{equation}
 \begin{aligned}
-\pi_{T}(x) =
+\mathcal{F} \lbrace r(x) \rbrace= \Pi_{\frac{1}{T}} =
 \begin{cases}
-\frac{1}{T}, & |x| < \frac{T}{2}\\\\
-0, & otherwise
+T &|\omega| < \frac{1}{2T}\\\\
+0 &\text{otherwise}
 \end{cases}
 \end{aligned}
 \end{equation}
 $$
 
-### 走样
-
-若采样率过低, Fourier变换后频域样本相距过近出现重叠, 或者说多个样本被卷积复制到频谱上的某个位置, 导致滤波无法还原频域信号, 这被称为走样. 因采样导致的走样为前走样, 重建导致的为后走样, 修复走样的行为被称为反走样. 在实时渲染中走样通常表现为锯齿, 因此反走样也可以翻译为抗锯齿.
-
-解决走样的最好方式为提高采样率, 依据采样定理可知, 当采样频率超过信号频率的两倍即可重建信号, 某个采样率可以重建的信号的最大频率即为Nyquist频率. 由于图形学中的函数几乎都不是带限函数, 需要采取更多提高采样率之外的方法.
-
-### 像素
-
-显示器或摄影中的像素代表发出或检测光线的物理元素, 图片中的像素则为图像函数的样本. 图像中的像素实际上是某个点的样本, 而非通常所认为的是一小块矩形区域. 图像函数的坐标通常通过\\(c'= \lfloor c \rfloor + 0.5\\)来离散化.
-
-### 渲染采样与走样
-
-像素位置\\(x,y\\), 镜头采样位置\\(u,v\\), 时间\\(t\\)以及Monte Carlo样本\\(i\\)都会影响最终获得的辐亮度, 因此图像函数可以总结为如下形式.
-
-$$
-\begin{equation}
-f(x,y,t,u,v,i_1,i_2,\dots) \rightarrow L
-\end{equation}
-$$
-
-#### 走样原因
-
-几何物体是最常见的走样原因, 几何物体的边缘或极小的物体会导致图像函数的突变, 此时采用理想的\\(\text{sinc}\\)函数进行重建会导致Gibbs现象或振铃效应, 即采样率不足导致重建出的函数在不连续点附近出现振荡.
-
-贴图与材质也会导致着色走样, 通常由不正确的材质滤波与平面上的高亮点导致. 阴影着色也会引入突变, 且比几何物体的边缘更难检测.
-
-#### 适应性采样
-
-对于超过Nyquist频率的区域提高采样率即位适应性超采样, 通常在相邻样本具有显著变化的区域采用, 但这并不能准确代表当前区域的信号频率, 因此这种方法较难取得理想效果.
-
-#### 预滤波
-
-通过预滤波消除高频信号后的图像函数更易于重建, 图像中通常表现为模糊, 相比走样导致的锯齿模糊不会过于显眼. 令Nyquist频率为\\(\omega_s\\), 理想状态下利用\\(\text{sinc}\\)函数滤波可以消除高于Nyquist频率的信号. 实际使用中基于\\(\text{sinc}\\)函数生成的具有有限范围的函数可以取得较好的预滤波效果.
-
-$$
-\begin{equation}
-\tilde{f}(x) = f(x) \otimes \text{sinc}(2\omega_s x)
-\end{equation}
-$$
-
 ### 采样模式的频谱分析
 
-采样率固定的情况下采样点的分布也会影响采样质量, 类似shah函数的确定性采样模式在频域上的行为是容易理解的, 而对于随机性采样模式, 除了分析所有可能产生的样本, 我们还需要针对每次生成的样本分析频谱特征.
+采样率固定时需分析采样点的分布对质量的影响, 对于难以分析频域特征的随机性采样模式, 需要针对每次生成的样本分析频谱特征.
 
-数学上信号的功率通过信号函数的平方定义, 功率谱密度(power spectral density, PSD)可以用于频谱分析, 根据Wiener-Khinchin定义它可以通过自相关函数的Fourier变换计算, 整理后为Fourier变换结果与其共轭函数的乘积. 对于频域下的偶函数, 其共轭函数即为函数本身, 此时结果为函数的平方. 由卷积定理可得不同函数乘积的PSD为二者PSD的卷积.
+数学上信号功率为由信号函数的平方, 功率谱密度(power spectral density, PSD)可用于频谱分析. 根据Wiener-Khinchin定理它可通过自相关函数的Fourier变换计算, 整理后为Fourier变换结果与其共轭函数的乘积. 由卷积定理可得不同函数乘积的PSD为二者PSD的卷积.
 
 $$
 \begin{equation}
