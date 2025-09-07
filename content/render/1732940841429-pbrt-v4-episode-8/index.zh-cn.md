@@ -105,7 +105,7 @@ f(x) = \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} f(y) e^{-i 2 \pi \omega y
 \end{equation}
 $$
 
-从中可以提取出Fourier变换, 结果为偶函数.
+从中可以提取出Fourier变换, 对于实数域其结果为偶函数.
 
 $$
 \begin{equation}
@@ -195,7 +195,7 @@ $$
 \end{equation}
 $$
 
-Fourier变换形式如下, 可见\\(\omega_{III} = \frac{1}{T} \rightarrow +\infty\\), \\(\mathcal{F} \lbrace f(x) \rbrace \otimes III_{\frac{1}{T}}(\omega) \rightarrow \mathcal{F} \lbrace f(x) \rbrace\\), \\(\omega_{III} \rightarrow 0\\)导致\\(\mathcal{F} \lbrace \omega \rbrace\\)被复制到\\(\mathcal{F} \lbrace \omega + n\omega_{III} \rbrace\\). 令\\(\omega_f\\)为\\(f(x)\\)的最高频率, \\(\omega_{III} < 2 \omega_f\\)会导致混叠, 即渲染中常见的走样现象, 系数2来自于偶函数的对称性质. 由此可得Nyquist采样定理: 采样频率高于原函数频率的两倍, 即高于Nyquist频率, 可消除混叠.
+Fourier变换形式如下, 可见\\(\omega_{III} = \frac{1}{T} \rightarrow +\infty\\), \\(\mathcal{F} \lbrace f(x) \rbrace \otimes III_{\frac{1}{T}}(\omega) \rightarrow \mathcal{F} \lbrace f(x) \rbrace\\), \\(\omega_{III} \rightarrow 0\\)导致\\(\mathcal{F} \lbrace \omega \rbrace\\)被复制到\\(\mathcal{F} \lbrace \omega + n\omega_{III} \rbrace\\). 令\\(\omega_f\\)为\\(f(x)\\)的最高频率, \\(\omega_{III} < 2 \omega_f\\)会导致混叠, 即渲染中常见的走样现象, 系数2来自于实函数Fourier变换后为偶函数的对称性质. 由此可得Nyquist采样定理: 采样频率高于原函数频率的两倍, 即高于Nyquist频率, 可消除混叠.
 
 $$
 \begin{equation}
@@ -222,11 +222,69 @@ T &|\omega| < \frac{1}{2T}\\\\
 \end{equation}
 $$
 
+### 离散Fourier变换
+
+实际信号多为离散采样, 按\\(T\\)的间隔采样\\(N\\)次信号. 我们认为信号的周期为\\(NT\\), 此时信号的Fourier变换如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+F(\omega)
+&= \int_{-\infty}^{\infty} \sum_{n = -\infty}^{\infty} f(x) \sigma(x - nT) e^{-i 2 \pi \omega x}dx\\\\
+&= \sum_{n = -\infty}^{\infty} f(nT) e^{-i 2 \pi \omega n T}
+\end{aligned}
+\end{equation}
+$$
+
+根据Nyquist采样定律, 需要假设\\(f(x)\\)的频率\\(|\omega| < \frac{1}{2T}\\). 根据对冲激函数的分析, \\(F(\omega)\\)是周期为\\(\frac{1}{T}\\)的函数, 因此可以将\\((-\frac{1}{2T}, \frac{1}{2T})\\)映射到\\((0, \frac{1}{T})\\). 作为周期函数\\(f(x)\\)最低频率为\\(\frac{1}{NT}\\), 频谱只包含\\(\frac{n}{NT},n \in [0, N-1]\\). 从Euler公式的三角函数部分可以得出\\(e^{-i\frac{2\pi}{N}kn}=e^{-i\frac{2\pi}{N}k(n + jN)}, j \in (-\infty, \infty)\\). 此时Fourier变换可以改写为如下形式.
+
+$$
+\begin{equation}
+F(\frac{k}{NT}) = \sum_{i = -\infty}^{\infty} \sum_{n = 0}^{N - 1} f(nT) e^{-i \frac{2\pi}{N} k n}
+\end{equation}
+$$
+
+抽取出其中有效的部分即为离散Fourier变换(DFT). 从线性代数的视角看, DFT变换为\\(N \times N\\)方阵\\(M_{ij}=e^{-i\frac{2\pi}{N}ij}\\), 因此可逆且有唯一解.
+
+$$
+\begin{equation}
+F[k] = \sum_{n=0}^{N-1} f[n] e^{-i \frac{2\pi}{N}nk}
+\end{equation}
+$$
+
+抽取DFT每项系数为\\(W_N^{kn} = e^{-i \frac{2\pi}{N}kn}\\), 根据Euler公式展开后的三角函数可推导出如下性质.
+
+$$
+\begin{equation}
+\begin{aligned}
+W_N^{k+N}&=W_N^k&\\\\
+W_N^{k+\frac{N}{2}}&=-W_N^k&\\\\
+W_N^{mkn}&=W_{\frac{N}{m}}^{kn},&m|N
+\end{aligned}
+\end{equation}
+$$
+
+假设\\(N=2^r\\), 按如下方式组织DFT, 此时只需要计算\\(\sum_{n=0}^{\frac{N}{2} - 1} W_{\frac{N}{2}}^{kn}\\). 由于\\(W_{\frac{N}{2}}^{(k+\frac{N}{2})n}=W_{\frac{N}{2}}^{kn}, W_N^{k + \frac{2}{N}} = -W_N^k\\), 可得\\(F[k + \frac{N}{2}] = F_{\text{even}}[k] - W_N^k F_{\text{odd}}[k]\\), 即蝶形公式.
+
+$$
+\begin{equation}
+\begin{aligned}
+F[k]
+&= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] e^{-i \frac{2\pi}{N}2kn} + \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] e^{-i \frac{2\pi}{N}(2n + 1)k}\\\\
+&= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] e^{-i \frac{2\pi}{\frac{N}{2}}kn} + e^{-i \frac{2\pi}{N}k} \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] e^{-i \frac{2\pi}{\frac{N}{2}}kn}\\\\
+&= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] W_{\frac{N}{2}}^{kn} + W_N^k \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] W_{\frac{N}{2}}^{kn}\\\\
+&= F_{\text{even}}[k] + W_N^k F_{\text{odd}}[k]
+\end{aligned}
+\end{equation}
+$$
+
+
+
 ### 采样模式的频谱分析
 
 采样率固定时需分析采样点的分布对质量的影响, 对于难以分析频域特征的随机性采样模式, 需要针对每次生成的样本分析频谱特征.
 
-数学上信号功率为由信号函数的平方, 功率谱密度(power spectral density, PSD)可用于频谱分析. 根据Wiener-Khinchin定理它可通过自相关函数的Fourier变换计算, 整理后为Fourier变换结果与其共轭函数的乘积. 由卷积定理可得不同函数乘积的PSD为二者PSD的卷积.
+数学上信号功率为由信号函数的平方, 功率谱密度(PSD)可用于频谱分析. 根据Wiener-Khinchin定理它可通过自相关函数的Fourier变换计算, 整理后为Fourier变换结果与其共轭函数的乘积. 由卷积定理可得不同函数乘积的PSD为二者PSD的卷积.
 
 $$
 \begin{equation}
