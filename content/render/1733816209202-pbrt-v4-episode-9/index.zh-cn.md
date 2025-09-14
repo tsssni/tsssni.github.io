@@ -399,7 +399,7 @@ $$
 
 ### Snell定律
 
-Snell定律描述了入射光线与折射光线在方向上的关系, 这可以通过Fermat原理推导得到, 即光的传播路径是耗时最小的路径, 通过求极值即可证明. 从Snell定律可以看出折射方向取决于IOR的比值即相对IOR, 后文中通过\\(\eta\\)表示该值.
+Snell定律描述了入射光线与折射光线在方向上的关系, 这可以通过Fermat原理推导得到, 即光的传播路径是耗时最小的路径, 通过求极值即可证明. 从Snell定律可以看出折射方向取决于IOR的比值即\\(\eta=\frac{\eta_i}{\eta_t}\\).
 
 $$
 \begin{equation}
@@ -416,7 +416,7 @@ $$
 
 $$
 \begin{equation}
-\omega_t = -\frac{\omega_i}{\eta} + \left[ \frac{\omega_i \cdot \bold{n}}{\eta} - \cos\theta_t \right] \bold{n}
+\omega_t = \omega_i\eta + (\cos\theta_i\eta - \cos\theta_t) \bold{n}
 \end{equation}
 $$
 
@@ -426,13 +426,13 @@ $$
 
 Fresnel方程描述了光线折射与反射的量, 它是Maxwell方程在光滑平面上的解.
 
-将光线分解为相对于表面的垂直与水平偏振, 它们因反射而产生的振幅的变化是不同的. 若\\(\theta_t>\frac{\pi}{2}\\)可以认为是完全反射, Fresnel返回\\(1\\).
+将光线分解为相对于表面的垂直与水平偏振, 它们因反射而产生的振幅的变化是不同的. 若\\(\theta_t>\frac{\pi}{2}\\)可以认为是完全反射, Fresnel返回\\(1\\). 可以看出若入射出射方向交换, Fresnel值是不变的.
 
 $$
 \begin{equation}
 \begin{aligned}
-r_{||} &= \frac{E_r^{||}}{E_i^{||}} &= \frac{\eta_t \cos\theta_i - \eta_i \cos\theta_t}{\eta_t \cos\theta_i + \eta_i \cos\theta_t} &= \frac{\eta \cos\theta_i - \cos\theta_t}{\eta \cos\theta_i + \cos\theta_t}\\\\
-r_{\perp} &= \frac{E_r^{\perp}}{E_i^{\perp}} &= \frac{\eta_i \cos\theta_i - \eta_t \cos\theta_t}{\eta_i \cos\theta_i + \eta_t \cos\theta_t} &= \frac{\cos\theta_i - \eta \cos\theta_t}{\cos\theta_i + \eta \cos\theta_t}
+r_{||} &= \frac{E_r^{||}}{E_i^{||}} &= \frac{\eta_t \cos\theta_i - \eta_i \cos\theta_t}{\eta_t \cos\theta_i + \eta_i \cos\theta_t} &= \frac{\cos\theta_i - \eta \cos\theta_t}{\cos\theta_i + \eta \cos\theta_t}\\\\
+r_{\perp} &= \frac{E_r^{\perp}}{E_i^{\perp}} &= \frac{\eta_i \cos\theta_i - \eta_t \cos\theta_t}{\eta_i \cos\theta_i + \eta_t \cos\theta_t} &= \frac{\eta \cos\theta_i - \cos\theta_t}{\eta \cos\theta_i + \cos\theta_t}
 \end{aligned}
 \end{equation}
 $$
@@ -507,7 +507,7 @@ pbrt在选择采样反射或透射时, 根据Fresnel反射率以及用户设置�
 
 ### 薄绝缘体BSDF
 
-pbrt通过`ThinDielectricBxDF`模拟光线穿过薄绝缘体平行的内外表面的现象, 由Fresnel反射率的定义可知, 若交换表面两侧的介质结果是不变的, 因此在薄导体内部多次反射后的总反射率如下.
+pbrt通过`ThinDielectricBxDF`模拟光线穿过薄绝缘体平行的内外表面的现象, 在薄导体内部多次反射后的总反射率如下.
 
 $$
 \begin{equation}
@@ -517,7 +517,48 @@ $$
 
 ### 非对称散射与折射
 
-BRDF都是对称的, 即入射与反射方向可以交换, 但BTDF不是, 因为IOR的变化会导致折射后光线范围的变化, 为保持能量守恒光线的辐亮度不再保持一致. 根据能量守恒我们可以认为\\(d^2\phi_o = d^2\phi_i\\), 结合辐亮度的定义与Snell定律可以推导出如下的关系. 由于路径追踪实际上为光线传播的逆过程, 在折射时需要考虑非对称折射的现象.
+BRDF都是对称的, 即入射与反射方向可以交换, 但BTDF不是, 因为IOR的变化会导致折射后光线范围的变化, 为保持能量守恒光线的辐亮度不再保持一致.
+
+根据能量守恒我们可以得到如下等式.
+
+$$
+\begin{equation}
+d^2\phi_o = d^2\phi_i
+\end{equation}
+$$
+
+依据\\(L=\frac{d^2\phi}{d\omega dA^{\perp}}\\)可以得到折射前后辐亮度的关系.
+
+$$
+\begin{equation}
+L_o \cos\theta_o dA d\omega_o = L_i \cos\theta_i dA d\omega_i
+\end{equation}
+$$
+
+微分Snell定律可得如下关系, 其中\\(\phi\\)因为\\(d\phi_i=d\phi_o\\)被抵消, \\(\sin\theta\\)根据Snell定律替换为\\(\eta\\).
+
+$$
+\begin{equation}
+\begin{aligned}
+\eta_o \cos\theta_o d\theta_o
+&= \eta_i \cos\theta_i d\theta_i\\\\
+\eta_o \frac{\cos\theta_o}{\sin\theta_o} d\omega_o d\phi_o
+&= \eta_i \frac{\cos\theta_i}{\sin\theta_i} d\omega_i d\phi_i\\\\
+\eta_o^2 \cos\theta_o d\omega_o
+&= \eta_i^2 \cos\theta_i d\omega_i
+\end{aligned}
+\end{equation}
+$$
+
+将微分后的Snell定律代入可得如下关系.
+
+$$
+\begin{equation}
+L_o = \frac{\eta_o^2}{\eta_i^2} L_i
+\end{equation}
+$$
+
+由于路径追踪实际上为光线传播的逆过程, 在折射时需要考虑非对称折射的现象.
 
 $$
 \begin{equation}
@@ -973,6 +1014,96 @@ $$
 ### 粗糙绝缘体采样
 
 与之前章节描述的一样, 对法线进行重要性抽样并随机选取反射或折射.
+
+## 塑料BSDF
+
+塑料BSDF被建模为漫反射基础表面涂上较薄的绝缘体层, 与薄绝缘体模型类似, 塑料BSDF需要求解所有可能的内部反射情况之和.
+
+### 光滑塑料
+
+假设涂层为光滑表面, 对于只在内部漫反射一次的情况, 由于表面光滑, 漫反射的出射方向是确定的, 使用Dirac delta函数表示, 使用微分Snell定律计算Jacobian, 此时结果如下, 其中\\(\theta_{it}\\)与\\(\theta_{ot}\\)为折射后与法线的夹角.
+
+$$
+\begin{equation}
+\begin{aligned}
+L_o
+&=\int_{\Omega} (1 - F(\omega\cdot\bold{n})) L_\omega \eta^2 \cos(\omega\cdot\bold{n}) \frac{\delta(\omega_{ot})}{\cos(\omega_{ot}\cdot\bold{n})} d\omega\\\\
+&=(1 - F(\omega_{o}\cdot\bold{n})) L_{ot} \eta^2\\\\
+&=(1 - F(\omega_{o}\cdot\bold{n})) \eta^2 \int_{\Omega_{it}} \frac{R}{\pi} L_{\omega_{it}} \cos\omega_{it} d\omega_{it}\\\\
+&=(1 - F(\omega_{o}\cdot\bold{n})) \eta^2 \int_{\Omega_{i}} (1 - F(\omega_{i}\cdot\bold{n})) \frac{R}{\pi} L_{\omega_{i}} \frac{1}{\eta^2} \cos\omega_{i} \eta^2 d\omega_{i}\\\\
+&=(1 - F(\omega_{o}\cdot\bold{n})) (1 - F(\omega_{i}\cdot\bold{n})) \eta^2 \int_{\Omega_{i}} \frac{R}{\pi} L_{\omega_{i}} \cos\omega_{i} d\omega_{i}\\\\
+\end{aligned}
+\end{equation}
+$$
+
+整理为BSDF可得如下结果.
+
+$$
+\begin{equation}
+\begin{aligned}
+f_r(p, \omega_o, \omega_i)
+&=(1 - F(\omega_{o}\cdot\bold{n})) (1 - F(\omega_{i}\cdot\bold{n})) \eta^2 \frac{R}{\pi}\\\\
+&=F_t \frac{R}{\pi}\\\\
+\end{aligned}
+\end{equation}
+$$
+
+对于漫反射+镜面反射+漫反射的情况, 令\\(\omega\\)为漫反射的出射方向, 由于表面光滑在镜面反射阶段的余弦项为\\(\omega\cdot\bold{n}\\), 积分结果如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+f_r(p, \omega_o, \omega_i)
+&= F_t \frac{R}{\pi} \int_\omega \frac{R}{\pi} F(\omega \cdot \bold{n}) \cos\theta d\omega\\\\
+&= F_t \frac{R}{\pi} \int_0^{2\pi} \int_0^{\frac{\pi}{2}} \frac{R}{\pi} F(\cos\theta) \sin\theta \cos\theta d\theta d\phi\\\\
+&= F_t \frac{2R^2}{\pi} \int_0^{\frac{\pi}{2}} F(\cos\theta) \sin\theta \cos\theta d\theta\\\\
+&= F_t \frac{2R^2}{\pi} \int_0^{\frac{\pi}{2}} -\frac{F(\cos\theta)}{2} d\cos^2\theta\\\\
+&= F_t \frac{R^2}{\pi} \int_0^1 F(\sqrt{x}) dx\\\\
+&= F_t \frac{F_r R^2}{\pi}
+\end{aligned}
+\end{equation}
+$$
+
+递推任意次反射, 不考虑表面反射, 结果如下. 重要性抽样可以使用余弦加权半球采样, 因为\\(1-F(\omega\cdot\bold{n})\\)与\\(\cos\theta\\)的梯度方向一致.
+
+$$
+\begin{equation}
+\begin{aligned}
+f_r(p, \omega_o, \omega_i)
+&= \sum_{n=0}^\infty F_t \frac{R^{n+1} F_r^n}{\pi}\\\\
+&= \frac{F_t}{\pi} \frac{R}{1-RF_r}
+\end{aligned}
+\end{equation}
+$$
+
+### 粗糙塑料
+
+对与带有微表面的涂层, 我们仍然首先证明单次漫反射, 由于BSDF可逆和积分顺序可交换, 最终结果如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+L_o
+&=\int_{\Omega_{ot}} f_o(p, \omega_o, \omega_{ot}) L_{\omega_{ot}} \eta^2 \cos(\omega_{ot}\cdot\bold{n}) d\omega_{ot}\\\\
+&=\int_{\Omega_{ot}} f_o(p, \omega_o, \omega_{ot}) \cos(\omega_{ot}\cdot\bold{n}) \eta^2 d\omega_{ot} \int_{\Omega_{it}} \frac{R}{\pi} L_{\omega_{it}} \cos(\omega_{it}\cdot\bold{n}) d\omega_{it}\\\\
+&=\eta^2 \frac{R}{\pi} T(\omega_o) \int_{\Omega_{it}} \int_{\Omega_{i}} f_i(p, \omega_{it}, \omega{i}) L_{\omega_{i}} \cos(\omega_{i}\cdot\bold{n}) \cos(\omega_{it}\cdot\bold{n}) d\omega_{i} d\omega_{it}\\\\
+&=\eta^2 \frac{R}{\pi} T(\omega_o) \int_{\Omega_{it}} f_i(p, \omega_{it}, \omega{i}) \cos(\omega_{it}\cdot\bold{n}) d\omega_{it} \int_{\Omega_{i}} L_{\omega_{i}} \cos(\omega_{i}\cdot\bold{n}) d\omega_{i}\\\\
+&=\eta^2 \frac{R}{\pi} T(\omega_o) \int_{\Omega_{i}} T(\omega_i) L_{\omega_{i}} \cos(\omega_{i}\cdot\bold{n}) d\omega_{i}\\\\
+\end{aligned}
+\end{equation}
+$$
+
+整理为BSDF可得如下结果, 后续过程不再证明, 与光滑情况下结果类似. 透射率与反射率可做预计算, 比如[mitsuba3](https://github.com/mitsuba-renderer/mitsuba3/blob/master/src/bsdfs/roughplastic.cpp#L315)的实现. 若材质处理计算量大, 可用Fresnel替换, 比如[tungsten](https://github.com/tunabrain/tungsten/blob/master/src/core/bsdfs/RoughPlasticBsdf.cpp#L115)的实现.
+
+$$
+\begin{equation}
+\begin{aligned}
+f_r(p, \omega_o, \omega_i)
+&= \eta^2 \frac{R}{\pi} T(\omega_i) T(\omega_o)
+&= F_t \frac{R}{\pi}
+\end{aligned}
+\end{equation}
+$$
 
 ## BSDF测量值
 
