@@ -154,7 +154,7 @@ f(x) \otimes g(x) = \int_{-\infty}^{\infty} f(y)g(x-y) dy
 \end{equation}
 $$
 
-通过调整积分顺序, 傅里叶变换具有如下的卷积定理.
+通过调整积分顺序, Fourier变换具有如下的卷积定理.
 
 $$
 \begin{equation}
@@ -224,7 +224,7 @@ $$
 
 ### 离散Fourier变换
 
-实际信号多为离散采样, 按\\(T\\)的间隔采样\\(N\\)次信号. 我们认为信号的周期为\\(NT\\), 此时信号的Fourier变换如下.
+实际信号多为离散采样, 按\\(T\\)的间隔采样\\(N\\)次信号. 我们认为信号的周期为\\(T_f=NT\\), 此时信号的Fourier变换如下.
 
 $$
 \begin{equation}
@@ -236,11 +236,11 @@ F(\omega)
 \end{equation}
 $$
 
-根据Nyquist采样定律, 需要假设\\(f(x)\\)的频率\\(|\omega| < \frac{1}{2T}\\). 根据对冲激函数的分析, \\(F(\omega)\\)是周期为\\(\frac{1}{T}\\)的函数, 因此可以将\\((-\frac{1}{2T}, \frac{1}{2T})\\)映射到\\((0, \frac{1}{T})\\). 作为周期函数\\(f(x)\\)最低频率为\\(\frac{1}{NT}\\), 频谱只包含\\(\frac{n}{NT},n \in [0, N-1]\\). 从Euler公式的三角函数部分可以得出\\(e^{-i\frac{2\pi}{N}kn}=e^{-i\frac{2\pi}{N}k(n + jN)}, j \in (-\infty, \infty)\\). 此时Fourier变换可以改写为如下形式.
+根据采样定理可假设\\(|\omega| < \frac{1}{2T}\\). 由于采样后\\(F(\omega)\\)周期为\\(\frac{1}{T}\\), 可映射\\((-\frac{1}{2T}, \frac{1}{2T})\\)到\\((0, \frac{1}{T})\\). \\(f(x)\\)最低频率为\\(\frac{1}{T_f}=\frac{1}{NT}\\), 频谱只含\\(\frac{n}{NT},n \in [1, N]\\), 等价于\\(n \in [0, N-1]\\). 根据Euler公式\\(e^{-i\frac{2\pi}{N}kn}=e^{-i\frac{2\pi}{N}k(n + jN)}, j \in \mathbb{Z}\\). 此时离散采样结果形式如下.
 
 $$
 \begin{equation}
-F(\frac{k}{NT}) = \sum_{i = -\infty}^{\infty} \sum_{n = 0}^{N - 1} f(nT) e^{-i \frac{2\pi}{N} k n}
+F(\frac{k}{NT}) = \sum_{j = -\infty}^{\infty} \sum_{n = 0}^{N - 1} f(nT) e^{-i \frac{2\pi}{N} k n}
 \end{equation}
 $$
 
@@ -251,6 +251,43 @@ $$
 F[k] = \sum_{n=0}^{N-1} f[n] e^{-i \frac{2\pi}{N}nk}
 \end{equation}
 $$
+
+逆离散Fourier变换(IDFT)推导结果如下, 与DFT结果相似, 因此可用类似的算法处理.
+
+$$
+\begin{equation}
+\begin{aligned}
+f[n]
+&= \frac{1}{N} \sum_{k=0}^{N-1} F[k] e^{i \frac{2\pi}{N}nk}\\\\
+&= \frac{1}{N} \sum_{k=0}^{N-1} \sum_{m=0}^{N-1} f[m] e^{-i \frac{2\pi}{N}(n-m)k}\\\\
+&= \frac{1}{N} \sum_{m=0}^{N-1} f[m] \sum_{k=0}^{N-1} e^{-i \frac{2\pi}{N}(n-m)k}\\\\
+&= f[n] + \frac{1}{N} \sum_{m=0,m \ne n}^{N-1} f[m] \frac{1 - e^{-i \frac{2\pi}{N}(n-m)N}}{1 - e^{-i \frac{2\pi}{N}(n-m)}}\\\\
+&= f[n]
+\end{aligned}
+\end{equation}
+$$
+
+若有多个实信号需执行DFT, 可将其作为复数的实部与虚部, 根据三角函数处理FFT结果后可分离两项, 形式如下, 其中\\(F^*\\)代表共轭复数. 这个过程是可逆的, 若IDFT时已知DFT输入为实数, 将IDFT结果的实部与虚部分离即可.
+
+$$
+\begin{equation}
+\begin{aligned}
+H[k] &= \sum_{n=0}^{N-1} (f[n] + i g[n]) e^{-i\frac{2\pi}{N}nk}\\\\
+F[k]
+&= \frac{H[k] + \bar{H}[N - k]}{2}\\\\
+&= \frac{1}{2}\sum_{n=0}^{N-1} (f[n] + i g[n])(c_k-i s_k)+(f[n] - i g[n])(c_{N-k}+i s_{N-k})\\\\
+&= \frac{1}{2}\sum_{n=0}^{N-1} (f[n] + i g[n])(c_k-i s_k)+(f[n] - i g[n])(c_k-i s_k)\\\\
+&= \sum_{n=0}^{N-1} f[n](c_k - i s_k)\\\\
+G[k]
+&= -i\frac{H[k] - \bar{H}[N - k]}{2}\\\\
+&= \frac{1}{2}\sum_{n=0}^{N-1} (-i f[n] + g[n])(c_k-i s_k)-(-i f[n] - g[n])(c_{N-k}+i s_{N-k})\\\\
+&= \frac{1}{2}\sum_{n=0}^{N-1} (-i f[n] + g[n])(c_k-i s_k)-(-i f[n] - g[n])(c_k-i s_k)\\\\
+&= \sum_{n=0}^{N-1} g[n](c_k - i s_k)
+\end{aligned}
+\end{equation}
+$$
+
+### 快速Fourier变换
 
 抽取DFT每项系数为\\(W_N^{kn} = e^{-i \frac{2\pi}{N}kn}\\), 根据Euler公式展开后的三角函数可推导出如下性质.
 
@@ -264,13 +301,13 @@ W_N^{mkn}&=W_{\frac{N}{m}}^{kn},&m|N
 \end{equation}
 $$
 
-假设\\(N=2^r\\), 按如下方式组织DFT, 此时只需要计算\\(\sum_{n=0}^{\frac{N}{2} - 1} W_{\frac{N}{2}}^{kn}\\). 由于\\(W_{\frac{N}{2}}^{(k+\frac{N}{2})n}=W_{\frac{N}{2}}^{kn}, W_N^{k + \frac{2}{N}} = -W_N^k\\), 可得\\(F[k + \frac{N}{2}] = F_{\text{even}}[k] - W_N^k F_{\text{odd}}[k]\\), 即蝶形公式.
+假设\\(N=2^r\\), 按如下方式组织DFT, 此时只需要计算\\(\sum_{n=0}^{\frac{N}{2} - 1} W_{\frac{N}{2}}^{kn}\\). 由于\\(W_{\frac{N}{2}}^{(k+\frac{N}{2})n}=W_{\frac{N}{2}}^{kn}, W_N^{k + \frac{2}{N}} = -W_N^k\\), 可得\\(F[k + \frac{N}{2}] = F_{\text{even}}[k] - W_N^k F_{\text{odd}}[k]\\), 即蝶形公式. 此时得到Cooley-Tukey FFT, 同样可用于IDFT, 反转符号即可.
 
 $$
 \begin{equation}
 \begin{aligned}
 F[k]
-&= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] e^{-i \frac{2\pi}{N}2kn} + \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] e^{-i \frac{2\pi}{N}(2n + 1)k}\\\\
+&= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] e^{-i \frac{2\pi}{N}2nk} + \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] e^{-i \frac{2\pi}{N}(2n + 1)k}\\\\
 &= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] e^{-i \frac{2\pi}{\frac{N}{2}}kn} + e^{-i \frac{2\pi}{N}k} \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] e^{-i \frac{2\pi}{\frac{N}{2}}kn}\\\\
 &= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] W_{\frac{N}{2}}^{kn} + W_N^k \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] W_{\frac{N}{2}}^{kn}\\\\
 &= F_{\text{even}}[k] + W_N^k F_{\text{odd}}[k]
@@ -278,7 +315,20 @@ F[k]
 \end{equation}
 $$
 
+Cooley-Tukey每次分治\\(2\\)组, 可被抽象为基\\(2\\) FFT, 若每次分治\\(2^n\\)组, 可得基n FFT, 形式如下. 整理可得\\(W_N^{(k+j\frac{N}{R})m}=W_N^{km} e^{-i\frac{2\pi jm}{R}}, j \in [0, R - 1]\\), 因此非基\\(2\\) FFT复数计算较多, 系数可以预计算, 需根据实际的ALU或IO瓶颈选择合适的基数.
 
+$$
+\begin{equation}
+\begin{aligned}
+F[k]
+&= \sum_{r=0}^{R-1} \sum_{n=0}^{\frac{N}{R} - 1} f[Rn+r] e^{-i \frac{2\pi}{N}(Rn+r)k}\\\\
+&= \sum_{r=0}^{R-1} e^{-i\frac{2\pi}{N}kr}\sum_{n=0}^{\frac{N}{R} - 1} f[Rn+r] e^{-i \frac{2\pi}{\frac{N}{R}}kn}\\\\
+&= \sum_{r=0}^{R-1} W_N^{kr} F_r[k]
+\end{aligned}
+\end{equation}
+$$
+
+基\\(2\\) FFT的第\\(i\\)次分治相当于合并第\\(i\\)位相同的项, 可以推导出最底层FFT的处理顺序为原有序号位反转后的顺序, 推广到基\\(2^n\\) FFT相当于每\\(n\\)位为一组执行反转, 每组内部保持原有顺序. 位反转后相邻线程读取相邻内存, 在GPU的shared memory上会导致bank conflict, 使得线程访存串行.
 
 ### 采样模式的频谱分析
 
