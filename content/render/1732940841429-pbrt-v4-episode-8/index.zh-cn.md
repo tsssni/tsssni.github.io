@@ -289,46 +289,73 @@ $$
 
 ### 快速Fourier变换
 
-抽取DFT每项系数为\\(W_N^{kn} = e^{-i \frac{2\pi}{N}kn}\\), 根据Euler公式展开后的三角函数可推导出如下性质.
+#### Cooley-Tukey FFT
+
+将N分解为\\(N=\prod_{i=0}^{s}R_i\\), 特别的\\(R_s=1\\). 抽取DFT每项系数为\\(W_N^{kn} = e^{-i \frac{2\pi}{N}kn}\\), 将DFT划分为\\(R_0\\)份, 得到如下结果.
+
+$$
+\begin{equation}
+F[k] = \sum_{r_0=0}^{R_0 - 1} \sum_{n=0}^{\frac{N}{R_0}-1}f[R_0n+r]e^{-i\frac{2\pi}{N}(R_0n+r)k}
+\end{equation}
+$$
+
+令\\(k=k_0+t\frac{N}{R_0},k_0\in[0,\frac{N}{R_0}-1],t_0\in[0,R_0-1]\\), 重新组织上式.
 
 $$
 \begin{equation}
 \begin{aligned}
-W_N^{k+N}&=W_N^k&\\\\
-W_N^{k+\frac{N}{2}}&=-W_N^k&\\\\
-W_N^{mkn}&=W_{\frac{N}{m}}^{kn},&m|N
+&F[k_0+t_0\frac{N}{R_0}]\\\\
+&=\sum_{r_0=0}^{R_0-1}\sum_{n_0=0}^{\frac{N}{R_0}-1}f[R_0n_0+r_0]e^{-i\frac{2\pi}{N}(R_0n_0+r_0)(k_0+t_0\frac{N}{R_0})}\\\\
+&=\sum_{r_0=0}^{R_0-1}e^{-i\frac{2\pi}{N}r_0k_0}e^{-i\frac{2\pi}{R_0}r_0t_0}\sum_{n_0=0}^{\frac{N}{R_0}-1}f[R_0n_0+r]e^{-i\frac{2\pi}{\frac{N}{R_0}}n_0k_0}
 \end{aligned}
 \end{equation}
 $$
 
-假设\\(N=2^r\\), 按如下方式组织DFT, 此时只需要计算\\(\sum_{n=0}^{\frac{N}{2} - 1} W_{\frac{N}{2}}^{kn}\\). 由于\\(W_{\frac{N}{2}}^{(k+\frac{N}{2})n}=W_{\frac{N}{2}}^{kn}, W_N^{k + \frac{2}{N}} = -W_N^k\\), 可得\\(F[k + \frac{N}{2}] = F_{\text{even}}[k] - W_N^k F_{\text{odd}}[k]\\), 即蝶形公式. 此时得到Cooley-Tukey FFT, 同样可用于IDFT, 反转符号即可.
+可以看到DFT可由\\(R_0\\)个子DFT组合而来, 若子DFT已知, 生成所有\\(F[k]\\)复杂度为\\(O(n)\\). 我们认为\\(k_0\\)所需的第\\(r_0\\)个子DFT结果存储在\\(k_0+r_0\frac{N}{R_0}\\), 上式被表示为如下形式.
 
 $$
 \begin{equation}
 \begin{aligned}
-F[k]
-&= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] e^{-i \frac{2\pi}{N}2nk} + \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] e^{-i \frac{2\pi}{N}(2n + 1)k}\\\\
-&= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] e^{-i \frac{2\pi}{\frac{N}{2}}kn} + e^{-i \frac{2\pi}{N}k} \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] e^{-i \frac{2\pi}{\frac{N}{2}}kn}\\\\
-&= \sum_{n=0}^{\frac{N}{2} - 1} f[2n] W_{\frac{N}{2}}^{kn} + W_N^k \sum_{n=0}^{\frac{N}{2} - 1} f[2n + 1] W_{\frac{N}{2}}^{kn}\\\\
-&= F_{\text{even}}[k] + W_N^k F_{\text{odd}}[k]
+F[k_0+t_0\frac{N}{R_0}]
+&=\sum_{r_0=0}^{R_0 - 1}W_N^{r_0k_0}W_{R_0}^{r_0t_0}F_{R_0}[k_0+r_0\frac{N}{R_0}]
 \end{aligned}
 \end{equation}
 $$
 
-Cooley-Tukey每次分治\\(2\\)组, 可被抽象为基\\(2\\) FFT, 若每次分治\\(2^n\\)组, 可得基n FFT, 形式如下. 整理可得\\(W_N^{(k+j\frac{N}{R})m}=W_N^{km} e^{-i\frac{2\pi jm}{R}}, j \in [0, R - 1]\\), 因此非基\\(2\\) FFT复数计算较多, 系数可以预计算, 需根据实际的ALU或IO瓶颈选择合适的基数.
+令\\(k_1\in[0,\frac{N}{R_0R_1}-1],t_1\in[0,R_1-1]\\), 继续分解子问题, 结果如下.
 
 $$
 \begin{equation}
 \begin{aligned}
-F[k]
-&= \sum_{r=0}^{R-1} \sum_{n=0}^{\frac{N}{R} - 1} f[Rn+r] e^{-i \frac{2\pi}{N}(Rn+r)k}\\\\
-&= \sum_{r=0}^{R-1} e^{-i\frac{2\pi}{N}kr}\sum_{n=0}^{\frac{N}{R} - 1} f[Rn+r] e^{-i \frac{2\pi}{\frac{N}{R}}kn}\\\\
-&= \sum_{r=0}^{R-1} W_N^{kr} F_r[k]
+&F_{R_0}[k_1+t_1\frac{N}{R_0R_1}+r_0\frac{N}{R_0}]\\\\
+&=\sum_{r_1=0}^{R_1-1}\sum_{n_1=0}^{\frac{N}{R_0R_1}-1}f[R_0R_1n_1+R_0r_1+r_0]e^{-i\frac{2\pi}{\frac{N}{R_0}}(R_1n_1+r_1)(k_1+t_1\frac{N}{R_0R_1})}\\\\
+&=\sum_{r_1=0}^{R_1-1}\sum_{n_1=0}^{\frac{N}{R_0R_1}-1}W_{\frac{N}{R_0}}^{r_1k_1}W_{R_1}^{r_1t_1}F_{R_1}[k_1+r_1\frac{N}{R_0R_1}+r_0\frac{N}{R_0}]
 \end{aligned}
 \end{equation}
 $$
 
-基\\(2\\) FFT的第\\(i\\)次分治相当于合并第\\(i\\)位相同的项, 可以推导出最底层FFT的处理顺序为原有序号位反转后的顺序, 推广到基\\(2^n\\) FFT相当于每\\(n\\)位为一组执行反转, 每组内部保持原有顺序. 位反转后相邻线程读取相邻内存, 在GPU的shared memory上会导致bank conflict, 使得线程访存串行.
+令\\(k_s\in[0,\frac{N}{\prod_{i=0}^sR_i}-1],t_s\in[0,R_s-1]\\), 分解到最底层可得如下结果.
+
+$$
+\begin{equation}
+\begin{aligned}
+&F_{R_{s-1}}[k_s+t_s\frac{N}{\prod_{i=0}^sR_i}+\sum_{i=0}^{s-1}\frac{N}{\prod_{j=0}^iR_j}r_i]\\\\
+&=\sum_{r_s=0}^{R_s-1}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}W_{\frac{N}{\prod_{i=0}^{s-1}R_i}}^{r_sk_s}W_{R_s}^{r_st_s}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}f[\prod_{i=0}^sR_in_s+\prod_{i=0}^{s}(\prod_{j=0}^{i-1}R_j)r_i]W_{\frac{N}{\prod_{i=0}^sR_i}}^{n_sk_s}
+\end{aligned}
+\end{equation}
+$$
+
+由于我们定义了\\(R_s=1\\), 此时\\(k_s=t_s=n_s=0\\), \\(W\\)均为1, 求和均只有一项, 因此相当于将\\(f[\prod_{i=0}^{s-1}(\prod_{j=0}^{i-1}R_j)r_i]\\)映射到\\(F_{R_{s-1}}[\sum_{i=0}^{s-1}\frac{N}{\prod_{j=0}^iR_j}r_i]\\). 将第\\(s-1\\)层的序号表示为\\(K_{s-1}\\), 可得如下映射关系.
+
+$$
+\begin{equation}
+F_{R_{s-1}}[K_{s-1}]=f[\sum_{i=0}^{s-1}\frac{K_{s-1}\bmod\frac{N}{\prod_{j=0}^{i-1}R_j}}{\left\lfloor \frac{N}{\prod_{j=0}^iR_j} \right\rfloor}\prod_{j=0}^{i-1}R_j]
+\end{equation}
+$$
+
+令\\(i\in[0,s-1]\\), 对于第\\(i\\)层的第\\(K_i\\)项, 我们已经确定要读取子DFT中的第\\(K_i-K_i\bmod\frac{N}{\prod_{j=0}^{i-1}R_j}+n\frac{N}{\prod_{j=0}^{i}R_j}\\)项, \\(n\in[0,R_i-1]\\), 因此最底层映射完成后即可逐层求解, 形成Cooley-Tukey算法.
+
+特别的, 若对任意\\(i\\)满足\\(R_i=2^n\\), 则最底层的映射过程相当于将二进制每\\(n\\)为打包为\\(1\\)组, 以组为单位逆向排序得到新的序号, 对于\\(n=1\\)则表现为位反转.
 
 ### 采样模式的频谱分析
 
