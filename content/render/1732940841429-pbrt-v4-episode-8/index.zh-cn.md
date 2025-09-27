@@ -315,10 +315,8 @@ $$
 
 $$
 \begin{equation}
-\begin{aligned}
 F[k_0+t_0\frac{N}{R_0}]
-&=\sum_{r_0=0}^{R_0 - 1}W_N^{r_0k_0}W_{R_0}^{r_0t_0}F_{R_0}[k_0+r_0\frac{N}{R_0}]
-\end{aligned}
+=\sum_{r_0=0}^{R_0 - 1}W_N^{r_0k_0}W_{R_0}^{r_0t_0}F_{R_0}[k_0+r_0\frac{N}{R_0}]
 \end{equation}
 $$
 
@@ -340,12 +338,12 @@ $$
 \begin{equation}
 \begin{aligned}
 &F_{R_{s-1}}[k_s+t_s\frac{N}{\prod_{i=0}^sR_i}+\sum_{i=0}^{s-1}\frac{N}{\prod_{j=0}^iR_j}r_i]\\\\
-&=\sum_{r_s=0}^{R_s-1}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}W_{\frac{N}{\prod_{i=0}^{s-1}R_i}}^{r_sk_s}W_{R_s}^{r_st_s}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}f[\prod_{i=0}^sR_in_s+\prod_{i=0}^{s}(\prod_{j=0}^{i-1}R_j)r_i]W_{\frac{N}{\prod_{i=0}^sR_i}}^{n_sk_s}
+&=\sum_{r_s=0}^{R_s-1}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}W_{\frac{N}{\prod_{i=0}^{s-1}R_i}}^{r_sk_s}W_{R_s}^{r_st_s}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}f[(\prod_{i=0}^sR_i)n_s+\sum_{i=0}^{s}(\prod_{j=0}^{i-1}R_j)r_i]W_{\frac{N}{\prod_{i=0}^sR_i}}^{n_sk_s}
 \end{aligned}
 \end{equation}
 $$
 
-由于我们定义了\\(R_s=1\\), 此时\\(k_s=t_s=n_s=0\\), \\(W\\)均为1, 求和均只有一项, 因此相当于将\\(f[\prod_{i=0}^{s-1}(\prod_{j=0}^{i-1}R_j)r_i]\\)映射到\\(F_{R_{s-1}}[\sum_{i=0}^{s-1}\frac{N}{\prod_{j=0}^iR_j}r_i]\\). 将第\\(s-1\\)层的序号表示为\\(K_{s-1}\\), 可得如下映射关系.
+由于我们定义了\\(R_s=1\\), 此时\\(k_s=t_s=n_s=0\\), \\(W\\)均为1, 求和均只有一项, 因此相当于将\\(f[\sum_{i=0}^{s-1}(\prod_{j=0}^{i-1}R_j)r_i]\\)映射到\\(F_{R_{s-1}}[\sum_{i=0}^{s-1}\frac{N}{\prod_{j=0}^iR_j}r_i]\\). 将第\\(s-1\\)层的序号表示为\\(K_{s-1}\\), 可得如下映射关系.
 
 $$
 \begin{equation}
@@ -353,9 +351,57 @@ F_{R_{s-1}}[K_{s-1}]=f[\sum_{i=0}^{s-1}\frac{K_{s-1}\bmod\frac{N}{\prod_{j=0}^{i
 \end{equation}
 $$
 
-令\\(i\in[0,s-1]\\), 对于第\\(i\\)层的第\\(K_i\\)项, 我们已经确定要读取子DFT中的第\\(K_i-K_i\bmod\frac{N}{\prod_{j=0}^{i-1}R_j}+n\frac{N}{\prod_{j=0}^{i}R_j}\\)项, \\(n\in[0,R_i-1]\\), 因此最底层映射完成后即可逐层求解, 形成Cooley-Tukey算法.
+令\\(i\in[0,s-1]\\), 对于第\\(i\\)层的第\\(K_i\\)项, 我们已经确定要读取子DFT中的第\\(K_i-K_i\bmod\frac{N}{\prod_{j=0}^{i-1}R_j}+n\frac{N}{\prod_{j=0}^{i}R_j}\\)项, \\(n\in[0,R_i-1]\\), 因此最底层映射完成后即可逐层求解, 得到Cooley-Tukey FFT.
 
 特别的, 若对任意\\(i\\)满足\\(R_i=2^n\\), 则最底层的映射过程相当于将二进制每\\(n\\)为打包为\\(1\\)组, 以组为单位逆向排序得到新的序号, 对于\\(n=1\\)则表现为位反转.
+
+#### Stockham FFT
+
+将\\(R_0\\)对应的子DFT存储在\\(R_0k_0+r_0\\), 得到如下形式.
+
+$$
+\begin{equation}
+F[k_0+t_0\frac{N}{R_0}]
+=\sum_{r_0=0}^{R_0 - 1}W_N^{r_0k_0}W_{R_0}^{r_0t_0}F_{R_0}[R_0k_0+r_0]
+\end{equation}
+$$
+
+分解为\\(R_1\\)子DFT, 结果如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+&F_{R_0}[R_0(k_1+t_1\frac{N}{R_0R_1})+r_0]\\\\
+&=F_{R_0}[R_0k_1+t_1\frac{N}{R_1}+r_0]\\\\
+&=\sum_{r_1=0}^{R_1 - 1}W_\frac{N}{R_0}^{r_1k_1}W_{R_1}^{r_1t_1}F_{R_1}[R_0R_1k_1+R_0r_1+r_0]
+\end{aligned}
+\end{equation}
+$$
+
+最底层结果如下, \\(f[\sum_{i=0}^{s-1}(\prod_{j=0}^{i-1}R_j)r_i]\\)与\\(F_{R_{s-1}}[\sum_{i=0}^{s-1}(\prod_{j=0}^{i-1})R_jr_i]\\)等价, 无需映射及重排.
+
+$$
+\begin{equation}
+\begin{aligned}
+&F_{R_{s-1}}[(\prod_{i=0}^{s-1}R_i)k_s+t_s\frac{N}{R_s}+\sum_{i=0}^{s-1}(\prod_{j=0}^{i-1}R_j)r_i]\\\\
+&=\sum_{r_s=0}^{R_s - 1}W_\frac{N}{\prod_{i=0}^{s-1}R_i}^{r_sk_s}W_{R_s}^{r_st_s}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}f[(\prod_{i=0}^sR_i)n_s+\sum_{i=0}^{s}(\prod_{j=0}^{i-1}R_j)r_i]W_{\frac{N}{\prod_{i=0}^sR_i}}^{n_sk_s}
+\end{aligned}
+\end{equation}
+$$
+
+此时已知\\(K_i\\)需要读取\\(\left\lfloor\frac{K_i\bmod\frac{N}{R_{i+1}}}{\prod_{j=0}^iR_j}\right\rfloor\prod_{j=0}^{i+1}R_j+K_i\bmod\prod_{j=0}^iR_j+n\prod_{j=0}^iR_j\\)项, \\(n\in[0,R_{i+1}-1]\\), 得到Stockham FFT.
+
+\\(K_i\\)需读取的各项的距离为\\(\prod_{j=0}^iR_j\\), 但共享子问题的\\(K_i\\)的距离为\\(\frac{N}{R_{i+1}}\\), 若保持二者对齐则映射关系如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+&K^'\_{i+1}\\\\
+&=k\_{i+1}\prod\_{j=0}^iR_j+r\_{i+1}\frac{N}{R\_{i+1}}+K\_{i+1}\bmod\prod\_{j=0}^iR_j\\\\
+&=\left\lfloor\frac{K_{i+1}}{\prod_{j=0}^{i+1}R_j}\right\rfloor\prod\_{j=0}^iR_j+\left\lfloor\frac{K_{i+1}\bmod\prod_{j=0}^{i+1}R_j}{\prod_{j=0}^iR_j}\right\rfloor\frac{N}{R\_{i+1}}+K\_{i+1}\bmod\prod\_{j=0}^iR_j\\\\
+\end{aligned}
+\end{equation}
+$$
 
 ### 采样模式的频谱分析
 
