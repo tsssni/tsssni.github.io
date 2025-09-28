@@ -289,117 +289,114 @@ $$
 
 ### 快速Fourier变换
 
-#### Cooley-Tukey FFT
-
-将N分解为\\(N=\prod_{i=0}^{s}R_i\\), 特别的\\(R_s=1\\). 抽取DFT每项系数为\\(W_N^{kn} = e^{-i \frac{2\pi}{N}kn}\\), 将DFT划分为\\(R_0\\)份, 得到如下结果.
-
-$$
-\begin{equation}
-F[k] = \sum_{r_0=0}^{R_0 - 1} \sum_{n=0}^{\frac{N}{R_0}-1}f[R_0n+r]e^{-i\frac{2\pi}{N}(R_0n+r)k}
-\end{equation}
-$$
-
-令\\(k=k_0+t\frac{N}{R_0},k_0\in[0,\frac{N}{R_0}-1],t_0\in[0,R_0-1]\\), 重新组织上式.
+将DFT权重\\(e^{-i\frac{2\pi}{N}k}\\)表示为\\(W_N^k\\), 令\\(N=KR, k=s_0K+s_1, n=t_0R+t_1\\), DFT可分解为如下形式.
 
 $$
 \begin{equation}
 \begin{aligned}
-&F[k_0+t_0\frac{N}{R_0}]\\\\
-&=\sum_{r_0=0}^{R_0-1}\sum_{n_0=0}^{\frac{N}{R_0}-1}f[R_0n_0+r_0]e^{-i\frac{2\pi}{N}(R_0n_0+r_0)(k_0+t_0\frac{N}{R_0})}\\\\
-&=\sum_{r_0=0}^{R_0-1}e^{-i\frac{2\pi}{N}r_0k_0}e^{-i\frac{2\pi}{R_0}r_0t_0}\sum_{n_0=0}^{\frac{N}{R_0}-1}f[R_0n_0+r]e^{-i\frac{2\pi}{\frac{N}{R_0}}n_0k_0}
+F[s_0K+s_1]
+&=\sum_{t_0=0}^{K-1}\sum_{t_1=0}^{R-1}f[t_0R+t_1]W_N^{(s_0K+s_1)(t_0R+t_1)}\\\\
+&=\sum_{t_0=0}^{K-1}\sum_{t_1=0}^{R-1}f[t_0R+t_1]W_N^{s_0t_0N}W_N^{s_0t_1K}W_N^{s_1t_0R}W_N^{s_1t_1}\\\\
+&=\sum_{t_1=0}^{R-1}W_R^{s_0t_1}W_N^{s_1t_1}\sum_{t_0=0}^{K-1}W_K^{s_1t_0}f[t_0R+t_1]\\\\
 \end{aligned}
 \end{equation}
 $$
 
-可以看到DFT可由\\(R_0\\)个子DFT组合而来, 若子DFT已知, 生成所有\\(F[k]\\)复杂度为\\(O(n)\\). 我们认为\\(k_0\\)所需的第\\(r_0\\)个子DFT结果存储在\\(k_0+r_0\frac{N}{R_0}\\), 上式被表示为如下形式.
-
-$$
-\begin{equation}
-F[k_0+t_0\frac{N}{R_0}]
-=\sum_{r_0=0}^{R_0 - 1}W_N^{r_0k_0}W_{R_0}^{r_0t_0}F_{R_0}[k_0+r_0\frac{N}{R_0}]
-\end{equation}
-$$
-
-令\\(k_1\in[0,\frac{N}{R_0R_1}-1],t_1\in[0,R_1-1]\\), 继续分解子问题, 结果如下.
+此时内部求和项所需的\\(f[n]\\)是不连续的, 定义排列矩阵\\(L_{m}^{nm}\\)用于建立映射\\(in+j \to jm+i\\), 添加变换\\(L_{K}^{N}\\), 得到如下结果.
 
 $$
 \begin{equation}
 \begin{aligned}
-&F_{R_0}[k_1+t_1\frac{N}{R_0R_1}+r_0\frac{N}{R_0}]\\\\
-&=\sum_{r_1=0}^{R_1-1}\sum_{n_1=0}^{\frac{N}{R_0R_1}-1}f[R_0R_1n_1+R_0r_1+r_0]e^{-i\frac{2\pi}{\frac{N}{R_0}}(R_1n_1+r_1)(k_1+t_1\frac{N}{R_0R_1})}\\\\
-&=\sum_{r_1=0}^{R_1-1}\sum_{n_1=0}^{\frac{N}{R_0R_1}-1}W_{\frac{N}{R_0}}^{r_1k_1}W_{R_1}^{r_1t_1}F_{R_1}[k_1+r_1\frac{N}{R_0R_1}+r_0\frac{N}{R_0}]
+F[s_0K+s_1]
+&=\sum_{t_1=0}^{R-1}W_R^{s_0t_1}W_N^{s_1t_1}\sum_{t_0=0}^{K-1}W_K^{s_1t_0}f^'[Kt_1+t_0]\\\\
+&=\sum_{t_1=0}^{R-1}W_R^{s_0t_1}W_N^{s_1t_1}F_{t_1}[s_1]
 \end{aligned}
 \end{equation}
 $$
 
-令\\(k_s\in[0,\frac{N}{\prod_{i=0}^sR_i}-1],t_s\in[0,R_s-1]\\), 分解到最底层可得如下结果.
+定义Kronecker积为\\(A \otimes B=[a_{ij}B]\\). \\(F_{t_1}[s_1]\\)代表将\\(f^'[n]\\)划分为R个连续块执行\\(\text{DFT}_K\\), 可表示为\\(I_R\otimes\text{DFT}_K\\). \\(W_N^{s_1t_1}\\)表示旋转因子, 表示为\\(N \times N\\)对角矩阵\\(T_K^N\\). \\(W\_{R}^{s_0t_1}\\)代表对\\(R\\)个长度为\\(K\\)的子向量整体执行\\(\text{DFT}_R\\), 可表示为\\(\text{DFT}_R \otimes I_K\\). 最终得到的FFT形式如下.
+
+$$
+\begin{aligned}
+\text{DFT}_N=(\text{DFT}_R \otimes I_K)T_K^N(I_R\otimes\text{DFT}_K)L_K^{N}
+\end{aligned}
+$$
+
+#### Cooley-Tukey
+
+令\\(N=\prod_{i=0}^{s-1}r_i,R=r_0\\), FFT结果如下.
 
 $$
 \begin{equation}
 \begin{aligned}
-&F_{R_{s-1}}[k_s+t_s\frac{N}{\prod_{i=0}^sR_i}+\sum_{i=0}^{s-1}\frac{N}{\prod_{j=0}^iR_j}r_i]\\\\
-&=\sum_{r_s=0}^{R_s-1}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}W_{\frac{N}{\prod_{i=0}^{s-1}R_i}}^{r_sk_s}W_{R_s}^{r_st_s}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}f[(\prod_{i=0}^sR_i)n_s+\sum_{i=0}^{s}(\prod_{j=0}^{i-1}R_j)r_i]W_{\frac{N}{\prod_{i=0}^sR_i}}^{n_sk_s}
+\text{DFT}_{N}=(I\_{1} \otimes \text{DFT}\_{r_0} \otimes I\_{\frac{N}{r_0}})T\_{\frac{N}{r_0}}^{N}(I\_{r_0}\otimes\text{DFT}\_{\frac{N}{r_0}})L\_{r_0}^{N}
 \end{aligned}
 \end{equation}
 $$
 
-由于我们定义了\\(R_s=1\\), 此时\\(k_s=t_s=n_s=0\\), \\(W\\)均为1, 求和均只有一项, 因此相当于将\\(f[\sum_{i=0}^{s-1}(\prod_{j=0}^{i-1}R_j)r_i]\\)映射到\\(F_{R_{s-1}}[\sum_{i=0}^{s-1}\frac{N}{\prod_{j=0}^iR_j}r_i]\\). 将第\\(s-1\\)层的序号表示为\\(K_{s-1}\\), 可得如下映射关系.
-
-$$
-\begin{equation}
-F_{R_{s-1}}[K_{s-1}]=f[\sum_{i=0}^{s-1}\frac{K_{s-1}\bmod\frac{N}{\prod_{j=0}^{i-1}R_j}}{\left\lfloor \frac{N}{\prod_{j=0}^iR_j} \right\rfloor}\prod_{j=0}^{i-1}R_j]
-\end{equation}
-$$
-
-令\\(i\in[0,s-1]\\), 对于第\\(i\\)层的第\\(K_i\\)项, 我们已经确定要读取子DFT中的第\\(K_i-K_i\bmod\frac{N}{\prod_{j=0}^{i-1}R_j}+n\frac{N}{\prod_{j=0}^{i}R_j}\\)项, \\(n\in[0,R_i-1]\\), 因此最底层映射完成后即可逐层求解, 得到Cooley-Tukey FFT.
-
-特别的, 若对任意\\(i\\)满足\\(R_i=2^n\\), 则最底层的映射过程相当于将二进制每\\(n\\)为打包为\\(1\\)组, 以组为单位逆向排序得到新的序号, 对于\\(n=1\\)则表现为位反转.
-
-#### Stockham FFT
-
-将\\(R_0\\)对应的子DFT存储在\\(R_0k_0+r_0\\), 得到如下形式.
-
-$$
-\begin{equation}
-F[k_0+t_0\frac{N}{R_0}]
-=\sum_{r_0=0}^{R_0 - 1}W_N^{r_0k_0}W_{R_0}^{r_0t_0}F_{R_0}[R_0k_0+r_0]
-\end{equation}
-$$
-
-分解为\\(R_1\\)子DFT, 结果如下.
+令\\(R=r_1\\), 继续分解\\(I\_{r_0}\otimes\text{DFT}\_{\frac{N}{r_0}}\\), 已知\\(I_n\otimes(BC)=(B\otimes I_n)(C\otimes I_n)\\), 结果如下.
 
 $$
 \begin{equation}
 \begin{aligned}
-&F_{R_0}[R_0(k_1+t_1\frac{N}{R_0R_1})+r_0]\\\\
-&=F_{R_0}[R_0k_1+t_1\frac{N}{R_1}+r_0]\\\\
-&=\sum_{r_1=0}^{R_1 - 1}W_\frac{N}{R_0}^{r_1k_1}W_{R_1}^{r_1t_1}F_{R_1}[R_0R_1k_1+R_0r_1+r_0]
+&I\_{r_0}\otimes\text{DFT}\_{\frac{N}{r_0}}\\\\
+&=I\_{r_0}\otimes((\text{DFT}\_{r_1} \otimes I\_{\frac{N}{r_0r_1}})T\_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}(I\_{r_1}\otimes\text{DFT}\_{\frac{N}{r_0r_1}})L\_{r_1}^{\frac{N}{r_0}}))\\\\
+&=(I\_{r_0}\otimes\text{DFT}\_{r_1} \otimes I\_{\frac{N}{r_0r_1}})(I_{r_0}\otimes T\_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}})(I\_{r_0r_1}\otimes\text{DFT}\_{\frac{N}{r_0r_1}})(I_{r_0}\otimes L\_{r_1}^{\frac{N}{r_0}})
 \end{aligned}
 \end{equation}
 $$
 
-最底层结果如下, \\(f[\sum_{i=0}^{s-1}(\prod_{j=0}^{i-1}R_j)r_i]\\)与\\(F_{R_{s-1}}[\sum_{i=0}^{s-1}(\prod_{j=0}^{i-1})R_jr_i]\\)等价, 无需映射及重排.
+代回原式结果如下.
+
+$$
+\begin{equation}
+\text{DFT}_{N}=(I\_{1} \otimes \text{DFT}\_{r_0} \otimes I\_{\frac{N}{r_0}})T\_{\frac{N}{r_0}}^{N}(I\_{r_0}\otimes\text{DFT}\_{r_1} \otimes I\_{\frac{N}{r_0r_1}})(I\_{r_0}\otimes T\_{\frac{N}{r\_0r\_1}}^{\frac{N}{r\_0}})(I\_{r\_0r\_1}\otimes\text{DFT}\_{\frac{N}{r\_0r\_1}})(I\_{r\_0}\otimes L\_{r_1}^{\frac{N}{r\_0}})L\_{r\_0}^{N}
+\end{equation}
+$$
+
+不断迭代得到的结果如下, 特别的当\\(N=r^l\\)时\\(R_N\\)为基\\(r\\)反转操作, 因此Cooley-Tukey需要在计算前重新排列各项.
 
 $$
 \begin{equation}
 \begin{aligned}
-&F_{R_{s-1}}[(\prod_{i=0}^{s-1}R_i)k_s+t_s\frac{N}{R_s}+\sum_{i=0}^{s-1}(\prod_{j=0}^{i-1}R_j)r_i]\\\\
-&=\sum_{r_s=0}^{R_s - 1}W_\frac{N}{\prod_{i=0}^{s-1}R_i}^{r_sk_s}W_{R_s}^{r_st_s}\sum_{n_s=0}^{\frac{N}{\prod_{i=0}^sR_i}-1}f[(\prod_{i=0}^sR_i)n_s+\sum_{i=0}^{s}(\prod_{j=0}^{i-1}R_j)r_i]W_{\frac{N}{\prod_{i=0}^sR_i}}^{n_sk_s}
+&\text{DFT}_{N}\\\\
+&=\prod\_{i=0}^{s-1}(I\_{\prod\_{j=0}^{i-1}r\_i}\otimes\text{DFT}\_{r\_i}\otimes I\_{\frac{N}{\prod\_{j=0}^i r_j}})(I\_{\prod\_{j=0}^{i-1}r\_i}\otimes T\_{\frac{N}{\prod\_{j=0}^i r_j}}^{\frac{N}{\prod\_{j=0}^{i-1} r_j}})\prod\_{i=0}^{s-1}I\_{\prod\_{j=0}^{i-1}r\_i}\otimes L\_{r_i}^{\frac{N}{\prod\_{j=0}^{i-1} r_j}}\\\\
+&=\prod\_{i=0}^{s-1}(I\_{\prod\_{j=0}^{i-1}r\_i}\otimes\text{DFT}\_{r\_i}\otimes I\_{\frac{N}{\prod\_{j=0}^i r_j}})D_i R_N
 \end{aligned}
 \end{equation}
 $$
 
-此时已知\\(K_i\\)需要读取\\(\left\lfloor\frac{K_i\bmod\frac{N}{R_{i+1}}}{\prod_{j=0}^iR_j}\right\rfloor\prod_{j=0}^{i+1}R_j+K_i\bmod\prod_{j=0}^iR_j+n\prod_{j=0}^iR_j\\)项, \\(n\in[0,R_{i+1}-1]\\), 得到Stockham FFT.
+#### Stockham
 
-\\(K_i\\)需读取的各项的距离为\\(\prod_{j=0}^iR_j\\), 但共享子问题的\\(K_i\\)的距离为\\(\frac{N}{R_{i+1}}\\), 若保持二者对齐则映射关系如下.
+令\\(N=\prod_{i=0}^{s-1}r_i,R=r_0\\), 已知\\(A\otimes B=L_n^{mn}(B\otimes A)L_m^{mn}\\), 同时\\(L_n^{mn}=(L_m^{mn})^{-1}\\), 因此\\(L_m^{mn}(A\otimes B)=(B\otimes A)L_m^{mn}\\) 此时FFT结果如下.
 
 $$
 \begin{equation}
 \begin{aligned}
-&K^'\_{i+1}\\\\
-&=k\_{i+1}\prod\_{j=0}^iR_j+r\_{i+1}\frac{N}{R\_{i+1}}+K\_{i+1}\bmod\prod\_{j=0}^iR_j\\\\
-&=\left\lfloor\frac{K_{i+1}}{\prod_{j=0}^{i+1}R_j}\right\rfloor\prod\_{j=0}^iR_j+\left\lfloor\frac{K_{i+1}\bmod\prod_{j=0}^{i+1}R_j}{\prod_{j=0}^iR_j}\right\rfloor\frac{N}{R\_{i+1}}+K\_{i+1}\bmod\prod\_{j=0}^iR_j\\\\
+&\text{DFT}_{N}\\\\
+&=(\text{DFT}\_{r_0} \otimes I\_{\frac{N}{r_0}})T\_{\frac{N}{r_0}}^{N}(I\_{r_0}\otimes\text{DFT}\_{\frac{N}{r_0}})L\_{r_0}^{N}\\\\
+&=(\text{DFT}\_{r_0} \otimes I\_{\frac{N}{r_0}})T\_{\frac{N}{r_0}}^{N}(L\_{r_0}^{N}\otimes I\_1)(\text{DFT}\_{\frac{N}{r_0}}\otimes I\_{r_0})
 \end{aligned}
+\end{equation}
+$$
+
+分解\\(\text{DFT}\_{\frac{N}{r_0}}\otimes I\_{r_0}\\)结果如下.
+
+$$
+\begin{equation}
+\begin{aligned}
+&\text{DFT}\_{\frac{N}{r_0}}\otimes I\_{r_0}\\\\
+&=((\text{DFT}\_{r_1} \otimes I\_{\frac{N}{r_0r_1}})T\_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}L\_{r_1}^{\frac{N}{r_0}}(\text{DFT}\_{\frac{N}{r_0r_1}}\otimes I\_{r_1}))\otimes I\_{r_0}\\\\
+&=(\text{DFT}\_{r_1} \otimes I\_{\frac{N}{r_1}})(T\_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}\otimes I\_{r\_0})(L\_{r_1}^{\frac{N}{r_0}}\otimes I\_{r\_0})(\text{DFT}\_{\frac{N}{r_0r_1}}\otimes I\_{r_0r_1}))\\\\
+\end{aligned}
+\end{equation}
+$$
+
+多次迭代最终结果如下, 注意这里的\\(D_i\\)与Cooley-Tukey仅是符号相同. Stockham的排列发生在每次迭代时.
+
+$$
+\begin{equation}
+\text{DFT}\_N=\prod\_{i=0}^{s-1}(\text{DFT}\_{r\_i}\otimes I_{\frac{N}{r_i}})D_i(L\_{r_i}^{\frac{N}{\prod\_{j=0}^{i-1}r_j}}\otimes I\_{\prod\_{j=0}^{i-1}r\_j})
 \end{equation}
 $$
 
