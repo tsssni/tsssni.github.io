@@ -1,5 +1,5 @@
 ---
-title: "Metatron Dev. VI: ecs & serde"
+title: "Metatron Dev. VI: ECS & SERDE"
 date: 2025-08-06
 draft: false
 description: "metatron development log"
