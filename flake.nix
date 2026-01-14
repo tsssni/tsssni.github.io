@@ -1,37 +1,46 @@
 {
-	description = "tsssni.github.io devenv";
+  description = "leetcode devenv";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-	};
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  };
 
-	outputs = {
-		nixpkgs
-		, ...
-	}:
-	let
-		lib = nixpkgs.lib;
+  outputs =
+    {
+      nixpkgs,
+      ...
+    }:
+    let
+      lib = nixpkgs.lib;
 
-		systems = [
-			"aarch64-darwin"
-			"x86_64-linux"
-		];
+      systems = [
+        "aarch64-darwin"
+        "x86_64-linux"
+      ];
 
-		devShells = systems
-			|> lib.map (system:
-				let
-					pkgs = import nixpkgs {
-						inherit system;
-					};
-				in {
-					"${system}".default = pkgs.mkShellNoCC {
-						packages = with pkgs; [
-							hugo
-							nodejs
-						];
-					};
-				}
-			)
-			|> lib.mergeAttrsList;
-	in { inherit devShells; };
+      systemAttrs = f: system: { ${system} = f system; };
+
+      mapSystems = f: systems |> lib.map (systemAttrs f) |> lib.mergeAttrsList;
+
+      devShells = mapSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          default = pkgs.mkShell.override { stdenv = pkgs.stdenvNoCC; } {
+            shellHook = ''
+              export SHELL=nu
+            '';
+            packages = with pkgs; [
+              hugo
+              nodejs
+            ];
+          };
+        }
+      );
+    in
+    {
+      inherit devShells;
+    };
 }

@@ -12,7 +12,7 @@ tags: ["graphics", "rendering", "restir", "metatron"]
 
 ## 重采样重要性抽样
 
-令\\(x\\)的目标概率分布为\\(\hat{p}(x)\\), 它可能难以被重要性抽样. 我们为每个样本选择一个容易抽样的提议分布\\(p_i(X)\\), 选出\\(M\\)个样本组成序列\\(\bold{x}\\), 然后将每个样本的权重设置为\\(w_i(x_i)=\frac{\hat{p}(x_i)}{p_i(x_i)}\\), 随机选择其中一个样本\\(x_z\\), 此时概率如下.
+令\\(x_i\\)的目标分布为\\(\hat{p_i}(X)\\), 它可能难以抽样, 为每个样本选择容易抽样的提议分布\\(p_i(X)\\), 每个样本的目标与提议分布都可以不同, 选出\\(M\\)个样本组成序列\\(\bold{x}\\), 设置MIS权重\\(m_i(x_i)\\)且\\(p_i(x_i)=0\\)时\\(m_i(x_i)=0\\), 设置样本权重\\(w_i(x_i)=\frac{m_i(x_i)\hat{p_i}(x_i)}{p_i(x_i)}\\), 随机选择样本\\(x_z\\)概率如下.
 
 $$
 \begin{equation}
@@ -23,19 +23,19 @@ p(z|\bold{x})
 \end{equation}
 $$
 
-证明采用RIS进行Monte Carlo最终可以收敛的过程如下, 其中\\(y\\)为每次RIS所选择到的样本, \\(p'\\)为RIS后被选中的概率. 可以看出\\(\sum\_{k=1,p_k(x) \neq 0}^Mm(x)=1\\)即可无偏. 由于目标概率分布被抵消, 不要求为积分为\\(1\\), 渲染任务可选择Kajiya积分项为\\(\hat{p}(x)\\).
+RIS Monte Carlo无偏证明如下, \\(y\\)为RIS选择的样本, \\(p'\\)为RIS选中的概率, 可见\\(\sum\_{k=1}^Mm_i(x)=1\\)时无偏.
 
 $$
 \begin{equation}
 \begin{aligned}
-E(\frac{1}{N}\sum_{i=1}^N\frac{f(y_i)}{\hat{p}(y_i)}m(y_i)\sum_{j=1}^Mw_j(x_{ij}))
-&=\frac{1}{N}\sum_{i=1}^NE(\frac{f(y)}{\hat{p}(y)}m(y)\sum_{j=1}^Mw_j(x_j))\\\\
-&=E(\frac{f(y)}{\hat{p}(y)}m(y)w_{\text{sum}})\\\\
-&=\sum_{k=1,p_k(x_k) \neq 0}^M\int\cdots\int\frac{f(x_k)}{\hat{p}(x_k)}m(x_k)w_{\text{sum}}p'(x_k)dx_1 \cdots dx_M\\\\
-&=\sum_{k=1,p_k(x_k) \neq 0}^M\int\cdots\int\frac{f(x_k)}{\hat{p}(x_k)}m(x_k)w_{\text{sum}}\frac{w_k(x_k)}{w_{\text{sum}}}\prod_{i=1}^Mp_i(x_i)dx_1 \cdots dx_M\\\\
-&=\sum_{k=1,p_k(x_k) \neq 0}^M\int\cdots\int f(x_k)m(x_k)\prod_{i=1,i \neq k}^Mp_i(x_i)dx_1 \cdots dx_M\\\\
-&=\sum_{k=1,p_k(x_k) \neq 0}^M\int f(x_k)m(x_k)dx_k\int\cdots\int\underbrace{\prod_{i=1,i \neq k}^Mp_i(x_i)\underbrace{dx_1 \cdots dx_M}_{\text{M - 1, except k}}}\_{1}\\\\
-&=\int \sum\_{k=1,p_k(x) \neq 0}^Mm(x)f(x)dx\\\\
+E(\frac{1}{N}\sum_{i=1}^N\frac{f(y_i)}{\hat{p_i}(y_i)}\sum_{j=1}^Mw_{ij}(x_{ij}))
+&=\frac{1}{N}\sum_{i=1}^NE(\frac{f(y)}{\hat{p_i}(y)}\sum_{j=1}^Mw_{ij}(x_j))\\\\
+&=E(\frac{f(y)}{\hat{p_k}(y)}w_{\text{sum}}^k)\\\\
+&=\sum_{k=1}^M\int\cdots\int\frac{f(x_k)}{\hat{p}\_k(x_k)}w_{\text{sum}}^kp'(x_k)dx_1 \cdots dx_M\\\\
+&=\sum_{k=1}^M\int\cdots\int\frac{f(x_k)}{\hat{p}\_k(x_k)}w_{\text{sum}}^km_k(x_k)\frac{w_k(x_k)}{w_{\text{sum}}^k}\prod_{i=1}^Mp_i(x_i)dx_1 \cdots dx_M\\\\
+&=\sum_{k=1}^M\int\cdots\int f(x_k)m_k(x_k)\prod_{i=1,i \neq k}^Mp_i(x_i)dx_1 \cdots dx_M\\\\
+&=\sum_{k=1}^M\int f(x_k)m_k(x_k)dx_k\underbrace{\int\cdots\int\prod_{i=1,i \neq k}^Mp_i(x_i)\underbrace{dx_1 \cdots dx_M}_{\text{M - 1, except k}}}\_{1}\\\\
+&=\int \sum\_{k=1}^Mm_k(x)f(x)dx\\\\
 \end{aligned}
 \end{equation}
 $$
@@ -64,7 +64,7 @@ for r in {r1, ..., rk} do
 s.M = s1.M + s2.M + ... + sk.M
 ```
 
-为实现无偏需保证\\(p_k(y) > 0\\), 由于相邻像素来自于重采样, \\(p_k(y)\\)是未知的, 但由重采样过程可知, \\(\hat{p}(y)=0\\)时样本选中概率为0, 可用相邻像素的目标分布来测试\\(p_k(y) > 0\\), 即执行阴影测试.
+无偏需保证\\(p_k(y) = 0\\)时\\(m_k(y)=0\\), 由重采样过程可知\\(\hat{p_k}(y)=0\\)时\\(p_k(y)=0\\). 若目标分布设置为光照贡献, 可用阴影测试验证\\(p_k(y) > 0\\).
 
 ```
 for qi in {q1, ..., qk} do
