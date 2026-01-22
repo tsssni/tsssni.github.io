@@ -12,6 +12,7 @@
 !flake.nix
 !package-lock.json
 !package.json
+!.nvim.lua
 
 /.*
 !.git?*
