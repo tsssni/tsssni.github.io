@@ -5,12 +5,18 @@ none = "none"
 name = "关于"
 pageRef = "about/1717500731146-about"
 identifier = "PmJ4BvEkD5"
-weight = 4
+weight = 5
 
 [[main]]
 name = "ACGN"
 pageRef = "acgn"
 identifier = "SEoPcFKwGx"
+weight = 4
+
+[[main]]
+name = "数学"
+pageRef = "maths"
+identifier = "u1uXYnUUPG"
 weight = 3
 
 [[main]]

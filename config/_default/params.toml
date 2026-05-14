@@ -1,9 +1,9 @@
 colorScheme = "slate"
-defaultAppearance = "dark"
+defaultAppearance = "light"
 autoSwitchAppearance = true
 enableSearch = true
 enableCodeCopy = false
-mainSections = [ "render", "unix", "about", "acgn" ]
+mainSections = [ "render", "unix", "maths", "acgn", "about" ]
 disableImageOptimization = false
 disableTextInHeader = false
 defaultBackgroundImage = "plana-hero.png"

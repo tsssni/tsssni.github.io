@@ -6,7 +6,7 @@ description: "pbrt-v4 episode 11"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-{{< katex >}}
+{{<katex>}}
 
 ## 体散射过程
 

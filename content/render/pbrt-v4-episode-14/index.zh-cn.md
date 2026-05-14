@@ -6,7 +6,7 @@ description: "pbrt-v4 episode 14"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-{{< katex >}}
+{{<katex>}}
 
 ## 辐射转移方程
 

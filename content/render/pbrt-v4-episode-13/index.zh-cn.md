@@ -6,7 +6,7 @@ description: "pbrt-v4 episode 13"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-{{< katex >}}
+{{<katex>}}
 
 ## 光线传播方程
 

@@ -6,7 +6,7 @@ description: "pbrt-v4 episode 12"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-{{< katex >}}
+{{<katex>}}
 
 pbrt中不实现无法参与几何光学的光源, 例如只照亮某些物体的光源. 为提高效率, pbrt会根据概率选择光源.
 

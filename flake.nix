@@ -1,5 +1,5 @@
 {
-  description = "leetcode devenv";
+  description = "blog devenv";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
