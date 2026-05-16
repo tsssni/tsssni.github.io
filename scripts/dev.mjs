@@ -3,6 +3,10 @@ import { watch } from 'node:fs';
 import { join } from 'node:path';
 import livereload from 'livereload';
 import { highlight, dyeing } from './highlight.mjs';
+import { copyFonts } from './fonts.mjs';
+
+await copyFonts();
+console.log('fonts: copied IBM Plex');
 
 const hugo = spawn('hugo', ['server', '--disableLiveReload'], { stdio: 'inherit' });
 hugo.on('exit', (code) => process.exit(code ?? 0));

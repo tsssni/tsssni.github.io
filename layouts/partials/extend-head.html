@@ -10,3 +10,6 @@
 {{ if hugo.IsServer }}
 <script src="http://localhost:35729/livereload.js?snipver=1"></script>
 {{ end }}
+
+{{ $vimkeys := resources.Get "js/vimkeys.js" | resources.Fingerprint "sha512" }}
+<script defer src="{{ $vimkeys.RelPermalink }}" integrity="{{ $vimkeys.Data.Integrity }}"></script>

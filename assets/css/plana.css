@@ -1,4 +1,9 @@
+@import url('/fonts/css/ibm-plex-sans-default.css');
+@import url('/fonts/css/ibm-plex-mono-default.css');
+
 :root {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
   --plana-front: #bebad9;
   --plana-back: #303446;
   --plana-black: #1a1730;

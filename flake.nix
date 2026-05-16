@@ -26,15 +26,28 @@
         system:
         let
           pkgs = import nixpkgs { inherit system; };
+          ibm-plex-web = pkgs.ibm-plex.overrideAttrs (old: {
+            src = old.src.overrideAttrs (_: {
+              postBuild = ''
+                find "$out" \( -name hinted -or -name unhinted \) -exec rm -fr {} +
+              '';
+            });
+            postInstall = (old.postInstall or "") + ''
+              mkdir -p $webfont
+              cp -r $src/css $src/fonts $webfont/
+            '';
+          });
         in
         {
           default = pkgs.mkShell.override { stdenv = pkgs.stdenvNoCC; } {
             shellHook = ''
               export SHELL=nu
+              export IBM_PLEX_WEB=${ibm-plex-web.webfont}
             '';
             packages = with pkgs; [
               hugo
               nodejs
+              ibm-plex-web
             ];
           };
         }
