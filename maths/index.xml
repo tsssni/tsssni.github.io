@@ -1,1 +1,23 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Maths on TSSSNI BLOG</title><link>https://tsssni.github.io/maths/</link><description>Recent content in Maths on TSSSNI BLOG</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>© 2026</copyright><lastBuildDate>Sun, 10 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/maths/index.xml" rel="self" type="application/rss+xml"/><item><title>De Rham Cohomology I</title><link>https://tsssni.github.io/maths/de-rham-1/</link><pubDate>Sun, 10 May 2026 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/maths/de-rham-1/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/maths/de-rham-1/featured.jpg"/></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Maths on TSSSNI&#39;S BLOG</title>
+    <link>https://tsssni.github.io/maths/</link>
+    <description>Recent content in Maths on TSSSNI&#39;S BLOG</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <copyright>© 2026 </copyright>
+    <lastBuildDate>Sun, 10 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/maths/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>De Rham Cohomology I</title>
+      <link>https://tsssni.github.io/maths/de-rham-1/</link>
+      <pubDate>Sun, 10 May 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/maths/de-rham-1/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/maths/de-rham-1/featured.jpg" />
+    </item>
+    
+  </channel>
+</rss>

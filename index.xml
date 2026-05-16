@@ -1,1 +1,303 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>TSSSNI BLOG</title><link>https://tsssni.github.io/</link><description>Recent content on TSSSNI BLOG</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>© 2026</copyright><lastBuildDate>Sun, 10 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>De Rham Cohomology I</title><link>https://tsssni.github.io/maths/de-rham-1/</link><pubDate>Sun, 10 May 2026 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/maths/de-rham-1/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/maths/de-rham-1/featured.jpg"/></item><item><title>Metatron Dev. VII: GPU</title><link>https://tsssni.github.io/render/metatron-dev-7/</link><pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/metatron-dev-7/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-7/featured.jpg"/></item><item><title>Metatron Dev. VI: ECS &amp; SERDE</title><link>https://tsssni.github.io/render/metatron-dev-6/</link><pubDate>Wed, 06 Aug 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/metatron-dev-6/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-6/featured.jpg"/></item><item><title>Metatron Dev. V: proxy</title><link>https://tsssni.github.io/render/metatron-dev-5/</link><pubDate>Sun, 06 Jul 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/metatron-dev-5/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-5/featured.jpg"/></item><item><title>Metatron Dev. IV: ReSTIR</title><link>https://tsssni.github.io/render/metatron-dev-4/</link><pubDate>Sat, 17 May 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/metatron-dev-4/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-4/featured.jpg"/></item><item><title>Metatron Dev. III: 体数据</title><link>https://tsssni.github.io/render/metatron-dev-3/</link><pubDate>Mon, 05 May 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/metatron-dev-3/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-3/featured.jpg"/></item><item><title>闪之轨迹游记</title><link>https://tsssni.github.io/acgn/sennokiseki/</link><pubDate>Sun, 13 Apr 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/acgn/sennokiseki/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/acgn/sennokiseki/featured.jpg"/></item><item><title>Metatron Dev. II: 矩阵运算</title><link>https://tsssni.github.io/render/metatron-dev-2/</link><pubDate>Sat, 12 Apr 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/metatron-dev-2/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-2/featured.jpg"/></item><item><title>Jovian: Nixify Steam Deck</title><link>https://tsssni.github.io/unix/jovian-nixos/</link><pubDate>Thu, 13 Mar 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/unix/jovian-nixos/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/unix/jovian-nixos/featured.png"/></item><item><title>Metatron Dev. I: 构建系统</title><link>https://tsssni.github.io/render/metatron-dev-1/</link><pubDate>Sun, 16 Feb 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/metatron-dev-1/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-1/featured.jpg"/></item><item><title>pbrt-v4 Ep. XIV: 体渲染</title><link>https://tsssni.github.io/render/pbrt-v4-episode-14/</link><pubDate>Tue, 21 Jan 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-14/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-14/featured.jpg"/></item><item><title>pbrt-v4 Ep. XIII: 表面反射</title><link>https://tsssni.github.io/render/pbrt-v4-episode-13/</link><pubDate>Sat, 18 Jan 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-13/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-13/featured.jpg"/></item><item><title>pbrt-v4 Ep. XII: 光源</title><link>https://tsssni.github.io/render/pbrt-v4-episode-12/</link><pubDate>Thu, 02 Jan 2025 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-12/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-12/featured.png"/></item><item><title>pbrt-v4 Ep. XI: 体散射</title><link>https://tsssni.github.io/render/pbrt-v4-episode-11/</link><pubDate>Fri, 27 Dec 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-11/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-11/featured.jpg"/></item><item><title>pbrt-v4 Ep. X: 材质纹理</title><link>https://tsssni.github.io/render/pbrt-v4-episode-10/</link><pubDate>Tue, 24 Dec 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-10/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-10/featured.jpg"/></item><item><title>pbrt-v4 Ep. IX: 反射模型</title><link>https://tsssni.github.io/render/pbrt-v4-episode-9/</link><pubDate>Tue, 10 Dec 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-9/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-9/featured.jpg"/></item><item><title>稳定版工作流记录</title><link>https://tsssni.github.io/unix/workflow/</link><pubDate>Mon, 02 Dec 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/unix/workflow/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/unix/workflow/featured.jpg"/></item><item><title>pbrt-v4 Ep. VIII: 图像重建</title><link>https://tsssni.github.io/render/pbrt-v4-episode-8/</link><pubDate>Sat, 30 Nov 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-8/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-8/featured.png"/></item><item><title>pbrt-v4 Ep. VII: 图元与加速结构</title><link>https://tsssni.github.io/render/pbrt-v4-episode-7/</link><pubDate>Tue, 19 Nov 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-7/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-7/featured.jpg"/></item><item><title>pbrt-v4 Ep. VI: 几何形状</title><link>https://tsssni.github.io/render/pbrt-v4-episode-6/</link><pubDate>Tue, 05 Nov 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-6/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-6/featured.jpg"/></item><item><title>pbrt-v4 Ep. V: 相机模型</title><link>https://tsssni.github.io/render/pbrt-v4-episode-5/</link><pubDate>Mon, 04 Nov 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-5/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-5/featured.jpg"/></item><item><title>pbrt-v4 Ep. IV: 辐射与光</title><link>https://tsssni.github.io/render/pbrt-v4-episode-4/</link><pubDate>Mon, 07 Oct 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-4/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-4/featured.jpg"/></item><item><title>pbrt-v4 Ep. III: 几何与变换</title><link>https://tsssni.github.io/render/pbrt-v4-episode-3/</link><pubDate>Sat, 05 Oct 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-3/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-3/featured.jpg"/></item><item><title>pbrt-v4 Ep. II: 随机模拟</title><link>https://tsssni.github.io/render/pbrt-v4-episode-2/</link><pubDate>Wed, 02 Oct 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-2/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-2/featured.png"/></item><item><title>pbrt-v4 Ep. I: 代码实现</title><link>https://tsssni.github.io/render/pbrt-v4-episode-1/</link><pubDate>Tue, 01 Oct 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/render/pbrt-v4-episode-1/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-1/featured.jpg"/></item><item><title>Nix Darwin交叉编译</title><link>https://tsssni.github.io/unix/nix-darwin-cross-compiler/</link><pubDate>Sat, 14 Sep 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/unix/nix-darwin-cross-compiler/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/unix/nix-darwin-cross-compiler/featured.png"/></item><item><title>长春回忆录</title><link>https://tsssni.github.io/acgn/changchun-memory/</link><pubDate>Sat, 29 Jun 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/acgn/changchun-memory/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/acgn/changchun-memory/featured.jpg"/></item><item><title>MacOS Rice杂记</title><link>https://tsssni.github.io/unix/macos-rice/</link><pubDate>Mon, 10 Jun 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/unix/macos-rice/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/unix/macos-rice/featured.png"/></item><item><title>关于</title><link>https://tsssni.github.io/about/about/</link><pubDate>Tue, 04 Jun 2024 00:00:00 +0000</pubDate><guid>https://tsssni.github.io/about/about/</guid><description/><media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/about/about/featured.png"/></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>TSSSNI&#39;S BLOG</title>
+    <link>https://tsssni.github.io/</link>
+    <description>Recent content on TSSSNI&#39;S BLOG</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <copyright>© 2026 </copyright>
+    <lastBuildDate>Sun, 10 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>De Rham Cohomology I</title>
+      <link>https://tsssni.github.io/maths/de-rham-1/</link>
+      <pubDate>Sun, 10 May 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/maths/de-rham-1/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/maths/de-rham-1/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>Metatron Dev. VII: GPU</title>
+      <link>https://tsssni.github.io/render/metatron-dev-7/</link>
+      <pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/metatron-dev-7/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-7/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>Metatron Dev. VI: ECS &amp; SERDE</title>
+      <link>https://tsssni.github.io/render/metatron-dev-6/</link>
+      <pubDate>Wed, 06 Aug 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/metatron-dev-6/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-6/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>Metatron Dev. V: proxy</title>
+      <link>https://tsssni.github.io/render/metatron-dev-5/</link>
+      <pubDate>Sun, 06 Jul 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/metatron-dev-5/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-5/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>Metatron Dev. IV: ReSTIR</title>
+      <link>https://tsssni.github.io/render/metatron-dev-4/</link>
+      <pubDate>Sat, 17 May 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/metatron-dev-4/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-4/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>Metatron Dev. III: 体数据</title>
+      <link>https://tsssni.github.io/render/metatron-dev-3/</link>
+      <pubDate>Mon, 05 May 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/metatron-dev-3/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-3/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>闪之轨迹游记</title>
+      <link>https://tsssni.github.io/acgn/sennokiseki/</link>
+      <pubDate>Sun, 13 Apr 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/acgn/sennokiseki/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/acgn/sennokiseki/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>Metatron Dev. II: 矩阵运算</title>
+      <link>https://tsssni.github.io/render/metatron-dev-2/</link>
+      <pubDate>Sat, 12 Apr 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/metatron-dev-2/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-2/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>Jovian: Nixify Steam Deck</title>
+      <link>https://tsssni.github.io/unix/jovian-nixos/</link>
+      <pubDate>Thu, 13 Mar 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/unix/jovian-nixos/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/unix/jovian-nixos/featured.png" />
+    </item>
+    
+    <item>
+      <title>Metatron Dev. I: 构建系统</title>
+      <link>https://tsssni.github.io/render/metatron-dev-1/</link>
+      <pubDate>Sun, 16 Feb 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/metatron-dev-1/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-1/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. XIV: 体渲染</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-14/</link>
+      <pubDate>Tue, 21 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-14/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-14/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. XIII: 表面反射</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-13/</link>
+      <pubDate>Sat, 18 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-13/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-13/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. XII: 光源</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-12/</link>
+      <pubDate>Thu, 02 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-12/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-12/featured.png" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. XI: 体散射</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-11/</link>
+      <pubDate>Fri, 27 Dec 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-11/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-11/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. X: 材质纹理</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-10/</link>
+      <pubDate>Tue, 24 Dec 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-10/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-10/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. IX: 反射模型</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-9/</link>
+      <pubDate>Tue, 10 Dec 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-9/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-9/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>稳定版工作流记录</title>
+      <link>https://tsssni.github.io/unix/workflow/</link>
+      <pubDate>Mon, 02 Dec 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/unix/workflow/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/unix/workflow/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. VIII: 图像重建</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-8/</link>
+      <pubDate>Sat, 30 Nov 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-8/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-8/featured.png" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. VII: 图元与加速结构</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-7/</link>
+      <pubDate>Tue, 19 Nov 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-7/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-7/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. VI: 几何形状</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-6/</link>
+      <pubDate>Tue, 05 Nov 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-6/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-6/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. V: 相机模型</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-5/</link>
+      <pubDate>Mon, 04 Nov 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-5/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-5/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. IV: 辐射与光</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-4/</link>
+      <pubDate>Mon, 07 Oct 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-4/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-4/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. III: 几何与变换</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-3/</link>
+      <pubDate>Sat, 05 Oct 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-3/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-3/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. II: 随机模拟</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-2/</link>
+      <pubDate>Wed, 02 Oct 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-2/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-2/featured.png" />
+    </item>
+    
+    <item>
+      <title>pbrt-v4 Ep. I: 代码实现</title>
+      <link>https://tsssni.github.io/render/pbrt-v4-episode-1/</link>
+      <pubDate>Tue, 01 Oct 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/pbrt-v4-episode-1/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/pbrt-v4-episode-1/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>Nix Darwin交叉编译</title>
+      <link>https://tsssni.github.io/unix/nix-darwin-cross-compiler/</link>
+      <pubDate>Sat, 14 Sep 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/unix/nix-darwin-cross-compiler/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/unix/nix-darwin-cross-compiler/featured.png" />
+    </item>
+    
+    <item>
+      <title>长春回忆录</title>
+      <link>https://tsssni.github.io/acgn/changchun-memory/</link>
+      <pubDate>Sat, 29 Jun 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/acgn/changchun-memory/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/acgn/changchun-memory/featured.jpg" />
+    </item>
+    
+    <item>
+      <title>MacOS Rice杂记</title>
+      <link>https://tsssni.github.io/unix/macos-rice/</link>
+      <pubDate>Mon, 10 Jun 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/unix/macos-rice/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/unix/macos-rice/featured.png" />
+    </item>
+    
+    <item>
+      <title>关于</title>
+      <link>https://tsssni.github.io/about/about/</link>
+      <pubDate>Tue, 04 Jun 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/about/about/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/about/about/featured.png" />
+    </item>
+    
+  </channel>
+</rss>
