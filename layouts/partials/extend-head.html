@@ -13,3 +13,6 @@
 
 {{ $vimkeys := resources.Get "js/vimkeys.js" | resources.Fingerprint "sha512" }}
 <script defer src="{{ $vimkeys.RelPermalink }}" integrity="{{ $vimkeys.Data.Integrity }}"></script>
+
+{{ $appSwitch := resources.Get "js/appearance-switch.js" | resources.ExecuteAsTemplate "js/appearance-switch.js" . | resources.Minify | resources.Fingerprint "sha512" }}
+<script src="{{ $appSwitch.RelPermalink }}" integrity="{{ $appSwitch.Data.Integrity }}"></script>

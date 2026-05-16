@@ -1,14 +1,14 @@
 locale = "zh-cn"
 label = "Simplified Chinese"
 weight = 1
-title = "TSSSNI BLOG"
+title = "TSSSNI'S BLOG"
 
 [params]
 displayName = "中文"
 isoCode = "zh-cn"
 rtl = false
 dateFormat = "2006 January 2"
-description = "tsssni blog"
+description = "tsssni's blog"
 
 [author]
 image = "plana.png"

@@ -1,14 +1,14 @@
 locale = "en"
 label = "English"
 weight = 1
-title = "TSSSNI BLOG"
+title = "TSSSNI'S BLOG"
 
 [params]
 displayName = "English"
 isoCode = "en"
 rtl = false
 dateFormat = "January 2 2006"
-description = "tsssni blog"
+description = "tsssni's blog"
 
 [author]
 image = "plana.png"

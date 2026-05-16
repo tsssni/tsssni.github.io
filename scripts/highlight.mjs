@@ -39,7 +39,7 @@ const decodeEntities = (s) => s
   .replace(/&#39;/g, "'")
   .replace(/&amp;/g, '&');
 
-const codeBlockRe = /<pre[^>]*>\s*<code(?:\s+class="language-([\w+#-]+)")?[^>]*>([\s\S]*?)<\/code>\s*<\/pre>/g;
+const codeBlockRe = /<pre[^>]*>\s*<code(?:\s+class="?language-([\w+#-]+)"?)?[^>]*>([\s\S]*?)<\/code>\s*<\/pre>/g;
 
 export async function highlight(path) {
   const html = await readFile(path, 'utf8');

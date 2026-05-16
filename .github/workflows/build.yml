@@ -30,7 +30,7 @@ jobs:
         run: nix develop -c npm install
 
       - name: Build
-        run: nix develop -c node scripts/build.mjs --minify
+        run: nix develop -c node scripts/build.mjs
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
