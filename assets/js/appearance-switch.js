@@ -18,7 +18,13 @@
   const autoIconHTML = `<div class="appearance-auto"><span class="relative block icon">{{ (resources.Get "icons/auto.svg").Content | safeHTML }}</span></div>`;
   addEventListener("DOMContentLoaded", () => {
     for (const id of ["appearance-switcher", "appearance-switcher-mobile"]) {
-      document.getElementById(id)?.insertAdjacentHTML("beforeend", autoIconHTML);
+      const btn = document.getElementById(id);
+      if (!btn) continue;
+      const divs = btn.querySelectorAll(":scope > div");
+      if (divs.length >= 2) {
+        [divs[0].innerHTML, divs[1].innerHTML] = [divs[1].innerHTML, divs[0].innerHTML];
+      }
+      btn.insertAdjacentHTML("beforeend", autoIconHTML);
     }
   });
 

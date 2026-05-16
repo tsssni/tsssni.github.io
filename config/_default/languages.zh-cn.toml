@@ -4,7 +4,7 @@ weight = 1
 title = "TSSSNI'S BLOG"
 
 [params]
-displayName = "中文"
+displayName = "简体中文"
 isoCode = "zh-cn"
 rtl = false
 dateFormat = "2006 January 2"

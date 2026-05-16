@@ -1,7 +1,7 @@
 colorScheme = "plana"
 defaultAppearance = "light"
 autoSwitchAppearance = true
-enableSearch = true
+enableSearch = false
 enableCodeCopy = false
 mainSections = [ "render", "unix", "maths", "acgn", "about" ]
 disableImageOptimization = false
