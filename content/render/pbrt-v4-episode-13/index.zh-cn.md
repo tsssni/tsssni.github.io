@@ -1,5 +1,5 @@
 ---
-title: "pbrt-v4 Ep. XIII: 光线传播: 表面反射"
+title: "pbrt-v4 Ep. XIII: 表面反射"
 date: 2025-01-18
 draft: false
 description: "pbrt-v4 episode 13"

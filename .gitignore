@@ -6,6 +6,7 @@
 !data/
 !i18n/
 !layouts/
+!scripts/
 !static/
 !themes
 !flake.lock

@@ -1,13 +1,12 @@
-colorScheme = "slate"
-defaultAppearance = "light"
+colorScheme = "plana"
+defaultAppearance = "dark"
 autoSwitchAppearance = true
 enableSearch = true
 enableCodeCopy = false
 mainSections = [ "render", "unix", "maths", "acgn", "about" ]
 disableImageOptimization = false
 disableTextInHeader = false
-defaultBackgroundImage = "plana-hero.png"
-defaultFeaturedImage = "plana-profile.png"
+defaultFeaturedImage = "plana.png"
 
 [header]
 layout = "basic"
@@ -28,7 +27,6 @@ showMoreLinkDest = "/posts"
 cardView = false
 cardViewScreenWidth = false
 layoutBackgroundBlur = true
-homepageImage = "plana-hero.png"
 
 [article]
 showDate = true
@@ -55,7 +53,7 @@ showAuthorsBadges = false
 showWordCount = true
 showComments = true
 showZenMode = false
-heroStyle = "thumbAndBackground"
+heroStyle = "basic"
 
 [list]
 showHero = true
@@ -71,7 +69,7 @@ groupByYear = true
 cardView = false
 cardViewScreenWidth = false
 constrainItemsWidth = false
-heroStyle = "background"
+heroStyle = "basic"
 
 [sitemap]
 excludedKinds = [ "taxonomy", "term" ]
@@ -84,7 +82,7 @@ showViews = false
 showLikes = false
 showTableOfContents = false
 cardView = false
-heroStyle = "background"
+heroStyle = "basic"
 
 [term]
 showHero = true
@@ -95,7 +93,7 @@ showTableOfContents = true
 groupByYear = false
 cardView = false
 cardViewScreenWidth = false
-heroStyle = "background"
+heroStyle = "basic"
 
 [firebase]
 

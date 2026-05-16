@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "blowfish-tools": "^1.7.0"
+    "shiki": "^4.0.2",
+    "glob": "^13.0.6",
+    "livereload": "^0.10.3"
   }
 }

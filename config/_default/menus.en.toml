@@ -3,7 +3,7 @@ none = "none"
 
 [[main]]
 name = "About"
-pageRef = "about/1717500731146-about"
+pageRef = "about/about"
 identifier = "PmJ4BvEkD5"
 weight = 5
 
@@ -17,13 +17,13 @@ weight = 4
 name = "Maths"
 pageRef = "maths"
 identifier = "u1uXYnUUPG"
-weight = 3
+weight = 2
 
 [[main]]
 name = "Unix"
 pageRef = "unix"
 identifier = "V1iSLuNBw3"
-weight = 2
+weight = 3
 
 [[main]]
 name = "Rendering"

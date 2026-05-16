@@ -1,5 +1,5 @@
 ---
-title: "pbrt-v4 Ep. XIV: 光线传播: 体渲染"
+title: "pbrt-v4 Ep. XIV: 体渲染"
 date: 2025-01-21
 draft: false
 description: "pbrt-v4 episode 14"

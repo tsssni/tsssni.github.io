@@ -1,5 +1,5 @@
 ---
-title: "Jovian-NixOS: steamdeck完全nix化"
+title: "Jovian: Nixify Steam Deck"
 date: 2025-03-13
 draft: false
 description: "Jovian-NixOS first meet"

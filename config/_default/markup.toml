@@ -11,7 +11,7 @@
   inline = [['\(', '\)'], ['$', '$']]
 
 [highlight]
-  noClasses = false
+  codeFences = false
 
 [tableOfContents]
   startLevel = 2

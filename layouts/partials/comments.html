@@ -8,9 +8,18 @@
         data-reactions-enabled="1"
         data-emit-metadata="0"
         data-input-position="top"
-        data-theme="preferred_color_scheme"
         data-lang="zh-CN"
         data-loading="lazy"
         crossorigin="anonymous"
         async>
+</script>
+<script>
+  (() => {
+    const html = document.documentElement;
+    const theme = () => html.classList.contains('dark') ? 'dark' : 'light';
+    document.currentScript.previousElementSibling.dataset.theme = theme();
+    new MutationObserver(() => document.querySelector('iframe.giscus-frame')?.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: theme() } } }, 'https://giscus.app'
+    )).observe(html, { attributes: true, attributeFilter: ['class'] });
+  })();
 </script>

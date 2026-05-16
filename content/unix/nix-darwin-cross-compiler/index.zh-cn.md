@@ -1,9 +1,9 @@
 ---
-title: "在Nix-Darwin中使用交叉编译器"
+title: "Nix Darwin交叉编译"
 date: 2024-09-14
 draft: false
 description: "fix errors for cross compilation on darwin"
-tags: ["nix", "nix-darwin", "darwin", "macos", "cross-compilation"]
+tags: ["nix", "nix-darwin", "macos", "cross-compilation"]
 ---
 Nix这边对交叉编译的支持是很不错的, 但它是用来通过stdenv编译nixpkgs中的某个包的.
 浙软的高级操作系统Lab需要直接使用交叉编译器, 那么只能通过在环境中导入stdenv.cc来实现, 这一步是有坑的.
