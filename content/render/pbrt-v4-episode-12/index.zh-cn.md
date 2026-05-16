@@ -6,8 +6,6 @@ description: "pbrt-v4 episode 12"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-{{<katex>}}
-
 pbrt中不实现无法参与几何光学的光源, 例如只照亮某些物体的光源. 为提高效率, pbrt会根据概率选择光源.
 
 ## 光源接口
@@ -27,7 +25,7 @@ class Light : public TaggedPointer<  // Light Source Types
 };
 ```
 
-光源需要通过`Phi`返回其功率(辐射通量)\\(\phi\\), 这便于通过功率大小采样光源.
+光源需要通过`Phi`返回其功率(辐射通量)$\phi$, 这便于通过功率大小采样光源.
 
 ```c++
 SampledSpectrum Phi(SampledWavelengths lambda) const;
@@ -142,13 +140,13 @@ SampleLi(LightSampleContext ctx, Point2f u, SampledWavelengths lambda,
 
 $$
 \begin{equation}
-\Phi=\int_\Theta I d\omega=4\pi I
+\Phi=\int_\Theta I \mathrm{d}\omega=4\pi I
 \end{equation}
 $$
 
 ### 聚光灯
 
-pbrt中聚光灯在本地空间中始终位于原点并指向\\(z\\)轴, 通过相对\\(z\\)轴的角度实现衰减. `cosFalloffStart`定义衰减开始的角度, `cosFalloffEnd`定义聚光灯最大角度.
+pbrt中聚光灯在本地空间中始终位于原点并指向$z$轴, 通过相对$z$轴的角度实现衰减. `cosFalloffStart`定义衰减开始的角度, `cosFalloffEnd`定义聚光灯最大角度.
 
 ```c++
 const DenselySampledSpectrum *Iemit;
@@ -160,7 +158,7 @@ Float scale, cosFalloffStart, cosFalloffEnd;
 $$
 \begin{equation}
 \begin{aligned}
-&2\pi I(\int_0^{\theta_{\text{start}}} \sin\theta d\theta+\int_{\theta_{\text{start}}}^{\theta_{\text{end}}} \text{smoothstep}(\cos\theta,{\theta_{\text{end}}},{\theta_{\text{start}}})\sin\theta d\theta)\\\\
+&2\pi I(\int_0^{\theta_{\text{start}}} \sin\theta \mathrm{d}\theta+\int_{\theta_{\text{start}}}^{\theta_{\text{end}}} \text{smoothstep}(\cos\theta,{\theta_{\text{end}}},{\theta_{\text{start}}})\sin\theta \mathrm{d}\theta)\\
 &=\pi I(2-\cos\theta_{\text{start}}-\cos\theta_{\text{end}})
 \end{aligned}
 \end{equation}
@@ -168,13 +166,13 @@ $$
 
 ### 纹理投影光源
 
-纹理投影光源根据光线与\\(z=1\\)平面相交的位置决定纹理坐标, 双线性插值采样后得到颜色. 根据之前章节所介绍的, 根据角度和距离可以将\\(dA\\)转为\\(d\omega\\), 在纹理投影光源中这会影响光线强度, 对于\\(z=1\\)平面转换系数为\\(\cos^3\theta\\).
+纹理投影光源根据光线与$z=1$平面相交的位置决定纹理坐标, 双线性插值采样后得到颜色. 根据之前章节所介绍的, 根据角度和距离可以将$\mathrm{d}A$转为$\mathrm{d}\omega$, 在纹理投影光源中这会影响光线强度, 对于$z=1$平面转换系数为$\cos^3\theta$.
 
 纹理投影光源的功率通过转为面积上的积分来计算, 由于像素只代表中心点, 最后的结果需要乘上像素的面积.
 
 $$
 \begin{equation}
-\Phi=\int_\Theta I(\omega) d\omega = \int_A I(p) \frac{d\omega}{dA} dA
+\Phi=\int_\Theta I(\omega) \mathrm{d}\omega = \int_A I(p) \frac{\mathrm{d}\omega}{\mathrm{d}A} \mathrm{d}A
 \end{equation}
 $$
 
@@ -203,7 +201,7 @@ SampleLi(LightSampleContext ctx, Point2f u, SampledWavelengths lambda,
 
 $$
 \begin{equation}
-\Phi = \pi r_s^2 \int_\Theta L_e \delta(\omega - \omega_e) d\omega = \pi r_s^2 L_e
+\Phi = \pi r_s^2 \int_\Theta L_e \delta(\omega - \omega_e) \mathrm{d}\omega = \pi r_s^2 L_e
 \end{equation}
 $$
 
@@ -235,7 +233,7 @@ class DiffuseAreaLight : public LightBase {
 };
 ```
 
-由于对于面积光源上的某个点\\(E(p)=L\int_0^{2\pi}\int_0^{\frac{\pi}{2}}\cos\theta\sin\theta d\theta=\pi L\\), 功率计算方式如下. 对于通过`Image`指定光照的光源, 物体面积除以图片面积可以近似每个像素的面积.
+由于对于面积光源上的某个点$E(p)=L\int_0^{2\pi}\int_0^{\frac{\pi}{2}}\cos\theta\sin\theta \mathrm{d}\theta=\pi L$, 功率计算方式如下. 对于通过`Image`指定光照的光源, 物体面积除以图片面积可以近似每个像素的面积.
 
 ```c++
 SampledSpectrum DiffuseAreaLight::Phi(SampledWavelengths lambda) const {
@@ -306,7 +304,7 @@ pbrt通过`PiecewiseConstant2D`构建光照分布, 若`allowIncompletePDF`则在
     compensatedDistribution = PiecewiseConstant2D(d, domain, alloc);
 ```
 
-由于分布通过图像的\\(uv\\)空间构建, 在转为球面分布时需要添加转换系数.
+由于分布通过图像的$uv$空间构建, 在转为球面分布时需要添加转换系数.
 
 ```c++
 Float pdf = mapPDF / (4 * Pi);
@@ -339,7 +337,7 @@ SampledSpectrum ImageInfiniteLight::Phi(SampledWavelengths lambda) const {
 
 `ImageInfiniteLight`不考虑光源的可见性, 遮挡会影响采样的效率, pbrt通过`PortalImageInfiniteLight`解决该问题, 允许用户指定一个四边形的门户.
 
-门户在等面积八面体映射纹理中会对应一个复杂的形状. pbrt将门户本地空间定义为以门户为\\(z=1\\)平面, 向外为\\(z\\)轴正方向. 此时对纹理重新参数化, 将角度转到\\([0,1]\\)中即可存储, 门户在纹理上会对应某个矩形区域.
+门户在等面积八面体映射纹理中会对应一个复杂的形状. pbrt将门户本地空间定义为以门户为$z=1$平面, 向外为$z$轴正方向. 此时对纹理重新参数化, 将角度转到$[0,1]$中即可存储, 门户在纹理上会对应某个矩形区域.
 
 $$
 \begin{equation}
@@ -347,11 +345,11 @@ $$
 \end{equation}
 $$
 
-由于积分通常是在立体角上的积分, 我们需要计算\\(\frac{d\omega}{d(u,v)}\\)(因为转换的过程是\\(\frac{d\omega}{d(u,v)}d(u,v)\\), pbrt书里搞反了, 见[Portal-Masked Environment Map Sampling](https://cs.dartmouth.edu/~wjarosz/publications/bitterli15portal.pdf)). 此时由于门户位于\\(x,y\\)平面上, 因此面积与立体角的微分满足\\(d\omega=\frac{dA\cos\theta}{r^2}=\frac{dxdy}{r^3}\\), 经整理后得到如下转换关系.
+由于积分通常是在立体角上的积分, 我们需要计算$\frac{\mathrm{d}\omega}{d(u,v)}$(因为转换的过程是$\frac{\mathrm{d}\omega}{d(u,v)}d(u,v)$, pbrt书里搞反了, 见[Portal-Masked Environment Map Sampling](https://cs.dartmouth.edu/~wjarosz/publications/bitterli15portal.pdf)). 此时由于门户位于$x,y$平面上, 因此面积与立体角的微分满足$\mathrm{d}\omega=\frac{\mathrm{d}A\cos\theta}{r^2}=\frac{dxdy}{r^3}$, 经整理后得到如下转换关系.
 
 $$
 \begin{equation}
-\frac{d\omega}{d(u,v)}=\pi^2\frac{(1-\omega_x^2)(1-\omega_y^2)}{\omega_z}
+\frac{\mathrm{d}\omega}{d(u,v)}=\pi^2\frac{(1-\omega_x^2)(1-\omega_y^2)}{\omega_z}
 \end{equation}
 $$
 
@@ -393,7 +391,7 @@ class LightSampler : public TaggedPointer<UniformLightSampler, PowerLightSampler
 
 `BVHLightSampler`通过对光源构建包围结构来加速光源采样.
 
-每个光源都在空间上影响某块区域, pbrt通过`LightBounds`表示, 显然这不适用于无限光源, 需要单独处理. \\(\omega\\)指定主要光源表面法线\\(\bold{n_m}\\), \\(\theta_o\\)表示光源表面法线相对主法线的最大变化角度, \\(\theta_e\\)表示相对于某个法线的最大的可以接收光照的角度.
+每个光源都在空间上影响某块区域, pbrt通过`LightBounds`表示, 显然这不适用于无限光源, 需要单独处理. $\omega$指定主要光源表面法线$\mathbf{n_m}$, $\theta_o$表示光源表面法线相对主法线的最大变化角度, $\theta_e$表示相对于某个法线的最大的可以接收光照的角度.
 
 ```c++
 class LightBounds {
@@ -420,11 +418,11 @@ class LightBounds {
 };
 ```
 
-`Importance`是`LightBounds`的关键方法, 负责返回光源对表面上某个点的贡献. 连接表面点与光源包围盒中心, 令该向量为\\(\bold{d_b}\\), 与\\(\bold{n_m}\\)形成的角度为\\(\theta_w\\), 包围盒对应的包围球与该点的切线和该向量形成的角度为\\(\theta_b\\).
+`Importance`是`LightBounds`的关键方法, 负责返回光源对表面上某个点的贡献. 连接表面点与光源包围盒中心, 令该向量为$\mathbf{d_b}$, 与$\mathbf{n_m}$形成的角度为$\theta_w$, 包围盒对应的包围球与该点的切线和该向量形成的角度为$\theta_b$.
 
-\\(\theta_w-\theta_o\\)代表使用最接近表面点的法线\\(\bold{n_p}\\), 与\\(\bold{d_b}\\)形成的角度为\\(\theta_n\\). \\(\bold{n_p}\\)实际位于的光源表面可以是光源包围盒内的任意位置, 令某具有\\(\bold{n_p}\\)的位置与表面点连接的向量\\(\bold{d_p}\\)和\\(\bold{n_p}\\)的夹角为\\(\theta_p\\), 和\\(\bold{d_b}\\)夹角为\\(\bold{\theta_s}\\).
+$\theta_w-\theta_o$代表使用最接近表面点的法线$\mathbf{n_p}$, 与$\mathbf{d_b}$形成的角度为$\theta_n$. $\mathbf{n_p}$实际位于的光源表面可以是光源包围盒内的任意位置, 令某具有$\mathbf{n_p}$的位置与表面点连接的向量$\mathbf{d_p}$和$\mathbf{n_p}$的夹角为$\theta_p$, 和$\mathbf{d_b}$夹角为$\mathbf{\theta_s}$.
 
-根据\\(\bold{d_b}\\), \\(\bold{d_p}\\), \\(\bold{n_p}\\)形成的三角形, 可以看出\\(\theta_p=\theta_n-\theta_s\\), 而\\(\theta_s\\)最小为\\(\theta_b\\), 此时得到最小值\\(\theta'=\max(0,\theta_w-\theta_o-\theta_b)\\), 若大于\\(\theta_e\\)则可以认为该点无法被照亮. 令表面法线与\\(\bold{d_b}\\)形成的角度为\\(\theta_i\\), 令\\(\theta'_i=\max(0,\theta_i-\theta_b)\\), 该角度为\\(\bold{d_p}\\)与表面法线的最大角度, 即光源产生最大贡献的角度. 此时可以得到贡献值\\(I=\frac{\phi\cos\theta'\cos\theta'_i}{d^2}\\).
+根据$\mathbf{d_b}$, $\mathbf{d_p}$, $\mathbf{n_p}$形成的三角形, 可以看出$\theta_p=\theta_n-\theta_s$, 而$\theta_s$最小为$\theta_b$, 此时得到最小值$\theta'=\max(0,\theta_w-\theta_o-\theta_b)$, 若大于$\theta_e$则可以认为该点无法被照亮. 令表面法线与$\mathbf{d_b}$形成的角度为$\theta_i$, 令$\theta'_i=\max(0,\theta_i-\theta_b)$, 该角度为$\mathbf{d_p}$与表面法线的最大角度, 即光源产生最大贡献的角度. 此时可以得到贡献值$I=\frac{\phi\cos\theta'\cos\theta'_i}{d^2}$.
 
 ```c++
 PBRT_CPU_GPU Float LightBounds::Importance(Point3f p, Normal3f n) const {
@@ -503,7 +501,7 @@ pstd::optional<LightBounds> PointLight::Bounds() const {
 }
 ```
 
-聚光灯的\\(\theta_o\\)为非衰减区域的角度, \\(\theta_e\\)为衰减区域的角度. 对于两个只有锥体大小不同的聚光灯, 若它们照亮同一个点, 该点对这两个光源的采样概率应该是相同的. 因此二者的\\(\phi\\)应设置为与锥体无关的, 锥体已经在`Importance`中被考虑了, 不需要再次将其添加到\\(\phi\\)中.
+聚光灯的$\theta_o$为非衰减区域的角度, $\theta_e$为衰减区域的角度. 对于两个只有锥体大小不同的聚光灯, 若它们照亮同一个点, 该点对这两个光源的采样概率应该是相同的. 因此二者的$\phi$应设置为与锥体无关的, 锥体已经在`Importance`中被考虑了, 不需要再次将其添加到$\phi$中.
 
 ```c++
 pstd::optional<LightBounds> SpotLight::Bounds() const {
@@ -517,7 +515,7 @@ pstd::optional<LightBounds> SpotLight::Bounds() const {
 }
 ```
 
-纹理投影光源\\(\theta_o\\)为0, 因为只有一个方向, \\(\theta_e\\)与图片尺寸有关, \\(\phi\\)根据图片像素计算.
+纹理投影光源$\theta_o$为0, 因为只有一个方向, $\theta_e$与图片尺寸有关, $\phi$根据图片像素计算.
 
 ```c++
 pstd::optional<LightBounds> ProjectionLight::Bounds() const {
@@ -538,7 +536,7 @@ pstd::optional<LightBounds> ProjectionLight::Bounds() const {
 }
 ```
 
-光度测量角度图光源与点光源类似, \\(\phi\\)根据实际数据计算.
+光度测量角度图光源与点光源类似, $\phi$根据实际数据计算.
 
 ```c++
 pstd::optional<LightBounds> GoniometricLight::Bounds() const {
@@ -556,7 +554,7 @@ pstd::optional<LightBounds> GoniometricLight::Bounds() const {
 }
 ```
 
-面积光源的法线与角度根据`Shape::NormalBounds`获取, 若光源为图片则\\(\phi\\)为平均值. `Importance`中已经考虑了双面的情况, 因此\\(\phi\\)不需要考虑双面.
+面积光源的法线与角度根据`Shape::NormalBounds`获取, 若光源为图片则$\phi$为平均值. `Importance`中已经考虑了双面的情况, 因此$\phi$不需要考虑双面.
 
 ```c++
 pstd::optional<LightBounds> DiffuseAreaLight::Bounds() const {
@@ -583,7 +581,7 @@ pstd::optional<LightBounds> DiffuseAreaLight::Bounds() const {
 
 #### 紧凑包围结构光源
 
-为提高缓存效率, 尤其是在GPU上, pbrt实现`CompactLightBounds`来进一步减小存储开销, 主要通过\\(\omega\\)的单位向量压缩, 以及\\(\cos\theta\\)和包围盒对角坐标的量化来实现.
+为提高缓存效率, 尤其是在GPU上, pbrt实现`CompactLightBounds`来进一步减小存储开销, 主要通过$\omega$的单位向量压缩, 以及$\cos\theta$和包围盒对角坐标的量化来实现.
 
 ```c++
 class CompactLightBounds {
@@ -607,7 +605,7 @@ class CompactLightBounds {
 };
 ```
 
-\\(\cos\theta\\)采用\\(15\\)位量化, 通过转为正数后乘上\\(2^{15}-1=32767\\)实现.
+$\cos\theta$采用$15$位量化, 通过转为正数后乘上$2^{15}-1=32767$实现.
 
 ```c++
 static unsigned int QuantizeCos(Float c) {
@@ -626,7 +624,7 @@ for (int c = 0; c < 3; ++c) {
 }
 ```
 
-量化通过乘上\\(2^{16}-1=65535\\)实现.
+量化通过乘上$2^{16}-1=65535$实现.
 
 ```c++
 static Float QuantizeBounds(Float c, Float min, Float max) {
@@ -671,7 +669,7 @@ struct alignas(32) LightBVHNode {
 };
 ```
 
-pbrt通过整数记录BVH遍历过程, \\(01\\)分别代表左子树与右子树.
+pbrt通过整数记录BVH遍历过程, $01$分别代表左子树与右子树.
 
 ```c++
 HashMap<Light, uint32_t> lightToBitTrail;
@@ -681,7 +679,7 @@ HashMap<Light, uint32_t> lightToBitTrail;
 
 $$
 \begin{equation}
-M_\Omega=\int_0^{2\pi}(\int_0^{\theta_o}\sin\theta'd\theta'+\int_{\theta_o}^{\min(\theta_o+\theta_e,\pi)}\cos(\theta'-\theta_o)\sin\theta'd\theta')d\phi
+M_\Omega=\int_0^{2\pi}(\int_0^{\theta_o}\sin\theta'\mathrm{d}\theta'+\int_{\theta_o}^{\min(\theta_o+\theta_e,\pi)}\cos(\theta'-\theta_o)\sin\theta'\mathrm{d}\theta')\mathrm{d}\phi
 \end{equation}
 $$
 

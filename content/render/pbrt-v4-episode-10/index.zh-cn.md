@@ -6,15 +6,13 @@ description: "pbrt-v4 episode 10"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-{{<katex>}}
-
 纹理描述表面上标量或光谱量在空间上的变化, 材质通过求解表面上某个点的纹理来决定其BSDF参数.
 
 ## 纹理采样与反走样
 
 纹理反走样比光线渲染结果反走样要容易, 某些纹理具有解析形式, 同时也可以做预滤波, 通常来说每个像素不会需要多于一个的纹理样本.
 
-`GenerateRayDifferential`获取相邻像素发出的光线的相交结果, 此时可以计算当前像素的\\(\frac{\partial p}{\partial u}\\)和\\(\frac{\partial p}{\partial v}\\), pbrt会根据交点的位置与法线构建切平面, 让相交光线与切平面相交来获取微分估计值.
+`GenerateRayDifferential`获取相邻像素发出的光线的相交结果, 此时可以计算当前像素的$\frac{\partial p}{\partial u}$和$\frac{\partial p}{\partial v}$, pbrt会根据交点的位置与法线构建切平面, 让相交光线与切平面相交来获取微分估计值.
 
 对于例如漫反射的难以计算微分的情况以及不支持`GenerateRayDifferential`的相机, pbrt会将相机变换到朝向交点的方向, 根据相机提供的最小光线位置与方向的微分来生成微分光线, 再变换回渲染空间.
 
@@ -103,13 +101,13 @@ void CameraBase::FindMinimumDifferentials(Camera camera) {
 }
 ```
 
-令\\((u, v)\\)为纹理坐标, \\((x,y)\\)为像素坐标, 根据与形状的相交结果可以获取\\(\frac{\partial p}{\partial u}\\)和\\(\frac{\partial p}{\partial v}\\), 根据光线微分可以获取\\(\frac{\partial p}{\partial x}\\)和\\(\frac{\partial p}{\partial y}\\), 通过链式法则可以获取\\(\frac{\partial u}{\partial x}\\), \\(\frac{\partial u}{\partial y}\\), \\(\frac{\partial v}{\partial x}\\)和\\(\frac{\partial v}{\partial y}\\). 这可以通过最小二乘法求解, 其计算过程如下, 此时\\(\bold{A}=\begin{bmatrix}\frac{\partial p}{\partial u}\ \frac{\partial p}{\partial v}\end{bmatrix}\\),\\(\bold{b}=\begin{bmatrix}\frac{\partial p}{\partial x}\end{bmatrix}\\),\\(\bold{x}=\begin{bmatrix}\frac{\partial u}{\partial x}\\\\\frac{\partial v}{\partial x}\end{bmatrix}\\).
+令$(u, v)$为纹理坐标, $(x,y)$为像素坐标, 根据与形状的相交结果可以获取$\frac{\partial p}{\partial u}$和$\frac{\partial p}{\partial v}$, 根据光线微分可以获取$\frac{\partial p}{\partial x}$和$\frac{\partial p}{\partial y}$, 通过链式法则可以获取$\frac{\partial u}{\partial x}$, $\frac{\partial u}{\partial y}$, $\frac{\partial v}{\partial x}$和$\frac{\partial v}{\partial y}$. 这可以通过最小二乘法求解, 其计算过程如下, 此时$\mathbf{A}=\begin{bmatrix}\frac{\partial p}{\partial u}\ \frac{\partial p}{\partial v}\end{bmatrix}$,$\mathbf{b}=\begin{bmatrix}\frac{\partial p}{\partial x}\end{bmatrix}$,$\mathbf{x}=\begin{bmatrix}\frac{\partial u}{\partial x}\\\frac{\partial v}{\partial x}\end{bmatrix}$.
 
 $$
 \begin{equation}
 \begin{aligned}
-\bold{A}\bold{x}&=\bold{b}\\\\
-\bold{x}&=(\bold{A}^T \bold{A})^{-1}\bold{A}^T \bold{b}
+\mathbf{A}\mathbf{x}&=\mathbf{b}\\
+\mathbf{x}&=(\mathbf{A}^T \mathbf{A})^{-1}\mathbf{A}^T \mathbf{b}
 \end{aligned}
 \end{equation}
 $$
@@ -128,52 +126,52 @@ $$
 \begin{equation}
 \begin{aligned}
 \frac{\partial \omega_i}{\partial x}
-&=\frac{\partial}{\partial x}(-\omega_o+2(\omega_o\cdot\bold{n})\bold{n})\\\\
-&=-\frac{\partial\omega_o}{\partial x}+2((\omega_o\cdot\bold{n})\frac{\partial\bold{n}}{\partial x}+\bold{n}\frac{\partial(\omega_o\cdot\bold{n})}{\partial x})\\\\
-&=-\frac{\partial\omega_o}{\partial x}+2((\omega_o\cdot\bold{n})\frac{\partial\bold{n}}{\partial x}+\bold{n}(\bold{n}\frac{\partial\omega_o}{\partial x}+\omega_o\frac{\partial\bold{n}}{\partial x}))
+&=\frac{\partial}{\partial x}(-\omega_o+2(\omega_o\cdot\mathbf{n})\mathbf{n})\\
+&=-\frac{\partial\omega_o}{\partial x}+2((\omega_o\cdot\mathbf{n})\frac{\partial\mathbf{n}}{\partial x}+\mathbf{n}\frac{\partial(\omega_o\cdot\mathbf{n})}{\partial x})\\
+&=-\frac{\partial\omega_o}{\partial x}+2((\omega_o\cdot\mathbf{n})\frac{\partial\mathbf{n}}{\partial x}+\mathbf{n}(\mathbf{n}\frac{\partial\omega_o}{\partial x}+\omega_o\frac{\partial\mathbf{n}}{\partial x}))
 \end{aligned}
 \end{equation}
 $$
 
-根据折射光线方向的定义可以得到其微分, 其中\\(\mu=\frac{1}{\eta}(\omega_o\cdot\bold{n})-\cos\theta_i\\). \\(\frac{\partial\mu}{\partial x}\\)中包含\\(\frac{\partial\cos\theta_i}{\partial x}\\), 这可以通过Snell定律得到.
+根据折射光线方向的定义可以得到其微分, 其中$\mu=\frac{1}{\eta}(\omega_o\cdot\mathbf{n})-\cos\theta_i$. $\frac{\partial\mu}{\partial x}$中包含$\frac{\partial\cos\theta_i}{\partial x}$, 这可以通过Snell定律得到.
 
 $$
 \begin{equation}
-\frac{\partial\omega_i}{\partial x}=-\frac{1}{\eta}\frac{\partial\omega_o}{\partial x}+\mu\frac{\partial\bold{n}}{\partial x}+\frac{\partial\mu}{\partial x}\bold{n}
+\frac{\partial\omega_i}{\partial x}=-\frac{1}{\eta}\frac{\partial\omega_o}{\partial x}+\mu\frac{\partial\mathbf{n}}{\partial x}+\frac{\partial\mu}{\partial x}\mathbf{n}
 \end{equation}
 $$
 
 ### 纹理方程滤波
 
-反走样需要限制信号带宽, 去除纹理中频率高于Nyquist频率的部分, 对应的卷积如下, \\(f\\)为将像素坐标映射到纹理坐标的函数. 根据之前章节的内容, 我们可以知道其Fourier变换相当于与盒形方程相乘, 这可以直接去除高频部分.
+反走样需要限制信号带宽, 去除纹理中频率高于Nyquist频率的部分, 对应的卷积如下, $f$为将像素坐标映射到纹理坐标的函数. 根据之前章节的内容, 我们可以知道其Fourier变换相当于与盒形方程相乘, 这可以直接去除高频部分.
 
 $$
 \begin{equation}
-T_b(x,y)=\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}\text{sinc}(x')\text{sinc}(y')T'(f(x-x',y-y'))dx'dy'
+T_b(x,y)=\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}\text{sinc}(x')\text{sinc}(y')T'(f(x-x',y-y'))\mathrm{d}x'\mathrm{d}y'
 \end{equation}
 $$
 
-限制带宽后还需要还需要执行采样, \\(g\\)为采样所用的滤波器.
+限制带宽后还需要还需要执行采样, $g$为采样所用的滤波器.
 
 $$
 \begin{equation}
-T_{\text{ideal}}(x,y)=\int_{-\frac{w_x}{2}}^{\frac{w_x}{2}}\int_{-\frac{w_x}{2}}^{\frac{w_x}{2}}g(x',y')T_b(x-x',y-y')dx'dy'
+T_{\text{ideal}}(x,y)=\int_{-\frac{w_x}{2}}^{\frac{w_x}{2}}\int_{-\frac{w_x}{2}}^{\frac{w_x}{2}}g(x',y')T_b(x-x',y-y')\mathrm{d}x'\mathrm{d}y'
 \end{equation}
 $$
 
 这类理想采样实际上只对线性变化的量有效, 例如albedo对光照的贡献的变化, 而像roughness对BSDF的贡献就是非线性的, pbrt不考虑这点.
 
-在纹理滤波这一任务上, 盒形滤波也可以取得较好的效果, 且计算过程简单, 其定义如下, 其中\\(u_0=u-\frac{1}{2}\max(\frac{du}{dx},\frac{dv}{dx})\\), \\(u_1=u+\frac{1}{2}\max(\frac{du}{dx},\frac{dv}{dx})\\), \\(v_0\\), \\(v_1\\)同理.
+在纹理滤波这一任务上, 盒形滤波也可以取得较好的效果, 且计算过程简单, 其定义如下, 其中$u_0=u-\frac{1}{2}\max(\frac{\mathrm{d}u}{\mathrm{d}x},\frac{\mathrm{d}v}{\mathrm{d}x})$, $u_1=u+\frac{1}{2}\max(\frac{\mathrm{d}u}{\mathrm{d}x},\frac{\mathrm{d}v}{\mathrm{d}x})$, $v_0$, $v_1$同理.
 
 $$
 \begin{equation}
-T_{\text{box}}(x,y)=\frac{1}{(u_1-u_0)(v_1-v_0)}\int_{v_0}^{v_1}\int_{u_0}^{u_1}T(u',v')du'dv'
+T_{\text{box}}(x,y)=\frac{1}{(u_1-u_0)(v_1-v_0)}\int_{v_0}^{v_1}\int_{u_0}^{u_1}T(u',v')\mathrm{d}u'\mathrm{d}v'
 \end{equation}
 $$
 
 ## 纹理坐标生成
 
-对于参数化几何形状, 纹理坐标是与生俱来的属性. 对于三维纹理, 几何位置就是最佳纹理坐标. 对于其它情况, 纹理坐标需要手动生成, 或者像球的极点一样, 虽然有纹理坐标但是扭曲较为严重, 需要重新生成. pbrt使用\\((u,v)\\)表示参数化表面本来的纹理坐标, \\((s,t)\\)表示生成的纹理坐标.
+对于参数化几何形状, 纹理坐标是与生俱来的属性. 对于三维纹理, 几何位置就是最佳纹理坐标. 对于其它情况, 纹理坐标需要手动生成, 或者像球的极点一样, 虽然有纹理坐标但是扭曲较为严重, 需要重新生成. pbrt使用$(u,v)$表示参数化表面本来的纹理坐标, $(s,t)$表示生成的纹理坐标.
 
 `TextureMapping2D`接口负责二维纹理坐标的生成.
 
@@ -196,7 +194,7 @@ class TextureMapping2D : public TaggedPointer<UVMapping, SphericalMapping,
 };
 ```
 
-`Map`负责执行映射, 返回的`TexCoord2D`的定义如下, 其中包含\\((s,t)\\)坐标及其导数.
+`Map`负责执行映射, 返回的`TexCoord2D`的定义如下, 其中包含$(s,t)$坐标及其导数.
 
 ```c++
 struct TexCoord2D {
@@ -251,9 +249,9 @@ struct TextureEvalContext {
 };
 ```
 
-### \\((u,v)\\)映射
+### $(u,v)$映射
 
-\\((u,v)\\)映射通过对\\((u,v)\\)坐标的缩放与偏移实现, 定义如下, \\(\frac{ds}{dx}\\)通过链式法则得到.
+$(u,v)$映射通过对$(u,v)$坐标的缩放与偏移实现, 定义如下, $\frac{\mathrm{d}s}{\mathrm{d}x}$通过链式法则得到.
 
 ```c++
 class UVMapping {
@@ -281,7 +279,7 @@ class UVMapping {
 
 ### 球形映射
 
-球形映射定义如下, \\(\text{atan2}\\)代表\\(p_x,p_y\\)所形成的角度, 通过`std::atan2`获取, 可以正确的处理符号与象限. 这里认为得到的角度范围在\\([0,2\pi]\\),而非实际返回的\\([-\pi,\pi]\\).
+球形映射定义如下, $\text{atan2}$代表$p_x,p_y$所形成的角度, 通过`std::atan2`获取, 可以正确的处理符号与象限. 这里认为得到的角度范围在$[0,2\pi]$,而非实际返回的$[-\pi,\pi]$.
 
 $$
 \begin{equation}
@@ -291,7 +289,7 @@ $$
 
 ### 圆柱映射
 
-圆柱映射定义如下, 注意到\\(t\\)坐标需要被缩放, 或者通过某种手段采样超出范围的纹理.
+圆柱映射定义如下, 注意到$t$坐标需要被缩放, 或者通过某种手段采样超出范围的纹理.
 
 $$
 \begin{equation}
@@ -305,7 +303,7 @@ $$
 
 $$
 \begin{equation}
-f(p)=((p-(0,0,0)\cdot\bold{v}_s)+d_s,(p-(0,0,0)\cdot\bold{v}_t)+d_t)
+f(p)=((p-(0,0,0)\cdot\mathbf{v}_s)+d_s,(p-(0,0,0)\cdot\mathbf{v}_t)+d_t)
 \end{equation}
 $$
 
@@ -500,7 +498,7 @@ return SampledSpectrum(rgb[0]);
 
 ### mipmap
 
-mipmap通过将图像预处理为图像金字塔来减小滤波开销, 即每一层为上一层分辨率的一半, mipmap所需的内存只比原图多\\(\frac{1}{3}\\).
+mipmap通过将图像预处理为图像金字塔来减小滤波开销, 即每一层为上一层分辨率的一半, mipmap所需的内存只比原图多$\frac{1}{3}$.
 
 ### 图像滤波
 
@@ -510,23 +508,23 @@ pbrt支持以下四种滤波, 除EWA外都具有GPU硬件支持, 根据最大梯
 enum class FilterFunction { Point, Bilinear, Trilinear, EWA };
 ```
 
-EWA为椭圆加权平均(elliptically weighted average), 它会在不同方向使用不同的梯度, 即各向异性滤波, 且不要求方向与\\(x\\)轴或\\(y\\)轴平行. EWA的带限和滤波过程都采用Gaussian滤波器, 而非上述方法所用的盒滤波器带限. pbrt使用短轴长度选择mip层级, 若长短轴比率过大会导致过多的采样点, pbrt会适当增长短轴以使用更高的mip层级, 虽然会有模糊但并不明显
+EWA为椭圆加权平均(elliptically weighted average), 它会在不同方向使用不同的梯度, 即各向异性滤波, 且不要求方向与$x$轴或$y$轴平行. EWA的带限和滤波过程都采用Gaussian滤波器, 而非上述方法所用的盒滤波器带限. pbrt使用短轴长度选择mip层级, 若长短轴比率过大会导致过多的采样点, pbrt会适当增长短轴以使用更高的mip层级, 虽然会有模糊但并不明显
 
 EWA根据梯度计算得到椭圆, 其形式如下, 然后根据椭圆的梯度得到包围盒, 此时可以选取包围盒内位于椭圆内部的点执行滤波.
 
 $$
 \begin{equation}
 \begin{aligned}
-e(s,t)&=\frac{A}{F}s^2+\frac{B}{F}st+\frac{C}{F}t^2<1\\\\
-A&=(\frac{\partial s}{\partial y})^2+(\frac{\partial t}{\partial y})^2+1\\\\
-B&=-2(\frac{\partial s}{\partial x}\frac{\partial s}{\partial y}+\frac{\partial t}{\partial x}\frac{\partial t}{\partial y})\\\\
-C&=(\frac{\partial s}{\partial x})^2+(\frac{\partial t}{\partial x})^2+1\\\\
+e(s,t)&=\frac{A}{F}s^2+\frac{B}{F}st+\frac{C}{F}t^2<1\\
+A&=(\frac{\partial s}{\partial y})^2+(\frac{\partial t}{\partial y})^2+1\\
+B&=-2(\frac{\partial s}{\partial x}\frac{\partial s}{\partial y}+\frac{\partial t}{\partial x}\frac{\partial t}{\partial y})\\
+C&=(\frac{\partial s}{\partial x})^2+(\frac{\partial t}{\partial x})^2+1\\
 F&=AC-\frac{B^2}{4}
 \end{aligned}
 \end{equation}
 $$
 
-已知\\(e(s,t)\\)为某个点到椭圆中心的距离与对应直线上的椭圆边界到中心的距离的比值的平方, 这与Gaussian滤波器的定义相符, 因此可以通过该值来查表获取滤波权重.
+已知$e(s,t)$为某个点到椭圆中心的距离与对应直线上的椭圆边界到中心的距离的比值的平方, 这与Gaussian滤波器的定义相符, 因此可以通过该值来查表获取滤波权重.
 
 ## 材质接口与实现
 
@@ -663,7 +661,7 @@ SampledSpectrum UniversalTextureEvaluator::operator()(SpectrumTexture tex,
 
 #### 漫反射材质
 
-漫反射的`GetBxDF`会将反射值限制在\\([0,1]\\).
+漫反射的`GetBxDF`会将反射值限制在$[0,1]$.
 
 ```c++
 template <typename TextureEvaluator>
@@ -770,7 +768,7 @@ BSDF SurfaceInteraction::GetBSDF(const RayDifferential &ray, SampledWavelengths 
 
 ### 法线映射
 
-法线映射通过法线纹理实现, 纹理中存储的是切线空间下的法线, 在pbrt中即以法线为\\(z\\)轴, 切线为\\(x\\)轴. 在pbrt-v4中只有法线纹理是明确要用RGB存储的, 因此只存储在图片中, 通过`NormalMap`函数返回.
+法线映射通过法线纹理实现, 纹理中存储的是切线空间下的法线, 在pbrt中即以法线为$z$轴, 切线为$x$轴. 在pbrt-v4中只有法线纹理是明确要用RGB存储的, 因此只存储在图片中, 通过`NormalMap`函数返回.
 
 ```c++
 inline PBRT_CPU_GPU void NormalMap(const Image &normalMap,
@@ -848,19 +846,19 @@ struct NormalBumpEvalContext {
 
 $$
 \begin{equation}
-p'(u,v)=p(u,v)+d(u,v)\bold{n}(u,v)
+p'(u,v)=p(u,v)+d(u,v)\mathbf{n}(u,v)
 \end{equation}
 $$
 
-此时可以得到新的导数, 由于\\(d(u,v)\\)通常很小, 有些渲染器会省略最后一项.
+此时可以得到新的导数, 由于$d(u,v)$通常很小, 有些渲染器会省略最后一项.
 
 $$
 \begin{equation}
-\frac{\partial p'}{\partial u}=\frac{\partial p(u,v)}{\partial u}+\bold{n}(u,v)\frac{\partial d(u,v)}{\partial u}+d(u,v)\frac{\partial\bold{n}(u,v)}{\partial u}
+\frac{\partial p'}{\partial u}=\frac{\partial p(u,v)}{\partial u}+\mathbf{n}(u,v)\frac{\partial d(u,v)}{\partial u}+d(u,v)\frac{\partial\mathbf{n}(u,v)}{\partial u}
 \end{equation}
 $$
 
-\\(d(u,v)\\)的导数可以通过导数的定义来计算.
+$d(u,v)$的导数可以通过导数的定义来计算.
 
 $$
 \begin{equation}
@@ -868,7 +866,7 @@ $$
 \end{equation}
 $$
 
-\\(\Delta_u\\)的计算方式如下, 这里考虑到了浮点精度.
+$\Delta_u$的计算方式如下, 这里考虑到了浮点精度.
 
 ```c++
 Float du = .5f * (std::abs(ctx.dudx) + std::abs(ctx.dudy));

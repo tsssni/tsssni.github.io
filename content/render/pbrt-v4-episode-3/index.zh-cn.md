@@ -6,8 +6,6 @@ description: "pbrt v4 episode 3"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-{{<katex>}}
-
 对于所有图形学任务, 几何物体的表示都是设计的核心部分.
 这一章主要介绍pbrt中几何物体接口的设计.
 
@@ -107,13 +105,17 @@ Vector3<T> Cross(Vector3<T> v, Vector3<T> w) {
 }
 ```
 pbrt支持通过一个`Vector3`来生成一个坐标系, 其余两个基向量如下.
-为避免\\(1 + v_z = 0\\), 式中的符号根据\\(v_z\\)的符号修改.
+为避免$1 + v_z = 0$, 式中的符号根据$v_z$的符号修改.
 
 $$
+\begin{equation}
 \left( 1 - \frac{v_x^2}{1 + v_z}, -\frac{v_x v_z}{1 + v_z}, -v_x \right)
+\end{equation}
 $$
 $$
+\begin{equation}
 \left( -\frac{v_x v_y}{1 + v_z}, 1 - \frac{v_y^2}{1 + v_z}, -v_y \right)
+\end{equation}
 $$
 
 ```c++
@@ -161,7 +163,7 @@ Normal3<T> FaceForward(Normal3<T> n, Vector3<T> v) {
 
 光线类定义了一个射线, 包括一个`Point3f`类型的原点与`Vector3f`类型的射线方向.
 
-pbrt通过函数子计算光线上某点, 即\\(o+td\\).
+pbrt通过函数子计算光线上某点, 即$o+td$.
 
 ```c++
 Point3f operator()(Float t) const { return o + d * t; }
@@ -173,7 +175,7 @@ Point3f operator()(Float t) const { return o + d * t; }
 
 ### 光线微分
 
-光线微分继承自光线, 主要用于获取\\(x\\)与\\(y\\)方向相邻样本对应的光线的信息,
+光线微分继承自光线, 主要用于获取$x$与$y$方向相邻样本对应的光线的信息,
 以计算光线对应的面积来实现纹理采样的抗锯齿.
 
 ## 包围盒
@@ -243,13 +245,13 @@ void BoundingSphere(Point3<T> *center, Float *radius) const {
 
 ### 立体角
 
-以锥体的顶点作为球心作球面, 这个面积与半径平方的比值即为立体角, 一个球体对应的立体角为\\(4\pi\\).
+以锥体的顶点作为球心作球面, 这个面积与半径平方的比值即为立体角, 一个球体对应的立体角为$4\pi$.
 立体角可以用于表示物体投影到单位圆上的投影面积, 根据球面积分单位立体角具有如下的映射方式,
-其中\\(\theta\\)为极角, \\(\phi\\)为水平角.
+其中$\theta$为极角, $\phi$为水平角.
 
 $$
 \begin{equation}
-d\bold{l} = \sin \theta d\theta d\phi
+d\mathbf{l} = \sin \theta \mathrm{d}\theta \mathrm{d}\phi
 \end{equation}
 $$
 
@@ -270,7 +272,7 @@ $$
 
 $$
 \begin{equation}
-\tan\left(\frac{1}{2} A\right) = \frac{\bold{a} \cdot (\bold{b} \times \bold{c})}{1 + (\bold{a} \cdot \bold{b}) + (\bold{a} \cdot \bold{c}) + (\bold{b} \cdot \bold{c})}
+\tan\left(\frac{1}{2} A\right) = \frac{\mathbf{a} \cdot (\mathbf{b} \times \mathbf{c})}{1 + (\mathbf{a} \cdot \mathbf{b}) + (\mathbf{a} \cdot \mathbf{c}) + (\mathbf{b} \cdot \mathbf{c})}
 \end{equation}
 $$
 
@@ -283,8 +285,8 @@ pbrt中球面四边形仍然采用直接计算二面角的方式来计算.
 $$
 \begin{equation}
 \begin{aligned}
-x &= r \sin\theta \cos\phi\\\\
-y &= r \sin\theta \sin\phi\\\\
+x &= r \sin\theta \cos\phi\\
+y &= r \sin\theta \sin\phi\\
 z &= r \cos\theta
 \end{aligned}
 \end{equation}
@@ -295,18 +297,18 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-\theta &= \arccos z\\\\
+\theta &= \arccos z\\
 \phi &= \arctan \frac{y}{x}
 \end{aligned}
 \end{equation}
 $$
 
-\\(\phi\\)对应的三角函数也可以快速计算.
+$\phi$对应的三角函数也可以快速计算.
 
 $$
 \begin{equation}
 \begin{aligned}
-\cos\theta &= \frac{x}{r \sin\theta}\\\\
+\cos\theta &= \frac{x}{r \sin\theta}\\
 \sin\theta &= \frac{y}{r \sin\theta}
 \end{aligned}
 \end{equation}
@@ -317,8 +319,8 @@ $$
 由于浮点精度, 球面坐标系的两极比赤道具有更高的精度, 八面体压缩得到更均匀的分布.
 利用八面体压缩可以将`Vector3f`展开到二维平面, pbrt将每个元素用2个字节存储, 只需要4个字节即可存储一个单位向量.
 
-八面体压缩收集计算绝对值向量投影到\\(x+y+z=1\\)平面, 再投影到\\(xy\\)平面得到压缩向量\\((x, y)\\),
-上半球面的向量只需要设置符号, 下半球面向量先计算其对应上半球面绝对值向量的压缩值关于\\(x+y=1\\)的对称值再去修改符号.
+八面体压缩收集计算绝对值向量投影到$x+y+z=1$平面, 再投影到$xy$平面得到压缩向量$(x, y)$,
+上半球面的向量只需要设置符号, 下半球面向量先计算其对应上半球面绝对值向量的压缩值关于$x+y=1$的对称值再去修改符号.
 
 ```c++
 OctahedralVector(Vector3f v) {
@@ -361,13 +363,13 @@ explicit operator Vector3f() const {
 
 等面积映射保证球面上任意区域的面积与参数化后的空间中对应的面积的比例相似.
 
-令\\((u,v)\in[-1,1]\\), \\(u\ge0\\)且\\(u-|v|\ge0\\)时等面积映射的极坐标见下式.
-此时\\(\phi\in[-\frac{\pi}{4}, \frac{\pi}{4}]\\), 其它区域的映射具有相似的形式.
+令$(u,v)\in[-1,1]$, $u\ge0$且$u-|v|\ge0$时等面积映射的极坐标见下式.
+此时$\phi\in[-\frac{\pi}{4}, \frac{\pi}{4}]$, 其它区域的映射具有相似的形式.
 
 $$
 \begin{equation}
 \begin{aligned}
-r &= u\\\\
+r &= u\\
 \phi &= \frac{\pi}{4}\frac{v}{u}
 \end{aligned}
 \end{equation}
@@ -378,8 +380,8 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-x &= (\cos\phi) r \sqrt{2-r^2}\\\\
-y &= (\sin\phi) r \sqrt{2-r^2}\\\\
+x &= (\cos\phi) r \sqrt{2-r^2}\\
+y &= (\sin\phi) r \sqrt{2-r^2}\\
 z &= 1 - r^2
 \end{aligned}
 \end{equation}
@@ -387,11 +389,11 @@ $$
 
 pbrt中等面积映射的解压缩遵循如下步骤.
 
-1. 取\\((u, v)\\)的绝对值即映射到第一象限来简化计算
-1. 根据与象限对角线的距离来计算\\(r\\)
-2. 计算出对应的极坐标, 并且由于旋转需要\\(\phi+\frac{\pi}{4}\\)
-3. 根据\\(u,v\\)位于\\(x+y=1\\)的哪一侧确定z的方向.
-4. 等面积映射到球面坐标, 根据\\(u,v\\)的符号确定最终映射值的符号
+1. 取$(u, v)$的绝对值即映射到第一象限来简化计算
+1. 根据与象限对角线的距离来计算$r$
+2. 计算出对应的极坐标, 并且由于旋转需要$\phi+\frac{\pi}{4}$
+3. 根据$u,v$位于$x+y=1$的哪一侧确定z的方向.
+4. 等面积映射到球面坐标, 根据$u,v$的符号确定最终映射值的符号
 
 压缩过程基本是解压缩的逆过程.
 
@@ -466,10 +468,10 @@ PBRT_CPU_GPU inline DirectionCone BoundSubtendedDirections(const Bounds3f &b, Po
 $$
 \begin{equation}
 \begin{aligned}
-\bold{v_c} &= \bold{a}\|\|\bold{v}\|\| \cos\alpha = \bold{a}(\bold{v} \cdot \bold{a})\\\\
-\bold{v_1} &= \bold{v} - \bold{v_c}\\\\
-\bold{v_2} &= \bold{v_1} \times \bold{a}\\\\
-\bold{v'} &= \bold{v_c} + \bold{v_1}\cos\theta + \bold{v_2}\sin\theta
+\mathbf{v_c} &= \mathbf{a}\|\mathbf{v}\| \cos\alpha = \mathbf{a}(\mathbf{v} \cdot \mathbf{a})\\
+\mathbf{v_1} &= \mathbf{v} - \mathbf{v_c}\\
+\mathbf{v_2} &= \mathbf{v_1} \times \mathbf{a}\\
+\mathbf{v'} &= \mathbf{v_c} + \mathbf{v_1}\cos\theta + \mathbf{v_2}\sin\theta
 \end{aligned}
 \end{equation}
 $$
@@ -484,14 +486,14 @@ pbrt通过Householder矩阵实现反射.
 $$
 \begin{equation}
 \begin{aligned}
-H(\bold{v}) &= I - 2 \frac{\bold{v} \bold{v}^T}{\bold{v} \cdot \bold{v}}\\\\
-H(\bold{v})\bold{x} &= \bold{x} - 2 \frac{\bold{v}}{\|\|\bold{v}\|\|}(\frac{\bold{v}}{\|\|\bold{v}\|\|} \cdot \bold{x}) 
+H(\mathbf{v}) &= I - 2 \frac{\mathbf{v} \mathbf{v}^T}{\mathbf{v} \cdot \mathbf{v}}\\
+H(\mathbf{v})\mathbf{x} &= \mathbf{x} - 2 \frac{\mathbf{v}}{\|\mathbf{v}\|}(\frac{\mathbf{v}}{\|\mathbf{v}\|} \cdot \mathbf{x}) 
 \end{aligned}
 \end{equation}
 $$
 
 pbrt默认参数是归一化的, 通过向量的数值选择距离两个向量相对较远的轴作为反射中间轴.
-这里0.72使用是因为\\(0.72\approx\frac{\sqrt{2}}{2}\\).
+这里0.72使用是因为$0.72\approx\frac{\sqrt{2}}{2}$.
 
 ```c++
 Vector3f refl;
@@ -508,7 +510,7 @@ Householder相当于根据等腰三角形的长边来反射.
 
 $$
 \begin{equation}
-R = H(\bold{r} - \bold{t}) H(\bold{r} - \bold{f})
+R = H(\mathbf{r} - \mathbf{t}) H(\mathbf{r} - \mathbf{f})
 \end{equation}
 $$
 
@@ -531,14 +533,14 @@ $$
 \begin{equation}
 \begin{aligned}
 0
-&= (\bold{n}')^T \bold{t}'\\\\ 
-&= (S\bold{n})^T (T\bold{t})\\\\
-&= \bold{n}^T S^T T \bold{t}
+&= (\mathbf{n}')^T \mathbf{t}'\\ 
+&= (S\mathbf{n})^T (T\mathbf{t})\\
+&= \mathbf{n}^T S^T T \mathbf{t}
 \end{aligned}
 \end{equation}
 $$
 
-由于\\(\bold{n}^T\bold{t}=0\\), 故\\(S=(M^{-1})^T\\).
+由于$\mathbf{n}^T\mathbf{t}=0$, 故$S=(M^{-1})^T$.
 
 ### 光线
 应用变换在光线起始点与光线方向.

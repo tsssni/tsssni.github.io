@@ -6,8 +6,6 @@ description: "pbrt-v4 episode 9"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-{{<katex>}}
-
 pbrt将反射分为以下四类: 漫反射, 光滑镜面反射, 完美镜面反射, 回溯反射. 反射分布方程可以被分为各向同性与各向异性的, 若将物体旋转时在各个角度上具有相同的反射结果即位各向同性, 反之则为各向异性.
 
 ## BSDF表示
@@ -16,7 +14,7 @@ pbrt中`BxDF`接口代表特定种类表面散射的实现, `BSDF`则是围绕`B
 
 ### 几何设置与约定
 
-pbrt中法线计算发生在由表面的切线, 副切线与法线组成的坐标系中, 分别与\\(x,y,z\\)轴对齐. pbrt中光线入射方向与观察方向都会被归一化并方向朝外, 法线也始终朝外. 着色所用的坐标系很可能与相交所用的不同, 这便于实现法线映射等效果.
+pbrt中法线计算发生在由表面的切线, 副切线与法线组成的坐标系中, 分别与$x,y,z$轴对齐. pbrt中光线入射方向与观察方向都会被归一化并方向朝外, 法线也始终朝外. 着色所用的坐标系很可能与相交所用的不同, 这便于实现法线映射等效果.
 
 ### BxDF接口
 
@@ -78,7 +76,7 @@ enum BxDFFlags {
 };
 ```
 
-`BxDF`的关键方法是`f`, 它根据方向返回BxDF的值, 方向需要位于前文所述的材质的本地空间中. `BxDF`接口认为不同波长的光是被解耦的, 某个波长上的能量不会被反射到不同的波长上, 因此`f`的返回值通过`SampledSpectrum`来表达. 荧光材质会在不同的波长间重新分布能量, 需要返回\\(n \times n\\)的矩阵来表示\\(n\\)个光谱样本之间的转移. `BxDF`的构造函数以及各种方法都没有`SampledSpectrum`中具体某个波长的信息, 这是不需要的. `TransportMode`用于表示出射方向是对着相机还是对着光源, 不对称散射会用到这一特性.
+`BxDF`的关键方法是`f`, 它根据方向返回BxDF的值, 方向需要位于前文所述的材质的本地空间中. `BxDF`接口认为不同波长的光是被解耦的, 某个波长上的能量不会被反射到不同的波长上, 因此`f`的返回值通过`SampledSpectrum`来表达. 荧光材质会在不同的波长间重新分布能量, 需要返回$n \times n$的矩阵来表示$n$个光谱样本之间的转移. `BxDF`的构造函数以及各种方法都没有`SampledSpectrum`中具体某个波长的信息, 这是不需要的. `TransportMode`用于表示出射方向是对着相机还是对着光源, 不对称散射会用到这一特性.
 
 ```c++
 PBRT_CPU_GPU inline SampledSpectrum BxDF::f(Vector3f wo, Vector3f wi, TransportMode mode) const {
@@ -262,15 +260,15 @@ pstd::optional<BSDFSample> Sample_f(
 
 Lambertian反射模型是最简单的BRDF之一, 它表达了将入射光线均匀的反射到各个方向的完美漫反射. 大部分角度下Lambertian模型都可以很好的表达漫反射, 但是在与法线接近垂直的掠射角下镜面反射会导致明显的偏差.
 
-Lambertian反射的表达式如下, 其中的\\(\pi\\)来自于积分得到的反射值. 在实时渲染中, 材质的反照率通常会预先乘上\\(\pi\\), 这避免了耗时的除法操作.
+Lambertian反射的表达式如下, 其中的$\pi$来自于积分得到的反射值. 在实时渲染中, 材质的反照率通常会预先乘上$\pi$, 这避免了耗时的除法操作.
 
 $$
 \begin{equation}
-\int_\omega f_r(p, \omega_o, \omega_i) \cos\theta d\omega = \int_0^{2\pi}\int_0^{\frac{\pi}{2}} \frac{R}{\pi} \cos\theta \sin\theta d\theta d\phi = R
+\int_\omega f_r(p, \omega_o, \omega_i) \cos\theta \mathrm{d}\omega = \int_0^{2\pi}\int_0^{\frac{\pi}{2}} \frac{R}{\pi} \cos\theta \sin\theta \mathrm{d}\theta \mathrm{d}\phi = R
 \end{equation}
 $$
 
-pbrt在采样Lambertian时会将\\(\cos\\)项考虑进pdf中, 这使得分布不再均匀, 但能通过重要性抽样获得更好的渲染结果.
+pbrt在采样Lambertian时会将$\cos$项考虑进pdf中, 这使得分布不再均匀, 但能通过重要性抽样获得更好的渲染结果.
 
 ```c++
 // Sample cosine-weighted hemisphere to compute _wi_ and _pdf_
@@ -282,31 +280,31 @@ Float pdf = CosineHemispherePDF(AbsCosTheta(wi));
 
 ### 圆盘采样
 
-对极坐标\\(r,\theta\\)分别做重要性抽样会导致样本集中在圆盘中央, 因为虽然距离圆心距离的分布是均匀的, 由于不同半径下周长不同, 外侧点的分布会减少.
+对极坐标$r,\theta$分别做重要性抽样会导致样本集中在圆盘中央, 因为虽然距离圆心距离的分布是均匀的, 由于不同半径下周长不同, 外侧点的分布会减少.
 
-为了保证样本点在面积上均匀分布, 需要满足\\(p(x,y)=\frac{1}{\pi}\\), 使用Jacobi转为极坐标后可得\\(p(r,\theta)=\frac{r}{\pi}\\). 此时可以计算出如下PDF.
+为了保证样本点在面积上均匀分布, 需要满足$p(x,y)=\frac{1}{\pi}$, 使用Jacobi转为极坐标后可得$p(r,\theta)=\frac{r}{\pi}$. 此时可以计算出如下PDF.
 
 $$
 \begin{equation}
 \begin{aligned}
-p(r)&=\int_0^{2\pi}p(r,\theta)d\theta=2r\\\\
+p(r)&=\int_0^{2\pi}p(r,\theta)\mathrm{d}\theta=2r\\
 p(\theta|r)&=\frac{p(r,\theta)}{p(r)}=\frac{1}{2\pi}
 \end{aligned}
 \end{equation}
 $$
 
-根据重要性抽样得到的结果如下, 此时根据Jacobian可得\\(drd\theta=\frac{\pi}{\sqrt{x}}dxdy\\), 均匀采样结果映射为圆盘采样结果时所占的面积并不均匀, 越靠近圆盘边缘所占面积越狭窄.
+根据重要性抽样得到的结果如下, 此时根据Jacobian可得$drd\theta=\frac{\pi}{\sqrt{x}}dxdy$, 均匀采样结果映射为圆盘采样结果时所占的面积并不均匀, 越靠近圆盘边缘所占面积越狭窄.
 
 $$
 \begin{equation}
 \begin{aligned}
-r&=\sqrt{\epsilon_1}\\\\
+r&=\sqrt{\epsilon_1}\\
 \theta&=2\pi\epsilon_2
 \end{aligned}
 \end{equation}
 $$
 
-Shirley-Chiu方法可以解决这一问题, 根据Cartesian轴及\\(y=x,y=-x\\)将\\([-1,1]\\)空间分为八个象限, 每个象限根据\\(\max(x,y\\))选出的轴是一致的, 长轴选取\\(a\\)点, 短轴选取\\(b\\)点, 需保证该\\(\frac{ab}{2}\\)面积的区域内的采样点在Cartesian及极坐标下所占面积成常数关系. 由于圆弧面积为\\(\frac{\theta r^2}{2}\\), 如下表达式可满足上述条件, 在极坐标中占的面积为\\(\frac{\pi ab}{8}\\), 看图片会更直观.
+Shirley-Chiu方法可以解决这一问题, 根据Cartesian轴及$y=x,y=-x$将$[-1,1]$空间分为八个象限, 每个象限根据$\max(x,y$)选出的轴是一致的, 长轴选取$a$点, 短轴选取$b$点, 需保证该$\frac{ab}{2}$面积的区域内的采样点在Cartesian及极坐标下所占面积成常数关系. 由于圆弧面积为$\frac{\theta r^2}{2}$, 如下表达式可满足上述条件, 在极坐标中占的面积为$\frac{\pi ab}{8}$, 看图片会更直观.
 
 
 $$
@@ -314,26 +312,26 @@ $$
 \begin{aligned}
 r&=
 \begin{cases}
-x & |x|>|y|\\\\
+x & |x|>|y|\\
 y & |x| \le |y|
-\end{cases}\\\\
+\end{cases}\\
 \theta&=
 \begin{cases}
-\frac{\pi}{4}\frac{y}{x} & |x| > |y|\\\\
+\frac{\pi}{4}\frac{y}{x} & |x| > |y|\\
 \frac{\pi}{2} - \frac{x}{y} & |x| \le |y|
 \end{cases}
 \end{aligned}
 \end{equation}
 $$
 
-此时Jacobian行列式满足如下关系, 因此\\(p(r,\theta)=|J|^{-1}p(u,v)=|J|^{-1}\frac{1}{4}=\frac{r}{\pi}\\).
+此时Jacobian行列式满足如下关系, 因此$p(r,\theta)=|J|^{-1}p(u,v)=|J|^{-1}\frac{1}{4}=\frac{r}{\pi}$.
 
 $$
 \begin{equation}
 \begin{aligned}
 |J|&=
 \begin{cases}
-\frac{\pi}{4x}=\frac{\pi}{4r} & |x|>|y|\\\\
+\frac{\pi}{4x}=\frac{\pi}{4r} & |x|>|y|\\
 \frac{\pi}{4y}=\frac{\pi}{4r} & |x|\le|y|
 \end{cases}
 \end{aligned}
@@ -342,31 +340,31 @@ $$
 
 ### 余弦加权半球采样
 
-渲染方程中有余弦项, 将它与BSDF一起做重要性抽样可以有效的考虑余弦的影响, 例如减小与法线夹角较大的光线被采样到的概率. 令\\(p(\omega)=c\cos\theta\\), 此时可以得到如下关系.
+渲染方程中有余弦项, 将它与BSDF一起做重要性抽样可以有效的考虑余弦的影响, 例如减小与法线夹角较大的光线被采样到的概率. 令$p(\omega)=c\cos\theta$, 此时可以得到如下关系.
 
 $$
 \begin{equation}
 \begin{aligned}
-&\int_\Theta p(\omega)d\omega=1\\\\
-&\int_0^{2\pi}\int_0^{\frac{\pi}{2}}c\cos\theta\sin\theta d\theta d\phi=1\\\
-&c=\frac{1}{\pi}\\\\
+&\int_\Theta p(\omega)\mathrm{d}\omega=1\\
+&\int_0^{2\pi}\int_0^{\frac{\pi}{2}}c\cos\theta\sin\theta \mathrm{d}\theta \mathrm{d}\phi=1\\\
+&c=\frac{1}{\pi}\\
 &p(\theta,\phi)=\frac{1}{\pi}\cos\theta\sin\theta
 \end{aligned}
 \end{equation}
 $$
 
-Malley方法通过将均匀圆盘采样的结果投影到半球上实现重要性抽样. 由于此时\\(r=\sin\theta\\),将\\(r,\phi\\)转为\\(\theta,\phi\\)的Jacobian如下, 由此可得\\(p(\theta,\phi)=p(r,\phi)\cos\theta=\frac{\sin\theta\cos\theta}{\pi}\\), 满足重要性抽样的要求.
+Malley方法通过将均匀圆盘采样的结果投影到半球上实现重要性抽样. 由于此时$r=\sin\theta$,将$r,\phi$转为$\theta,\phi$的Jacobian如下, 由此可得$p(\theta,\phi)=p(r,\phi)\cos\theta=\frac{\sin\theta\cos\theta}{\pi}$, 满足重要性抽样的要求.
 
 
 $$
 \begin{equation}
 \begin{aligned}
 |J|=\begin{vmatrix}
-\frac{\partial r}{\partial \theta} & \frac{\partial r}{\partial \phi}\\\\
+\frac{\partial r}{\partial \theta} & \frac{\partial r}{\partial \phi}\\
 \frac{\partial \phi}{\partial \theta} & \frac{\partial \phi}{\partial \phi}
 \end{vmatrix}
 =\begin{vmatrix}
-\cos\theta & 0\\\\
+\cos\theta & 0\\
 0 & 1
 \end{vmatrix}=\cos\theta
 \end{aligned}
@@ -389,22 +387,22 @@ pbrt主要关注几何光学, 在波长远小于物体尺寸时这是可行的, 
 
 ### 镜面反射法则
 
-令入射光线方向为\\(\omega_i\\)(如上文所述, 方向是朝外的, 并非光线的传播方向), 完美反射的方向如下.
+令入射光线方向为$\omega_i$(如上文所述, 方向是朝外的, 并非光线的传播方向), 完美反射的方向如下.
 
 $$
 \begin{equation}
-\omega_r = -\omega_i + 2(\bold{n} \cdot \omega_i)\bold{n}
+\omega_r = -\omega_i + 2(\mathbf{n} \cdot \omega_i)\mathbf{n}
 \end{equation}
 $$
 
 ### Snell定律
 
-Snell定律描述了入射光线与折射光线在方向上的关系, 这可以通过Fermat原理推导得到, 即光的传播路径是耗时最小的路径, 通过求极值即可证明. 从Snell定律可以看出折射方向取决于IOR的比值即\\(\eta=\frac{\eta_i}{\eta_t}\\).
+Snell定律描述了入射光线与折射光线在方向上的关系, 这可以通过Fermat原理推导得到, 即光的传播路径是耗时最小的路径, 通过求极值即可证明. 从Snell定律可以看出折射方向取决于IOR的比值即$\eta=\frac{\eta_i}{\eta_t}$.
 
 $$
 \begin{equation}
 \begin{aligned}
-\eta_i \sin\theta_i &= \eta_t \sin\theta_t\\\\
+\eta_i \sin\theta_i &= \eta_t \sin\theta_t\\
 \phi_t &= \phi_i + \pi
 \end{aligned}
 \end{equation}
@@ -412,26 +410,26 @@ $$
 
 经过不同介质后, 由于光的不同波长的部分具有不同的IOR, 这导致传播方向不同, 这被称为散射, 通常会表现为经过介质后产生彩虹状的光锥.
 
-利用Snell定律可以按如下方式表示折射光线. 当光线从物体内部发出时, 由于法线朝外, \\(\omega_i \cdot \bold{n}\\)小于0, 需要对代码做适当调整.
+利用Snell定律可以按如下方式表示折射光线. 当光线从物体内部发出时, 由于法线朝外, $\omega_i \cdot \mathbf{n}$小于0, 需要对代码做适当调整.
 
 $$
 \begin{equation}
-\omega_t = \omega_i\eta + (\cos\theta_i\eta - \cos\theta_t) \bold{n}
+\omega_t = \omega_i\eta + (\cos\theta_i\eta - \cos\theta_t) \mathbf{n}
 \end{equation}
 $$
 
-当光线穿过光学密度更小(折射后的介质的IOR较小)时, 当入射天顶角超过\\(\theta_c = \sin^{-1}(\eta^{-1})\\)时折射天顶角会超过\\(90^{\circ}\\), 此时光线会完全反射.
+当光线穿过光学密度更小(折射后的介质的IOR较小)时, 当入射天顶角超过$\theta_c = \sin^{-1}(\eta^{-1})$时折射天顶角会超过$90^{\circ}$, 此时光线会完全反射.
 
 ### Fresnel方程
 
 Fresnel方程描述了光线折射与反射的量, 它是Maxwell方程在光滑平面上的解.
 
-将光线分解为相对于表面的垂直与水平偏振, 它们因反射而产生的振幅的变化是不同的. 若\\(\theta_t>\frac{\pi}{2}\\)可以认为是完全反射, Fresnel返回\\(1\\). 可以看出若入射出射方向交换, Fresnel值是不变的.
+将光线分解为相对于表面的垂直与水平偏振, 它们因反射而产生的振幅的变化是不同的. 若$\theta_t>\frac{\pi}{2}$可以认为是完全反射, Fresnel返回$1$. 可以看出若入射出射方向交换, Fresnel值是不变的.
 
 $$
 \begin{equation}
 \begin{aligned}
-r_{||} &= \frac{E_r^{||}}{E_i^{||}} &= \frac{\eta_t \cos\theta_i - \eta_i \cos\theta_t}{\eta_t \cos\theta_i + \eta_i \cos\theta_t} &= \frac{\cos\theta_i - \eta \cos\theta_t}{\cos\theta_i + \eta \cos\theta_t}\\\\
+r_{||} &= \frac{E_r^{||}}{E_i^{||}} &= \frac{\eta_t \cos\theta_i - \eta_i \cos\theta_t}{\eta_t \cos\theta_i + \eta_i \cos\theta_t} &= \frac{\cos\theta_i - \eta \cos\theta_t}{\cos\theta_i + \eta \cos\theta_t}\\
 r_{\perp} &= \frac{E_r^{\perp}}{E_i^{\perp}} &= \frac{\eta_i \cos\theta_i - \eta_t \cos\theta_t}{\eta_i \cos\theta_i + \eta_t \cos\theta_t} &= \frac{\eta \cos\theta_i - \cos\theta_t}{\eta \cos\theta_i + \cos\theta_t}
 \end{aligned}
 \end{equation}
@@ -450,7 +448,7 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-F_r &= F_{r_0}+(1-F_{r_0})(1-\cos\theta_i)^5\\\\
+F_r &= F_{r_0}+(1-F_{r_0})(1-\cos\theta_i)^5\\
 F_{r_0} &= \left(\frac{\eta_i - \eta_t}{\eta_i + \eta_t}\right)^2
 \end{aligned}
 \end{equation}
@@ -460,23 +458,23 @@ $$
 
 导体的IOR需要用复数表示, 实部描述光线速度的减小, 虚部描述光线在材质内传播时的衰减.
 
-虚部为\\(0\\)时电磁波振幅如下, 只关心Euler公式分解后的实部, 此时为与距离\\(z\\)相关的三角函数, \\(\alpha\\)代表空间频率.
+虚部为$0$时电磁波振幅如下, 只关心Euler公式分解后的实部, 此时为与距离$z$相关的三角函数, $\alpha$代表空间频率.
 
 $$
 \begin{equation}
 \begin{aligned}
-E(z)&=e^{i\alpha\eta z}\\\\
-\mathcal{R}(E(z))&=\cos\(\alpha\eta z)
+E(z)&=e^{i\alpha\eta z}\\
+\mathcal{R}(E(z))&=\cos(\alpha\eta z)
 \end{aligned}
 \end{equation}
 $$
 
-当使用复数\\(\eta_c=\eta+ik\\)表示IOR后, 电磁波振幅会随着传播距离衰减, 形式如下.
+当使用复数$\eta_c=\eta+ik$表示IOR后, 电磁波振幅会随着传播距离衰减, 形式如下.
 
 $$
 \begin{equation}
 \begin{aligned}
-\mathcal{R}(E(z))=e^{-\alpha zk}\cos\(\alpha\eta z)
+\mathcal{R}(E(z))=e^{-\alpha zk}\cos(\alpha\eta z)
 \end{aligned}
 \end{equation}
 $$
@@ -527,25 +525,25 @@ d^2\phi_o = d^2\phi_i
 \end{equation}
 $$
 
-依据\\(L=\frac{d^2\phi}{d\omega dA^{\perp}}\\)可以得到折射前后辐亮度的关系.
+依据$L=\frac{d^2\phi}{\mathrm{d}\omega \mathrm{d}A^{\perp}}$可以得到折射前后辐亮度的关系.
 
 $$
 \begin{equation}
-L_o \cos\theta_o dA d\omega_o = L_i \cos\theta_i dA d\omega_i
+L_o \cos\theta_o \mathrm{d}A \mathrm{d}\omega_o = L_i \cos\theta_i \mathrm{d}A \mathrm{d}\omega_i
 \end{equation}
 $$
 
-微分Snell定律可得如下关系, 其中\\(\phi\\)因为\\(d\phi_i=d\phi_o\\)被抵消, \\(\sin\theta\\)根据Snell定律替换为\\(\eta\\).
+微分Snell定律可得如下关系, 其中$\phi$因为$\mathrm{d}\phi_i=\mathrm{d}\phi_o$被抵消, $\sin\theta$根据Snell定律替换为$\eta$.
 
 $$
 \begin{equation}
 \begin{aligned}
-\eta_o \cos\theta_o d\theta_o
-&= \eta_i \cos\theta_i d\theta_i\\\\
-\eta_o \frac{\cos\theta_o}{\sin\theta_o} d\omega_o d\phi_o
-&= \eta_i \frac{\cos\theta_i}{\sin\theta_i} d\omega_i d\phi_i\\\\
-\eta_o^2 \cos\theta_o d\omega_o
-&= \eta_i^2 \cos\theta_i d\omega_i
+\eta_o \cos\theta_o \mathrm{d}\theta_o
+&= \eta_i \cos\theta_i \mathrm{d}\theta_i\\
+\eta_o \frac{\cos\theta_o}{\sin\theta_o} \mathrm{d}\omega_o \mathrm{d}\phi_o
+&= \eta_i \frac{\cos\theta_i}{\sin\theta_i} \mathrm{d}\omega_i \mathrm{d}\phi_i\\
+\eta_o^2 \cos\theta_o \mathrm{d}\omega_o
+&= \eta_i^2 \cos\theta_i \mathrm{d}\omega_i
 \end{aligned}
 \end{equation}
 $$
@@ -576,7 +574,7 @@ $$
 
 $$
 \begin{equation}
-\int_{dA_\mu}(\omega_m(p) \cdot \bold{n}) dp = \int_{dA} dp
+\int_{\mathrm{d}A_\mu}(\omega_m(p) \cdot \mathbf{n}) dp = \int_{\mathrm{d}A} dp
 \end{equation}
 $$
 
@@ -584,7 +582,7 @@ $$
 
 $$
 \begin{equation}
-\int_\Omega D(\omega_m)(\omega_m \cdot \bold{n}) d\omega_m = \int_\Omega D(\omega_m) \cos\theta_m d\omega_m = 1
+\int_\Omega D(\omega_m)(\omega_m \cdot \mathbf{n}) \mathrm{d}\omega_m = \int_\Omega D(\omega_m) \cos\theta_m \mathrm{d}\omega_m = 1
 \end{equation}
 $$
 
@@ -592,16 +590,16 @@ $$
 
 $$
 \begin{equation}
-\int_{-\infty}^{\infty} \int_{-\infty}^{\infty} P^{22}(x_{\tilde{m}},y_{\tilde{m}}) dx_{\tilde{m}} dy_{\tilde{m}}=1
+\int_{-\infty}^{\infty} \int_{-\infty}^{\infty} P^{22}(x_{\tilde{m}},y_{\tilde{m}}) \mathrm{d}x_{\tilde{m}} \mathrm{d}y_{\tilde{m}}=1
 \end{equation}
 $$
 
-根据平面的定义\\(x_mx+y_my+z_mz+c=0\\), 法线与斜率具有如下的关系.
+根据平面的定义$x_mx+y_my+z_mz+c=0$, 法线与斜率具有如下的关系.
 
 $$
 \begin{equation}
 \begin{aligned}
-(x_{\tilde{m}},y_{\tilde{m}})&=(-\frac{x_m}{z_m},-\frac{y_m}{z_m})=-\tan\theta_m(\cos\phi_m,\sin\phi_m)\\\\
+(x_{\tilde{m}},y_{\tilde{m}})&=(-\frac{x_m}{z_m},-\frac{y_m}{z_m})=-\tan\theta_m(\cos\phi_m,\sin\phi_m)\\
 (x_m, y_m, z_m)&=\frac{(-x_{\tilde{m}},-y_{\tilde{m}},1)}{\sqrt{x_{\tilde{m}}^2+y_{\tilde{m}}^2+1}}=(-x_{\tilde{m}},-y_{\tilde{m}},1)\cos\theta_m
 \end{aligned}
 \end{equation}
@@ -611,7 +609,7 @@ Jacobi行列式的计算结果如下.
 
 $$
 \begin{equation}
-dx_{\tilde{m}}dy_{\tilde{m}}=\frac{\sin\theta}{\cos^3\theta}d\theta d\phi
+\mathrm{d}x_{\tilde{m}}\mathrm{d}y_{\tilde{m}}=\frac{\sin\theta}{\cos^3\theta}\mathrm{d}\theta \mathrm{d}\phi
 \end{equation}
 $$
 
@@ -619,7 +617,7 @@ $$
 
 $$
 \begin{equation}
-D(\omega_m) = \frac{P^{22}(x_{\tilde{m}},y_{\tilde{m}}) dx_{\tilde{m}} dy_{\tilde{m}}}{\cos\theta \sin\theta d\theta d\phi} = \frac{P^{22}(x_{\tilde{m}},y_{\tilde{m}})}{\cos^4\theta}
+D(\omega_m) = \frac{P^{22}(x_{\tilde{m}},y_{\tilde{m}}) \mathrm{d}x_{\tilde{m}} \mathrm{d}y_{\tilde{m}}}{\cos\theta \sin\theta \mathrm{d}\theta \mathrm{d}\phi} = \frac{P^{22}(x_{\tilde{m}},y_{\tilde{m}})}{\cos^4\theta}
 \end{equation}
 $$
 
@@ -629,7 +627,7 @@ $$
 \begin{equation}
 \begin{aligned}
 P^{22}(x_{\tilde{m}},y_{\tilde{m}})
-&=\frac{1}{\alpha_x\alpha_y}f(\sqrt{\frac{x_{\tilde{m}^2}}{\alpha_x^2} + \frac{y_{\tilde{m}^2}}{\alpha_y^2}})\\\\
+&=\frac{1}{\alpha_x\alpha_y}f(\sqrt{\frac{x_{\tilde{m}^2}}{\alpha_x^2} + \frac{y_{\tilde{m}^2}}{\alpha_y^2}})\\
 &=\frac{1}{\alpha_x\alpha_y}f(\tan\theta_m\sqrt{\frac{\cos^2\phi_m}{\alpha_x^2} + \frac{\sin^2\phi_m}{\alpha_y^2}})
 \end{aligned}
 \end{equation}
@@ -640,7 +638,7 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-P^{22}(x_{\tilde{m}},y_{\tilde{m}}) &= \frac{1}{\pi\alpha_x\alpha_y(1+\frac{x_{\tilde{m}^2}}{\alpha_x^2} + \frac{y_{\tilde{m}^2}}{\alpha_y^2})^2}\\\\
+P^{22}(x_{\tilde{m}},y_{\tilde{m}}) &= \frac{1}{\pi\alpha_x\alpha_y(1+\frac{x_{\tilde{m}^2}}{\alpha_x^2} + \frac{y_{\tilde{m}^2}}{\alpha_y^2})^2}\\
 D(\omega_m) &= \frac{1}{\pi\alpha_x\alpha_y\cos^4\theta_m(1+\tan^2\theta_m(\frac{\cos^2\phi_m}{\alpha_x^2} + \frac{\sin^2\phi_m}{\alpha_y^2}))^2}
 \end{aligned}
 \end{equation}
@@ -652,48 +650,48 @@ $$
 
 $$
 \begin{equation}
-\int_\Omega D(\omega_m)G_1(\omega,\omega_m)(\omega\cdot\omega_m)d\omega_m=\omega\cdot\bold{n}=\cos\theta
+\int_\Omega D(\omega_m)G_1(\omega,\omega_m)(\omega\cdot\omega_m)\mathrm{d}\omega_m=\omega\cdot\mathbf{n}=\cos\theta
 \end{equation}
 $$
 
-Smith遮蔽函数认为法线与高度是独立的, 即微表面类似于一个一个浮动的小片段, 此时可以将遮蔽函数分解为局部遮蔽与全部遮蔽, 局部遮蔽只需要法线可见, 即\\(\omega\cdot\omega_m>0\\), 此时遮蔽函数不再依赖于微表面法线. 不失一般性, 令表面为各向同性的, 法线为局部空间中的\\((0,0,1)\\), 视线沿\\(x\\)轴为\\((\sin\theta, 0, \cos\theta)\\), 已知由于对称性\\(\int_{-\infty}^{\infty}x_{\tilde{m}}P^{2-}(x_{\tilde{m}})dx_{\tilde{m}}=0\\),\\(\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}})dx_{\tilde{m}}=1\\),此时可以得到如下结果.
+Smith遮蔽函数认为法线与高度是独立的, 即微表面类似于一个一个浮动的小片段, 此时可以将遮蔽函数分解为局部遮蔽与全部遮蔽, 局部遮蔽只需要法线可见, 即$\omega\cdot\omega_m>0$, 此时遮蔽函数不再依赖于微表面法线. 不失一般性, 令表面为各向同性的, 法线为局部空间中的$(0,0,1)$, 视线沿$x$轴为$(\sin\theta, 0, \cos\theta)$, 已知由于对称性$\int_{-\infty}^{\infty}x_{\tilde{m}}P^{2-}(x_{\tilde{m}})\mathrm{d}x_{\tilde{m}}=0$,$\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}})\mathrm{d}x_{\tilde{m}}=1$,此时可以得到如下结果.
 
 $$
 \begin{equation}
 \begin{aligned}
 G_1(\omega)
-&=\frac{\cos\theta}{\int_\Omega D(\omega_m)\max(0,\omega\cdot\omega_m)d\omega_m}\\\\
-&=\frac{\cos\theta}{\int_\Omega D(\omega_m)\cos\theta_m\frac{\max(0,\omega\cdot\omega_m)}{\cos\theta_m}d\omega_m}\\\\
-&=\frac{\cos\theta}{\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}P^{22}(x_{\tilde{m}},y_{\tilde{m}}) \frac{\max(0, (-x_{\tilde{m}}\sin\theta + \cos\theta)\cos\theta_m)}{\cos\theta_m} dx_{\tilde{m}} dy_{\tilde{m}}}\\\\
-&=\frac{\cos\theta}{\int_{-\infty}^{\infty}\int_{-\infty}^{\cot\theta}P^{22}(x_{\tilde{m}},y_{\tilde{m}}) (-x_{\tilde{m}}\sin\theta + \cos\theta) dx_{\tilde{m}} dy_{\tilde{m}}}\\\\
-&=\frac{\cot\theta}{\int_{-\infty}^{\cot\theta}P^{2-}(x_{\tilde{m}}) (-x_{\tilde{m}} + \cot\theta) dx_{\tilde{m}}}\\\\
-&=\frac{\cot\theta}{\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}}) x_{\tilde{m}} dx_{\tilde{m}}-\cot\theta\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}}) dx_{\tilde{m}}+\cot\theta+\int_{-\infty}^{\cot\theta}P^{2-}(x_{\tilde{m}}) (-x_{\tilde{m}} + \cot\theta) dx_{\tilde{m}}}\\\\
-&=\frac{1}{1+\frac{1}{\cot\theta}\int_{\cot\theta}^{\infty}P^{2-}(x_{\tilde{m}}) (x_{\tilde{m}} - \cot\theta) dx_{\tilde{m}}}\\\\
+&=\frac{\cos\theta}{\int_\Omega D(\omega_m)\max(0,\omega\cdot\omega_m)\mathrm{d}\omega_m}\\
+&=\frac{\cos\theta}{\int_\Omega D(\omega_m)\cos\theta_m\frac{\max(0,\omega\cdot\omega_m)}{\cos\theta_m}\mathrm{d}\omega_m}\\
+&=\frac{\cos\theta}{\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}P^{22}(x_{\tilde{m}},y_{\tilde{m}}) \frac{\max(0, (-x_{\tilde{m}}\sin\theta + \cos\theta)\cos\theta_m)}{\cos\theta_m} \mathrm{d}x_{\tilde{m}} \mathrm{d}y_{\tilde{m}}}\\
+&=\frac{\cos\theta}{\int_{-\infty}^{\infty}\int_{-\infty}^{\cot\theta}P^{22}(x_{\tilde{m}},y_{\tilde{m}}) (-x_{\tilde{m}}\sin\theta + \cos\theta) \mathrm{d}x_{\tilde{m}} \mathrm{d}y_{\tilde{m}}}\\
+&=\frac{\cot\theta}{\int_{-\infty}^{\cot\theta}P^{2-}(x_{\tilde{m}}) (-x_{\tilde{m}} + \cot\theta) \mathrm{d}x_{\tilde{m}}}\\
+&=\frac{\cot\theta}{\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}}) x_{\tilde{m}} \mathrm{d}x_{\tilde{m}}-\cot\theta\int_{-\infty}^{\infty}P^{2-}(x_{\tilde{m}}) \mathrm{d}x_{\tilde{m}}+\cot\theta+\int_{-\infty}^{\cot\theta}P^{2-}(x_{\tilde{m}}) (-x_{\tilde{m}} + \cot\theta) \mathrm{d}x_{\tilde{m}}}\\
+&=\frac{1}{1+\frac{1}{\cot\theta}\int_{\cot\theta}^{\infty}P^{2-}(x_{\tilde{m}}) (x_{\tilde{m}} - \cot\theta) \mathrm{d}x_{\tilde{m}}}\\
 &=\frac{1}{1+\Lambda(\omega)}
 \end{aligned}
 \end{equation}
 $$
 
-各向同性的Trowbridge-Reitz的\\(\Lambda(\omega)\\)具有解析形式, 各向异性的粗糙度可以通过\\(\alpha=\sqrt{\alpha_x^2\cos^2\phi+\alpha_y^2\sin^2\phi}\\)得到.
+各向同性的Trowbridge-Reitz的$\Lambda(\omega)$具有解析形式, 各向异性的粗糙度可以通过$\alpha=\sqrt{\alpha_x^2\cos^2\phi+\alpha_y^2\sin^2\phi}$得到.
 
 $$
 \begin{equation}
 \begin{aligned}
 \Lambda(\omega)
-&=\frac{1}{\cot\theta}\int_{-\infty}^{\infty}\int_{\cot\theta}^{\infty}\frac{1}{\pi\alpha^2(1+\frac{x_{\tilde{m}^2}}{\alpha^2} + \frac{y_{\tilde{m}^2}}{\alpha^2})^2} (x_{\tilde{m}} - \cot\theta)dx_{\tilde{m}}dy_{\tilde{m}}\\\\
-&=\frac{1}{\cot\theta}\int_{-\infty}^{\infty}\int_{\frac{\cot\theta}{\alpha}}^{\infty}\frac{\alpha}{\pi(1+(\frac{x_{\tilde{m}}}{\alpha})^2 + (\frac{y_{\tilde{m}}}{\alpha})^2)^2} (\frac{x_{\tilde{m}}}{\alpha} - \frac{\cot\theta}{\alpha})d\frac{x_{\tilde{m}}}{\alpha}d\frac{y_{\tilde{m}}}{\alpha}\\\\
-&=\frac{1}{\pi x_0}\int_{-\infty}^{\infty}\int_{x_0}^{\infty}\frac{1}{(1+x^2+y^2)^2}(x-x_0)dxdy\\\\
-&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\int_{-\infty}^{\infty}\frac{1}{(1+(\frac{y}{\sqrt{1+x^2}})^2)^2}d\frac{y}{\sqrt{1+x^2}}\\\\
-&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\int_{-\infty}^{\infty}\frac{1}{(1+y^2)^2}dy\\\\
-&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\int_{-\infty}^{\infty}\frac{1}{(1+\tan^2\theta)^2}d\tan\theta\\\\
-&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\int_{-\frac{\pi}{2}}^{\frac{\pi}{2}}\frac{\cos2\theta+1}{2}d\theta\\\\
-&=\frac{1}{2x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}dx\\\\
-&=\frac{1}{2 x_0}\int_{x_0}^{\infty}(x-x_0)(-\frac{1}{x})d(1+x^2)^{-\frac{1}{2}}\\\\
-&=\frac{1}{2 x_0}\int_{(1+x_0^2)^{-\frac{1}{2}}}^{0}\frac{x_0}{\sqrt{\frac{1}{x^2}-1}}-1dx\\\\
-&=\frac{1}{2}\int_{0}^{(1+x_0^2)^{-\frac{1}{2}}}\frac{1}{x_0}-\frac{x}{\sqrt{1-x^2}}dx\\\\
-&=\frac{1}{2}(\frac{(1+x_0^2)^{-\frac{1}{2}}}{x_0}+\int_{0}^{(1+x_0^2)^{-\frac{1}{2}}}d\sqrt{1-x^2})\\\\
-&=\frac{1}{2}(\frac{(1+x_0)^{-\frac{1}{2}}}{x_0}+x_0(1+x_0)^{-\frac{1}{2}}-1)\\\\
-&=\frac{\sqrt{1+\frac{1}{x_0^2}}-1}{2}\\\\
+&=\frac{1}{\cot\theta}\int_{-\infty}^{\infty}\int_{\cot\theta}^{\infty}\frac{1}{\pi\alpha^2(1+\frac{x_{\tilde{m}^2}}{\alpha^2} + \frac{y_{\tilde{m}^2}}{\alpha^2})^2} (x_{\tilde{m}} - \cot\theta)\mathrm{d}x_{\tilde{m}}\mathrm{d}y_{\tilde{m}}\\
+&=\frac{1}{\cot\theta}\int_{-\infty}^{\infty}\int_{\frac{\cot\theta}{\alpha}}^{\infty}\frac{\alpha}{\pi(1+(\frac{x_{\tilde{m}}}{\alpha})^2 + (\frac{y_{\tilde{m}}}{\alpha})^2)^2} (\frac{x_{\tilde{m}}}{\alpha} - \frac{\cot\theta}{\alpha})d\frac{x_{\tilde{m}}}{\alpha}d\frac{y_{\tilde{m}}}{\alpha}\\
+&=\frac{1}{\pi x_0}\int_{-\infty}^{\infty}\int_{x_0}^{\infty}\frac{1}{(1+x^2+y^2)^2}(x-x_0)dxdy\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\infty}^{\infty}\frac{1}{(1+(\frac{y}{\sqrt{1+x^2}})^2)^2}d\frac{y}{\sqrt{1+x^2}}\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\infty}^{\infty}\frac{1}{(1+y^2)^2}\mathrm{d}y\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\infty}^{\infty}\frac{1}{(1+\tan^2\theta)^2}d\tan\theta\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\frac{\pi}{2}}^{\frac{\pi}{2}}\frac{\cos2\theta+1}{2}\mathrm{d}\theta\\
+&=\frac{1}{2x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\\
+&=\frac{1}{2 x_0}\int_{x_0}^{\infty}(x-x_0)(-\frac{1}{x})d(1+x^2)^{-\frac{1}{2}}\\
+&=\frac{1}{2 x_0}\int_{(1+x_0^2)^{-\frac{1}{2}}}^{0}\frac{x_0}{\sqrt{\frac{1}{x^2}-1}}-1\mathrm{d}x\\
+&=\frac{1}{2}\int_{0}^{(1+x_0^2)^{-\frac{1}{2}}}\frac{1}{x_0}-\frac{x}{\sqrt{1-x^2}}\mathrm{d}x\\
+&=\frac{1}{2}(\frac{(1+x_0^2)^{-\frac{1}{2}}}{x_0}+\int_{0}^{(1+x_0^2)^{-\frac{1}{2}}}d\sqrt{1-x^2})\\
+&=\frac{1}{2}(\frac{(1+x_0)^{-\frac{1}{2}}}{x_0}+x_0(1+x_0)^{-\frac{1}{2}}-1)\\
+&=\frac{\sqrt{1+\frac{1}{x_0^2}}-1}{2}\\
 &=\frac{\sqrt{1+\alpha^2 \tan^2\theta}-1}{2}
 \end{aligned}
 \end{equation}
@@ -701,67 +699,67 @@ $$
 
 ### 遮蔽阴影函数
 
-除遮挡视线外, 光源也可能被微表面遮挡. 若采用\\(G(\omega_o, \omega_i)=G_1(\omega_o)G_1(\omega_i)\\)来估计是不准确的, 例如\\(\omega_o=\omega_i\\)的情况下是不应该被遮挡的. 通过高度相关性可以推导出更优的遮蔽阴影函数.
+除遮挡视线外, 光源也可能被微表面遮挡. 若采用$G(\omega_o, \omega_i)=G_1(\omega_o)G_1(\omega_i)$来估计是不准确的, 例如$\omega_o=\omega_i$的情况下是不应该被遮挡的. 通过高度相关性可以推导出更优的遮蔽阴影函数.
 
-不失一般性, 令视线沿x轴, \\(S(x)\\)为视线方向从\\(x=0\\)上某个点出发行进\\(x\\)后未被遮挡的概率, \\(g(x)dx\\)为光线在\\([x,x+dx]\\)内被遮挡的概率, 此时\\(S(x + dx)\\)可以按如下方式表示.
+不失一般性, 令视线沿x轴, $S(x)$为视线方向从$x=0$上某个点出发行进$x$后未被遮挡的概率, $g(x)\mathrm{d}x$为光线在$[x,x+\mathrm{d}x]$内被遮挡的概率, 此时$S(x + \mathrm{d}x)$可以按如下方式表示.
 
 $$
 \begin{equation}
-S(x+dx)=S(x)(1-g(x)dx)
+S(x+\mathrm{d}x)=S(x)(1-g(x)\mathrm{d}x)
 \end{equation}
 $$
 
-将该式视为一阶Taylor展开, 此时可以得到微分方程, \\(S(x)\\)可以求解.
+将该式视为一阶Taylor展开, 此时可以得到微分方程, $S(x)$可以求解.
 
 $$
 \begin{equation}
 \begin{aligned}
-\frac{dS(x)}{dx}&=-S(x)g(x)\\\\
-S(x)&=S(0)e^{-\int_0^x g(x)dx}
+\frac{\mathrm{d}S(x)}{\mathrm{d}x}&=-S(x)g(x)\\
+S(x)&=S(0)e^{-\int_0^x g(x)\mathrm{d}x}
 \end{aligned}
 \end{equation}
 $$
 
-令视线在\\(x\\)轴上的斜率为\\(\mu_v\\), 表面在x轴的斜率为\\(\mu(x)\\), 则\\(S(0)\\)定义如下, 用\\(s(\mu_v-\mu(0))\\)表示.
+令视线在$x$轴上的斜率为$\mu_v$, 表面在x轴的斜率为$\mu(x)$, 则$S(0)$定义如下, 用$s(\mu_v-\mu(0))$表示.
 
 $$
 \begin{equation}
 \begin{aligned}
 S(0)=s(\mu_v-\mu(0))=
 \begin{cases}
-1 &\mu_v\ge\mu(0)\\\\
+1 &\mu_v\ge\mu(0)\\
 0 &\mu_v<\mu(0)
 \end{cases}
 \end{aligned}
 \end{equation}
 $$
 
-令表面高度为\\(h(x)\\), 条件\\(\alpha\\)为\\(h(x)<h(0)+\mu_v x\\), 条件\\(\beta\\)为\\(h(x+dx)>h(0)+\mu_v\cdot(x+dx)\\), \\(P_3(h,\mu|x)\\)为\\(x\\)处斜率与高度的联合分布, 若在\\([x,x+dx]\\)处被遮挡需要满足\\(\mu(x)>\mu_v\\), 同时在Smith遮蔽函数下高度与斜率是不相关的, 此时可以定义\\(g(x)\\). \\(P(\alpha,\beta)\\)中对微分高度变化的积分使用微分面积计算.
+令表面高度为$h(x)$, 条件$\alpha$为$h(x)<h(0)+\mu_v x$, 条件$\beta$为$h(x+\mathrm{d}x)>h(0)+\mu_v\cdot(x+\mathrm{d}x)$, $P_3(h,\mu|x)$为$x$处斜率与高度的联合分布, 若在$[x,x+\mathrm{d}x]$处被遮挡需要满足$\mu(x)>\mu_v$, 同时在Smith遮蔽函数下高度与斜率是不相关的, 此时可以定义$g(x)$. $P(\alpha,\beta)$中对微分高度变化的积分使用微分面积计算.
 
 $$
 \begin{equation}
 \begin{aligned}
 g(x)
-&=\frac{1}{dx}P(\beta|\alpha)\\\\
-&=\frac{1}{dx}\frac{P(\alpha,\beta)}{P(\alpha)}\\\\
-&=\frac{1}{dx}\frac{\int_{\mu_v}^\infty\int_{h(0)+\mu_v(x+dx)-\mu dx}^{h(0)+\mu_vx}P_3(h,\mu|x)dh d\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\\\
-&=\frac{1}{dx}\frac{\int_{\mu_v}^\infty(\mu-\mu_v)dxP_3(h(0)+\mu_vx,\mu|x)d\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\\\
-&=\frac{\int_{\mu_v}^\infty(\mu-\mu_v)P_h(h(0)+\mu_vx)P^{2-}(\mu)d\mu}{\int_{-\infty}^{h(0)+\mu_vx}P_h(h)dh}\\\\
+&=\frac{1}{\mathrm{d}x}P(\beta|\alpha)\\
+&=\frac{1}{\mathrm{d}x}\frac{P(\alpha,\beta)}{P(\alpha)}\\
+&=\frac{1}{\mathrm{d}x}\frac{\int_{\mu_v}^\infty\int_{h(0)+\mu_v(x+\mathrm{d}x)-\mu \mathrm{d}x}^{h(0)+\mu_vx}P_3(h,\mu|x)dh \mathrm{d}\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\
+&=\frac{1}{\mathrm{d}x}\frac{\int_{\mu_v}^\infty(\mu-\mu_v)dxP_3(h(0)+\mu_vx,\mu|x)\mathrm{d}\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\
+&=\frac{\int_{\mu_v}^\infty(\mu-\mu_v)P_h(h(0)+\mu_vx)P^{2-}(\mu)\mathrm{d}\mu}{\int_{-\infty}^{h(0)+\mu_vx}P_h(h)dh}\\
 &=\Lambda(\mu_v)\frac{\mu_vP_h(h(0)+\mu_vx)}{f(h(0)+\mu_vx)}
 \end{aligned}
 \end{equation}
 $$
 
-在Smith遮蔽函数下\\(s(\mu_v-\mu(0))\\)恒成立, 省去该项后可以得到不会被遮蔽的概率\\(S(h)\\).
+在Smith遮蔽函数下$s(\mu_v-\mu(0))$恒成立, 省去该项后可以得到不会被遮蔽的概率$S(h)$.
 
 $$
 \begin{equation}
 \begin{aligned}
 S(h, \omega)
-&= e^{-\Lambda(\omega)\int_0^{\infty}\frac{\mu_vP_h(h+\mu_vx)}{f(h+\mu_vx)}dx}\\\\
-&= e^{-\Lambda(\omega)\left[\ln f(h+\mu_v x)\right]_0^{\infty}}\\\\
-&= e^{-\Lambda(\omega)(\ln 1 - \ln f(h))}\\\\
-&= e^{\Lambda(\omega)\ln f(h)}\\\\
+&= e^{-\Lambda(\omega)\int_0^{\infty}\frac{\mu_vP_h(h+\mu_vx)}{f(h+\mu_vx)}\mathrm{d}x}\\
+&= e^{-\Lambda(\omega)\left[\ln f(h+\mu_v x)\right]_0^{\infty}}\\
+&= e^{-\Lambda(\omega)(\ln 1 - \ln f(h))}\\
+&= e^{\Lambda(\omega)\ln f(h)}\\
 &= f(h)^{\Lambda(\omega)}
 \end{aligned}
 \end{equation}
@@ -773,9 +771,9 @@ $$
 \begin{equation}
 \begin{aligned}
 G_1(\omega)
-&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} P_h(h) dh\\\\
-&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} df(h)\\\\
-&= \left[\frac{f(h)^{1+\Lambda(\omega)}}{1+\Lambda(\omega)}\right]_{-\infty}^{\infty}\\\\
+&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} P_h(h) dh\\
+&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} df(h)\\
+&= \left[\frac{f(h)^{1+\Lambda(\omega)}}{1+\Lambda(\omega)}\right]_{-\infty}^{\infty}\\
 &= \frac{1}{1+\Lambda(\omega)}
 \end{aligned}
 \end{equation}
@@ -787,8 +785,8 @@ $$
 \begin{equation}
 \begin{aligned}
 G(\omega_o,\omega_i)
-&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)}P_h(h)dh + \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_i)}P_h(h)dh\\\\
-&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)+\Lambda(\omega_i)}P_h(h)dh\\\\
+&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)}P_h(h)dh + \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_i)}P_h(h)dh\\
+&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)+\Lambda(\omega_i)}P_h(h)dh\\
 &= \frac{1}{1+\Lambda(\omega_o)+\Lambda(\omega_i)}
 \end{aligned}
 \end{equation}
@@ -796,7 +794,7 @@ $$
 
 ### 采样可见法线分布
 
-根据法线分布函数与遮蔽阴影函数我们可以得到视线为\\(\omega\\)时法线的分布.
+根据法线分布函数与遮蔽阴影函数我们可以得到视线为$\omega$时法线的分布.
 
 $$
 \begin{equation}
@@ -804,7 +802,7 @@ D_\omega(\omega_m)=\frac{G_1(\omega)}{\cos\theta}D(\omega_m)\max(0,\omega\cdot\o
 \end{equation}
 $$
 
-由于逆变换法没有解析形式, pbrt将Trowbridge-Reitz分布看作一个被缩放的半球, 投影到半球上为椭圆. 因此将法线变换到\\(z\\)轴, 对视线方向乘上由各向异性粗糙度定义的椭圆轴长, 执行逆椭圆变换, 在半球中采样更为简单.
+由于逆变换法没有解析形式, pbrt将Trowbridge-Reitz分布看作一个被缩放的半球, 投影到半球上为椭圆. 因此将法线变换到$z$轴, 对视线方向乘上由各向异性粗糙度定义的椭圆轴长, 执行逆椭圆变换, 在半球中采样更为简单.
 
 ```c++
 // Transform _w_ to hemispherical configuration
@@ -813,7 +811,7 @@ if (wh.z < 0)
     wh = -wh;
 ```
 
-构造以视线为\\(z\\)轴的正交坐标系, `T2`轴保证采样到缩放半圆的法线在该轴为负.
+构造以视线为$z$轴的正交坐标系, `T2`轴保证采样到缩放半圆的法线在该轴为负.
 
 ```c++
 // Find orthonormal basis for visible normal sampling
@@ -822,7 +820,7 @@ Vector3f T1 = (wh.z < 0.99999f) ? Normalize(Cross(Vector3f(0, 0, 1), wh))
 Vector3f T2 = Cross(wh, T1);
 ```
 
-将半球投影到\\(xy\\)平面时, 只有一侧是完整半圆, 另一侧是缩放了\\(\cos\theta=\bold{n}\cdot\omega\\)即`wh.z`的半圆. 令\\(h=\sqrt{1-x^2}\\), 原本采样得到的\\(x\\)对应的\\(y\\)范围为\\((-h, h)\\), 缩放后为\\((-h\cos\theta, h)\\), 相当于\\(y'=\frac{1+\cos\theta}{2}y+\frac{h(1-\cos\theta)}{2}\\), pbrt这里的`Lerp`与之等价.
+将半球投影到$xy$平面时, 只有一侧是完整半圆, 另一侧是缩放了$\cos\theta=\mathbf{n}\cdot\omega$即`wh.z`的半圆. 令$h=\sqrt{1-x^2}$, 原本采样得到的$x$对应的$y$范围为$(-h, h)$, 缩放后为$(-h\cos\theta, h)$, 相当于$y'=\frac{1+\cos\theta}{2}y+\frac{h(1-\cos\theta)}{2}$, pbrt这里的`Lerp`与之等价.
 
 ```c++
 // Generate uniformly distributed points on the unit disk
@@ -848,21 +846,21 @@ return Normalize(
 
 $$
 \begin{equation}
-\int_{-\pi}^{\pi}\int_0^{\frac{\pi}{2}}D(\theta,\phi)\cos\theta\sin\theta d\theta d\phi = 1
+\int_{-\pi}^{\pi}\int_0^{\frac{\pi}{2}}D(\theta,\phi)\cos\theta\sin\theta \mathrm{d}\theta \mathrm{d}\phi = 1
 \end{equation}
 $$
 
-各向同性的Trowbridge-Reitz在\\(\theta,\phi\\)上的PDF如下.
+各向同性的Trowbridge-Reitz在$\theta,\phi$上的PDF如下.
 
 $$
 \begin{equation}
 \begin{aligned}
 p(\theta)
-&=\int_{0}^{2\pi}D(\theta,\phi)\cos\theta\sin\theta d\phi\\\\
-&=\int_{0}^{2\pi}\frac{1}{\pi\alpha^2\cos^4\theta(1+\frac{\tan^2\theta}{\alpha^2})^2}\cos\theta\sin\theta d\phi\\\\
-&=\frac{2\alpha^2\cos\theta\sin\theta}{\cos^4\theta(\alpha^2+\tan^2\theta)^2}\\\\
-&=\frac{2\alpha^2\cos\theta\sin\theta}{(\alpha^2\cos^2\theta+\sin^2\theta)^2}\\\\
-&=\frac{2\alpha^2\cos\theta\sin\theta}{((\alpha^2-1)\cos^2\theta+1)^2}\\\\
+&=\int_{0}^{2\pi}D(\theta,\phi)\cos\theta\sin\theta \mathrm{d}\phi\\
+&=\int_{0}^{2\pi}\frac{1}{\pi\alpha^2\cos^4\theta(1+\frac{\tan^2\theta}{\alpha^2})^2}\cos\theta\sin\theta \mathrm{d}\phi\\
+&=\frac{2\alpha^2\cos\theta\sin\theta}{\cos^4\theta(\alpha^2+\tan^2\theta)^2}\\
+&=\frac{2\alpha^2\cos\theta\sin\theta}{(\alpha^2\cos^2\theta+\sin^2\theta)^2}\\
+&=\frac{2\alpha^2\cos\theta\sin\theta}{((\alpha^2-1)\cos^2\theta+1)^2}\\
 p(\phi)&=\frac{p(\theta,\phi)}{p(\theta)}=\frac{1}{2\pi}
 \end{aligned}
 \end{equation}
@@ -874,14 +872,14 @@ $$
 \begin{equation}
 \begin{aligned}
 P(\theta)
-&=\int_0^{\theta}p(\theta_0)d\theta_0\\\\
-&=\int_0^{\theta}\frac{-2\alpha^2\cos\theta_0}{((\alpha^2-1)\cos^2\theta_0+1)^2}d\cos\theta_0\\\\
-&=\int_1^{\cos\theta}\frac{-2\alpha^2x}{((\alpha^2-1)x^2+1)^2}dx\\\\
-&=\int_1^{\cos\theta}\frac{\alpha^2}{(\alpha^2-1)}d\frac{1}{(\alpha^2-1)x^2+1}\\\\
-&=\frac{\alpha^2}{(\alpha^2-1)}(\frac{1}{(\alpha^2-1)\cos^2\theta+1}-\frac{1}{\alpha^2})\\\\
-&=\frac{1-\cos^2\theta}{((\alpha^2-1)\cos^2\theta+1)}\\\\
+&=\int_0^{\theta}p(\theta_0)\mathrm{d}\theta_0\\
+&=\int_0^{\theta}\frac{-2\alpha^2\cos\theta_0}{((\alpha^2-1)\cos^2\theta_0+1)^2}d\cos\theta_0\\
+&=\int_1^{\cos\theta}\frac{-2\alpha^2x}{((\alpha^2-1)x^2+1)^2}\mathrm{d}x\\
+&=\int_1^{\cos\theta}\frac{\alpha^2}{(\alpha^2-1)}d\frac{1}{(\alpha^2-1)x^2+1}\\
+&=\frac{\alpha^2}{(\alpha^2-1)}(\frac{1}{(\alpha^2-1)\cos^2\theta+1}-\frac{1}{\alpha^2})\\
+&=\frac{1-\cos^2\theta}{((\alpha^2-1)\cos^2\theta+1)}\\
 P(\phi)
-&=\int_0^{\phi}p(\phi_0)d\phi_0=\frac{\phi}{2\pi}
+&=\int_0^{\phi}p(\phi_0)\mathrm{d}\phi_0=\frac{\phi}{2\pi}
 \end{aligned}
 \end{equation}
 $$
@@ -893,7 +891,7 @@ $$
 \begin{aligned}
 \theta
 &=P^{-1}(u_0)
-=\cos^{-1}\sqrt{\frac{1-u_0}{(\alpha^2-1)u_0+1}}\\\\
+=\cos^{-1}\sqrt{\frac{1-u_0}{(\alpha^2-1)u_0+1}}\\
 \phi
 &=P^{-1}(u_1)
 =2\pi u_1
@@ -907,16 +905,16 @@ $$
 
 #### 半向量变换
 
-对于镜面反射表面法线\\(\omega_m\\)是位于\\(\omega_o\\)和\\(\omega_o\\)之间的, 因此也可以被称为半向量. 以\\(\omega_o\\)为中心即\\(\theta_o=0\\), 此时可以获取Jacobi行列式的变换结果.
+对于镜面反射表面法线$\omega_m$是位于$\omega_o$和$\omega_o$之间的, 因此也可以被称为半向量. 以$\omega_o$为中心即$\theta_o=0$, 此时可以获取Jacobi行列式的变换结果.
 
 $$
 \begin{equation}
 \begin{aligned}
-\frac{d\omega_m}{d\omega_i}
-&= \frac{\sin\theta_m d\theta_m d\phi_m}{\sin\theta_i d\theta_i d\phi_i}\\\\
-&= \frac{\sin\theta_m d\theta_m d\phi_m}{\sin2\theta_m 2d\theta_m d\phi_m}\\\\
-&= \frac{\sin\theta_m}{4\cos\theta_m\sin\theta_m}\\\\
-&= \frac{1}{4(\omega_i\cdot\omega_m)}\\\\
+\frac{\mathrm{d}\omega_m}{\mathrm{d}\omega_i}
+&= \frac{\sin\theta_m \mathrm{d}\theta_m \mathrm{d}\phi_m}{\sin\theta_i \mathrm{d}\theta_i \mathrm{d}\phi_i}\\
+&= \frac{\sin\theta_m \mathrm{d}\theta_m \mathrm{d}\phi_m}{\sin2\theta_m 2\mathrm{d}\theta_m \mathrm{d}\phi_m}\\
+&= \frac{\sin\theta_m}{4\cos\theta_m\sin\theta_m}\\
+&= \frac{1}{4(\omega_i\cdot\omega_m)}\\
 &= \frac{1}{4(\omega_o\cdot\omega_m)}
 \end{aligned}
 \end{equation}
@@ -924,11 +922,11 @@ $$
 
 #### Torrance-Sparrow PDF
 
-\\(\omega_i\\)的分布如下.
+$\omega_i$的分布如下.
 
 $$
 \begin{equation}
-p(\omega_i)=D_{\omega_o}(\omega_m)\frac{d\omega_m}{d\omega_i}=\frac{D_{\omega_o}(\omega_m)}{4(\omega_o\cdot\omega_m)}
+p(\omega_i)=D_{\omega_o}(\omega_m)\frac{\mathrm{d}\omega_m}{\mathrm{d}\omega_i}=\frac{D_{\omega_o}(\omega_m)}{4(\omega_o\cdot\omega_m)}
 \end{equation}
 $$
 
@@ -940,8 +938,8 @@ $$
 \begin{equation}
 \begin{aligned}
 L_o(p,\omega_o)
-&=\int_\Omega f_r(p,\omega_o,\omega_i)L_i(p,\omega_i)\cos\theta_id\omega_i\\\\
-&\approx \frac{f_r(p,\omega_o,\omega_i)L_i(p,\omega_i)\cos\theta_i}{p(\omega_i)}\\\\
+&=\int_\Omega f_r(p,\omega_o,\omega_i)L_i(p,\omega_i)\cos\theta_id\omega_i\\
+&\approx \frac{f_r(p,\omega_o,\omega_i)L_i(p,\omega_i)\cos\theta_i}{p(\omega_i)}\\
 &=F(\omega_o\cdot\omega_m)G(\omega_i,\omega_o)L_i(p,\omega_i)
 \end{aligned}
 \end{equation}
@@ -953,8 +951,8 @@ $$
 \begin{equation}
 \begin{aligned}
 f_r(p,\omega_o,\omega_i)
-&=\frac{D_{\omega_o}(\omega_m)F(\omega_o,\omega_m)G(\omega_i)}{4(\omega_o\cdot\omega_m)\cos\theta_i}\\\\
-&=\frac{D(\omega_m)F(\omega_o,\omega_m)G(\omega_i)G(\omega_o)}{4\cos\theta_i\cos\theta_o}\\\\
+&=\frac{D_{\omega_o}(\omega_m)F(\omega_o,\omega_m)G(\omega_i)}{4(\omega_o\cdot\omega_m)\cos\theta_i}\\
+&=\frac{D(\omega_m)F(\omega_o,\omega_m)G(\omega_i)G(\omega_o)}{4\cos\theta_i\cos\theta_o}\\
 &\approx\frac{D(\omega_m)F(\omega_o,\omega_m)G(\omega_i, \omega_o)}{4\cos\theta_i\cos\theta_o}
 \end{aligned}
 \end{equation}
@@ -962,7 +960,7 @@ $$
 
 #### Torrance-Sparrow采样
 
-若`Sample_wm`得到的\\(\omega_i\\)朝向表面下方, 这意味着反射后仍然位于微表面, 需要执行多次散射. pbrt不考虑这种情况, 显然在极为粗糙的表面这会导致能量损失.
+若`Sample_wm`得到的$\omega_i$朝向表面下方, 这意味着反射后仍然位于微表面, 需要执行多次散射. pbrt不考虑这种情况, 显然在极为粗糙的表面这会导致能量损失.
 
 ```c++
 Vector3f wm = mfDistrib.Sample_wm(wo, u);
@@ -975,7 +973,7 @@ if (!SameHemisphere(wo, wi))
 
 ### 粗糙绝缘体PDF
 
-根据Snell定律我们可以把投影到与半向量垂直的平面上的部分抵消, 由此可得以下关系. 此时得到的半向量总是指向光学密度较大的一侧, 需要后续修正. 对于反射由于\\(\eta_i=\eta_o\\)这与半向量是等价的.
+根据Snell定律我们可以把投影到与半向量垂直的平面上的部分抵消, 由此可得以下关系. 此时得到的半向量总是指向光学密度较大的一侧, 需要后续修正. 对于反射由于$\eta_i=\eta_o$这与半向量是等价的.
 
 $$
 \begin{equation}
@@ -988,8 +986,8 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-\frac{d\omega_m}{d\omega_i}
-&=\frac{|\omega_i\cdot\omega_m|\eta_i^2}{((\eta_i\omega_i+\eta_o\omega_o)\cdot\omega_m)^2}\\\\
+\frac{\mathrm{d}\omega_m}{\mathrm{d}\omega_i}
+&=\frac{|\omega_i\cdot\omega_m|\eta_i^2}{((\eta_i\omega_i+\eta_o\omega_o)\cdot\omega_m)^2}\\
 &=\frac{|\omega_i\cdot\omega_m|}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2}
 \end{aligned}
 \end{equation}
@@ -1005,7 +1003,7 @@ $$
 \begin{equation}
 \begin{aligned}
 f_t(p,\omega_o,\omega_i)
-&=\frac{D_{\omega_o}(\omega_m)(1-F(\omega_o\cdot\omega_m))G(\omega_i)|\omega_i\cdot\omega_m|}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2|\cos\theta_i|}\\\\
+&=\frac{D_{\omega_o}(\omega_m)(1-F(\omega_o\cdot\omega_m))G(\omega_i)|\omega_i\cdot\omega_m|}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2|\cos\theta_i|}\\
 &=\frac{D(\omega_m)(1-F(\omega_o\cdot\omega_m))G(\omega_i,\omega_o)}{((\omega_i\cdot\omega_m)+\frac{(\omega_o\cdot\omega_m)}{\eta})^2}\frac{|\omega_i\cdot\omega_m||\omega_o\cdot\omega_m|}{|\cos\theta_i||\cos\theta_o|}
 \end{aligned}
 \end{equation}
@@ -1021,17 +1019,17 @@ $$
 
 ### 光滑塑料
 
-假设涂层为光滑表面, 对于只在内部漫反射一次的情况, 由于表面光滑, 漫反射的出射方向是确定的, 使用Dirac delta函数表示, 使用微分Snell定律计算Jacobian, 此时结果如下, 其中\\(\theta_{it}\\)与\\(\theta_{ot}\\)为折射后与法线的夹角.
+假设涂层为光滑表面, 对于只在内部漫反射一次的情况, 由于表面光滑, 漫反射的出射方向是确定的, 使用Dirac delta函数表示, 使用微分Snell定律计算Jacobian, 此时结果如下, 其中$\theta_{it}$与$\theta_{ot}$为折射后与法线的夹角.
 
 $$
 \begin{equation}
 \begin{aligned}
 L_o
-&=\int_{\Omega} (1 - F(\omega\cdot\bold{n})) L_\omega \eta^2 \cos(\omega\cdot\bold{n}) \frac{\delta(\omega_{ot})}{\cos(\omega_{ot}\cdot\bold{n})} d\omega\\\\
-&=(1 - F(\omega_{o}\cdot\bold{n})) L_{ot} \eta^2\\\\
-&=(1 - F(\omega_{o}\cdot\bold{n})) \eta^2 \int_{\Omega_{it}} \frac{R}{\pi} L_{\omega_{it}} \cos\omega_{it} d\omega_{it}\\\\
-&=(1 - F(\omega_{o}\cdot\bold{n})) \eta^2 \int_{\Omega_{i}} (1 - F(\omega_{i}\cdot\bold{n})) \frac{R}{\pi} L_{\omega_{i}} \frac{1}{\eta^2} \cos\omega_{i} \eta^2 d\omega_{i}\\\\
-&=(1 - F(\omega_{o}\cdot\bold{n})) (1 - F(\omega_{i}\cdot\bold{n})) \eta^2 \int_{\Omega_{i}} \frac{R}{\pi} L_{\omega_{i}} \cos\omega_{i} d\omega_{i}\\\\
+&=\int_{\Omega} (1 - F(\omega\cdot\mathbf{n})) L_\omega \eta^2 \cos(\omega\cdot\mathbf{n}) \frac{\delta(\omega_{ot})}{\cos(\omega_{ot}\cdot\mathbf{n})} \mathrm{d}\omega\\
+&=(1 - F(\omega_{o}\cdot\mathbf{n})) L_{ot} \eta^2\\
+&=(1 - F(\omega_{o}\cdot\mathbf{n})) \eta^2 \int_{\Omega_{it}} \frac{R}{\pi} L_{\omega_{it}} \cos\omega_{it} \mathrm{d}\omega_{it}\\
+&=(1 - F(\omega_{o}\cdot\mathbf{n})) \eta^2 \int_{\Omega_{i}} (1 - F(\omega_{i}\cdot\mathbf{n})) \frac{R}{\pi} L_{\omega_{i}} \frac{1}{\eta^2} \cos\omega_{i} \eta^2 \mathrm{d}\omega_{i}\\
+&=(1 - F(\omega_{o}\cdot\mathbf{n})) (1 - F(\omega_{i}\cdot\mathbf{n})) \eta^2 \int_{\Omega_{i}} \frac{R}{\pi} L_{\omega_{i}} \cos\omega_{i} \mathrm{d}\omega_{i}\\
 \end{aligned}
 \end{equation}
 $$
@@ -1042,35 +1040,35 @@ $$
 \begin{equation}
 \begin{aligned}
 f_r(p, \omega_o, \omega_i)
-&=(1 - F(\omega_{o}\cdot\bold{n})) (1 - F(\omega_{i}\cdot\bold{n})) \eta^2 \frac{R}{\pi}\\\\
-&=F_t \frac{R}{\pi}\\\\
+&=(1 - F(\omega_{o}\cdot\mathbf{n})) (1 - F(\omega_{i}\cdot\mathbf{n})) \eta^2 \frac{R}{\pi}\\
+&=F_t \frac{R}{\pi}\\
 \end{aligned}
 \end{equation}
 $$
 
-对于漫反射+镜面反射+漫反射的情况, 令\\(\omega\\)为漫反射的出射方向, 由于表面光滑在镜面反射阶段的余弦项为\\(\omega\cdot\bold{n}\\), 积分结果如下.
+对于漫反射+镜面反射+漫反射的情况, 令$\omega$为漫反射的出射方向, 由于表面光滑在镜面反射阶段的余弦项为$\omega\cdot\mathbf{n}$, 积分结果如下.
 
 $$
 \begin{equation}
 \begin{aligned}
 f_r(p, \omega_o, \omega_i)
-&= F_t \frac{R}{\pi} \int_\omega \frac{R}{\pi} F(\omega \cdot \bold{n}) \cos\theta d\omega\\\\
-&= F_t \frac{R}{\pi} \int_0^{2\pi} \int_0^{\frac{\pi}{2}} \frac{R}{\pi} F(\cos\theta) \sin\theta \cos\theta d\theta d\phi\\\\
-&= F_t \frac{2R^2}{\pi} \int_0^{\frac{\pi}{2}} F(\cos\theta) \sin\theta \cos\theta d\theta\\\\
-&= F_t \frac{2R^2}{\pi} \int_0^{\frac{\pi}{2}} -\frac{F(\cos\theta)}{2} d\cos^2\theta\\\\
-&= F_t \frac{R^2}{\pi} \int_0^1 F(\sqrt{x}) dx\\\\
+&= F_t \frac{R}{\pi} \int_\omega \frac{R}{\pi} F(\omega \cdot \mathbf{n}) \cos\theta \mathrm{d}\omega\\
+&= F_t \frac{R}{\pi} \int_0^{2\pi} \int_0^{\frac{\pi}{2}} \frac{R}{\pi} F(\cos\theta) \sin\theta \cos\theta \mathrm{d}\theta \mathrm{d}\phi\\
+&= F_t \frac{2R^2}{\pi} \int_0^{\frac{\pi}{2}} F(\cos\theta) \sin\theta \cos\theta \mathrm{d}\theta\\
+&= F_t \frac{2R^2}{\pi} \int_0^{\frac{\pi}{2}} -\frac{F(\cos\theta)}{2} d\cos^2\theta\\
+&= F_t \frac{R^2}{\pi} \int_0^1 F(\sqrt{x}) \mathrm{d}x\\
 &= F_t \frac{F_r R^2}{\pi}
 \end{aligned}
 \end{equation}
 $$
 
-递推任意次反射, 不考虑表面反射, 结果如下. 重要性抽样可以使用余弦加权半球采样, 因为\\(1-F(\omega\cdot\bold{n})\\)与\\(\cos\theta\\)的梯度方向一致.
+递推任意次反射, 不考虑表面反射, 结果如下. 重要性抽样可以使用余弦加权半球采样, 因为$1-F(\omega\cdot\mathbf{n})$与$\cos\theta$的梯度方向一致.
 
 $$
 \begin{equation}
 \begin{aligned}
 f_r(p, \omega_o, \omega_i)
-&= \sum_{n=0}^\infty F_t \frac{R^{n+1} F_r^n}{\pi}\\\\
+&= \sum_{n=0}^\infty F_t \frac{R^{n+1} F_r^n}{\pi}\\
 &= \frac{F_t}{\pi} \frac{R}{1-RF_r}
 \end{aligned}
 \end{equation}
@@ -1084,11 +1082,11 @@ $$
 \begin{equation}
 \begin{aligned}
 L_o
-&=\int_{\Omega_{ot}} f_o(p, \omega_o, \omega_{ot}) L_{\omega_{ot}} \eta^2 \cos(\omega_{ot}\cdot\bold{n}) d\omega_{ot}\\\\
-&=\int_{\Omega_{ot}} f_o(p, \omega_o, \omega_{ot}) \cos(\omega_{ot}\cdot\bold{n}) \eta^2 d\omega_{ot} \int_{\Omega_{it}} \frac{R}{\pi} L_{\omega_{it}} \cos(\omega_{it}\cdot\bold{n}) d\omega_{it}\\\\
-&=\eta^2 \frac{R}{\pi} T(\omega_o) \int_{\Omega_{it}} \int_{\Omega_{i}} f_i(p, \omega_{it}, \omega{i}) L_{\omega_{i}} \cos(\omega_{i}\cdot\bold{n}) \cos(\omega_{it}\cdot\bold{n}) d\omega_{i} d\omega_{it}\\\\
-&=\eta^2 \frac{R}{\pi} T(\omega_o) \int_{\Omega_{it}} f_i(p, \omega_{it}, \omega{i}) \cos(\omega_{it}\cdot\bold{n}) d\omega_{it} \int_{\Omega_{i}} L_{\omega_{i}} \cos(\omega_{i}\cdot\bold{n}) d\omega_{i}\\\\
-&=\eta^2 \frac{R}{\pi} T(\omega_o) \int_{\Omega_{i}} T(\omega_i) L_{\omega_{i}} \cos(\omega_{i}\cdot\bold{n}) d\omega_{i}\\\\
+&=\int_{\Omega_{ot}} f_o(p, \omega_o, \omega_{ot}) L_{\omega_{ot}} \eta^2 \cos(\omega_{ot}\cdot\mathbf{n}) \mathrm{d}\omega_{ot}\\
+&=\int_{\Omega_{ot}} f_o(p, \omega_o, \omega_{ot}) \cos(\omega_{ot}\cdot\mathbf{n}) \eta^2 \mathrm{d}\omega_{ot} \int_{\Omega_{it}} \frac{R}{\pi} L_{\omega_{it}} \cos(\omega_{it}\cdot\mathbf{n}) \mathrm{d}\omega_{it}\\
+&=\eta^2 \frac{R}{\pi} T(\omega_o) \int_{\Omega_{it}} \int_{\Omega_{i}} f_i(p, \omega_{it}, \omega{i}) L_{\omega_{i}} \cos(\omega_{i}\cdot\mathbf{n}) \cos(\omega_{it}\cdot\mathbf{n}) \mathrm{d}\omega_{i} \mathrm{d}\omega_{it}\\
+&=\eta^2 \frac{R}{\pi} T(\omega_o) \int_{\Omega_{it}} f_i(p, \omega_{it}, \omega{i}) \cos(\omega_{it}\cdot\mathbf{n}) \mathrm{d}\omega_{it} \int_{\Omega_{i}} L_{\omega_{i}} \cos(\omega_{i}\cdot\mathbf{n}) \mathrm{d}\omega_{i}\\
+&=\eta^2 \frac{R}{\pi} T(\omega_o) \int_{\Omega_{i}} T(\omega_i) L_{\omega_{i}} \cos(\omega_{i}\cdot\mathbf{n}) \mathrm{d}\omega_{i}\\
 \end{aligned}
 \end{equation}
 $$
@@ -1123,7 +1121,7 @@ $$
 
 #### BRDF求解
 
-令\\(M\\)为样本插值, \\(R(\omega_o, u)=\omega_i\\)为重要性抽样, 数据驱动的BRDF可以按如下方式表示.
+令$M$为样本插值, $R(\omega_o, u)=\omega_i$为重要性抽样, 数据驱动的BRDF可以按如下方式表示.
 
 $$
 \begin{equation}
@@ -1139,8 +1137,8 @@ $$
 \begin{equation}
 \begin{aligned}
 p(\omega_i)
-&= \frac{D_{\omega_o}(\omega_m)}{4(\omega_o\cdot\omega_m)}\\\\
-&= \frac{D(\omega_m)\max(0,\omega_o\cdot\omega_m)}{4(\omega_o\cdot\omega_m)\int_\Omega D(\omega)\max(0,\omega_o,\omega)d\omega}\\\\
+&= \frac{D_{\omega_o}(\omega_m)}{4(\omega_o\cdot\omega_m)}\\
+&= \frac{D(\omega_m)\max(0,\omega_o\cdot\omega_m)}{4(\omega_o\cdot\omega_m)\int_\Omega D(\omega)\max(0,\omega_o,\omega)\mathrm{d}\omega}\\
 &= \frac{D(\omega_m)}{4\sigma(\omega_o)}
 \end{aligned}
 \end{equation}
@@ -1156,13 +1154,13 @@ $$
 
 #### 初始微表面模型
 
-法线分布函数只有两个维度, 不会有维度组合数量的问题, 因此可以通过估计\\(D(\omega)\\)来获取初始微表面模型. 对于右侧的积分, 可以先测量\\(f_r(p, \omega_j, \omega_j)\\)作为\\(D(\omega_j)\\)的估计, 即不考虑遮蔽函数.
+法线分布函数只有两个维度, 不会有维度组合数量的问题, 因此可以通过估计$D(\omega)$来获取初始微表面模型. 对于右侧的积分, 可以先测量$f_r(p, \omega_j, \omega_j)$作为$D(\omega_j)$的估计, 即不考虑遮蔽函数.
 
 $$
 \begin{equation}
 \begin{aligned}
-f_r(p,\omega,\omega)&=\frac{D(\omega)F(\omega\cdot\omega)G(\omega,\omega)}{4\cos^2\theta}\propto\frac{D(\omega)G_1(\omega)}{\cos^2\theta}\\\\
-D(\omega)&\propto f_r(p,\omega,\omega)\cos\theta\int_\Omega D(\omega_m)\max(0,\omega\cdot\omega_m)d\omega_m
+f_r(p,\omega,\omega)&=\frac{D(\omega)F(\omega\cdot\omega)G(\omega,\omega)}{4\cos^2\theta}\propto\frac{D(\omega)G_1(\omega)}{\cos^2\theta}\\
+D(\omega)&\propto f_r(p,\omega,\omega)\cos\theta\int_\Omega D(\omega_m)\max(0,\omega\cdot\omega_m)\mathrm{d}\omega_m
 \end{aligned}
 \end{equation}
 $$
@@ -1211,18 +1209,18 @@ struct MeasuredBxDFData {
 
 毛发通过`Curve`实现, pbrt假设毛发为朝向入射光的带状曲面, 毛发BSDF基于圆柱形曲面, 在毛发不相互交织且不比像素宽很多的情况下, 这种转换是可行的.
 
-对于光线与圆柱曲面的交点\\(u,v\\), \\(u\\)上的法线都位于同一平面, 此时令\\(\frac{\partial p}{\partial u}\\)为\\(x\\)轴, \\(\frac{\partial p}{\partial v}\\)为\\(y\\)轴, 入射光线可以转为纵向角与方位角, 即与\\(x\\)的夹角为\\(\theta\\), \\(yz\\)平面中与\\(y\\)的夹角为\\(\phi\\), 由于圆柱曲面的性质光线是位于\\(yz\\)平面的.
+对于光线与圆柱曲面的交点$u,v$, $u$上的法线都位于同一平面, 此时令$\frac{\partial p}{\partial u}$为$x$轴, $\frac{\partial p}{\partial v}$为$y$轴, 入射光线可以转为纵向角与方位角, 即与$x$的夹角为$\theta$, $yz$平面中与$y$的夹角为$\phi$, 由于圆柱曲面的性质光线是位于$yz$平面的.
 
 $$
 \begin{equation}
 \begin{aligned}
-\theta &= \frac{\pi}{2}-\cos^{-1}(\omega\cdot x)\\\\
+\theta &= \frac{\pi}{2}-\cos^{-1}(\omega\cdot x)\\
 \phi &= \pi-\text{sign}(\omega\cdot z)(\pi - \cos^{-1}(\omega\cdot y))
 \end{aligned}
 \end{equation}
 $$
 
-根据\\(v\\)的定义, 交点距离圆心的距离为\\(-1+2v\\), 此时可以得到光线与法线的夹角\\(\gamma\\).
+根据$v$的定义, 交点距离圆心的距离为$-1+2v$, 此时可以得到光线与法线的夹角$\gamma$.
 
 $$
 \begin{equation}
@@ -1232,21 +1230,21 @@ $$
 
 ### 毛发散射
 
-毛发包含发鳞, 发皮质, 发髓三个部分, 发髓由一些列表面的凸起构成, 发皮质与发髓包含吸收光的色素, 以发髓的颜色为主. pbrt假设毛发表面是与圆柱夹角为\\(\alpha\\)的圆锥状凸起, 毛发内部为同一介质即不产生内部散射. 同时pbrt假设光线在毛发上的相同位置入射与出射, 此时可以使用BSDF.
+毛发包含发鳞, 发皮质, 发髓三个部分, 发髓由一些列表面的凸起构成, 发皮质与发髓包含吸收光的色素, 以发髓的颜色为主. pbrt假设毛发表面是与圆柱夹角为$\alpha$的圆锥状凸起, 毛发内部为同一介质即不产生内部散射. 同时pbrt假设光线在毛发上的相同位置入射与出射, 此时可以使用BSDF.
 
-光线会在毛发内部多次反射与折射, 令\\(p\\)为光线进入空气前反射或折射的次数, 例如\\(p=0\\)为第一次反射\\(R\\), \\(p=1\\)为第二次折射\\(TT\\), \\(p=3\\)为\\(TRT\\). 此时BSDF可以写为如下形式, 其中\\(M_p\\)为纵向散射方程, \\(N_p\\)为方位散射方程, \\(A_p\\)为衰减方程, 分母用于抵消Kajiya中的余弦项. pbrt只计算\\(p\le 3\\)的BSDF, 余项合并为一项.
+光线会在毛发内部多次反射与折射, 令$p$为光线进入空气前反射或折射的次数, 例如$p=0$为第一次反射$R$, $p=1$为第二次折射$TT$, $p=3$为$TRT$. 此时BSDF可以写为如下形式, 其中$M_p$为纵向散射方程, $N_p$为方位散射方程, $A_p$为衰减方程, 分母用于抵消Kajiya中的余弦项. pbrt只计算$p\le 3$的BSDF, 余项合并为一项.
 
 $$
 \begin{equation}
 \begin{aligned}
 f(\omega_o,\omega_i)
-&=\sum_{p=0}^{\infty} f_p(\omega_o,\omega_i)\\\\
-&=\sum_{p=0}^{\infty} \frac{M_p(\theta_o,\theta_i)A_p(\omega_o)N_p(\phi)}{\cos\theta_i}\\\\
+&=\sum_{p=0}^{\infty} f_p(\omega_o,\omega_i)\\
+&=\sum_{p=0}^{\infty} \frac{M_p(\theta_o,\theta_i)A_p(\omega_o)N_p(\phi)}{\cos\theta_i}\\
 \end{aligned}
 \end{equation}
 $$
 
-`HairBxDF`构造函数如下, 其中\\(h\\)为与曲线中心的偏移, \\(\eta\\)为相对IOR, \\(\sigma_a\\)为毛发内部的吸收率系数(吸收率与光线传播距离有关, 后续体渲染章节会介绍), \\(\beta_m\\)为纵向粗糙度, \\(\beta_n\\)为方位粗糙度, \\(\alpha\\)为毛发表面凸起的夹角. 
+`HairBxDF`构造函数如下, 其中$h$为与曲线中心的偏移, $\eta$为相对IOR, $\sigma_a$为毛发内部的吸收率系数(吸收率与光线传播距离有关, 后续体渲染章节会介绍), $\beta_m$为纵向粗糙度, $\beta_n$为方位粗糙度, $\alpha$为毛发表面凸起的夹角. 
 
 ```c++
 PBRT_CPU_GPU
@@ -1256,20 +1254,20 @@ HairBxDF(Float h, Float eta, const SampledSpectrum &sigma_a, Float beta_m,
 
 ### 纵向散射
 
-纵向散射方程如下, 其中\\(I_0\\)为第一类Bessel方程的修改, \\(v\\)为粗糙度.
+纵向散射方程如下, 其中$I_0$为第一类Bessel方程的修改, $v$为粗糙度.
 $$
 \begin{equation}
 M_p(\theta_o,\theta_i)=\frac{e^{-\frac{\sin\theta_i\sin\theta_o}{v}}}{2v\text{sinh}(\frac{1}{v})}I_0(\frac{\cos\theta_o\cos\theta_i}{v})
 \end{equation}
 $$
 
-pbrt根据\\(\beta_m\\)计算不同\\(p\\)下的粗糙度.
+pbrt根据$\beta_m$计算不同$p$下的粗糙度.
 
 $$
 \begin{equation}
 \begin{aligned}
-v_0 &= (0.726\beta_m+0.812\beta_m^2+3.7\beta_m^20)^2\\\\
-v_1 &= 0.25v_0\\\\
+v_0 &= (0.726\beta_m+0.812\beta_m^2+3.7\beta_m^20)^2\\
+v_1 &= 0.25v_0\\
 v_2 &= v_3 = \cdots = v_{\max} = 4v_0
 \end{aligned}
 \end{equation}
@@ -1277,7 +1275,7 @@ $$
 
 ### 纤维吸收
 
-吸收率受光线传播距离影响, 这需要计算折射光线的纵向角与方位角. 纵向角可以通过Snell定律获取, 方位角可以通过将\\(\omega_t\\)投影到\\(yz\\)平面计算, 也可以使用修改后的IOR通过Snell定律计算.
+吸收率受光线传播距离影响, 这需要计算折射光线的纵向角与方位角. 纵向角可以通过Snell定律获取, 方位角可以通过将$\omega_t$投影到$yz$平面计算, 也可以使用修改后的IOR通过Snell定律计算.
 
 $$
 \begin{equation}
@@ -1285,7 +1283,7 @@ $$
 \end{equation}
 $$
 
-根据直线与圆相交的性质可以得到在\\(yz\\)传播的距离, 除以纵向角的余弦即可获取传播距离.
+根据直线与圆相交的性质可以得到在$yz$传播的距离, 除以纵向角的余弦即可获取传播距离.
 
 $$
 \begin{equation}
@@ -1301,14 +1299,14 @@ T_r=e^{-\sigma_a l}
 \end{equation}
 $$
 
-此时可以得到\\(A_p\\)的定义, 余项可以通过通项公式得到.
+此时可以得到$A_p$的定义, 余项可以通过通项公式得到.
 
 $$
 \begin{equation}
 \begin{aligned}
 A_p&=
 \begin{cases}
-A_{p-1}Tf=(1-f)^2 T^p f^{p-1} & p>0\\\\
+A_{p-1}Tf=(1-f)^2 T^p f^{p-1} & p>0\\
 f & p=0
 \end{cases}
 \end{aligned}
@@ -1323,7 +1321,7 @@ $$
 
 ### 方位散射
 
-方位散射只需要考虑\\(\phi\\), 即只需要考虑投影到\\(yz\\)平面上的圆, 以顺时针为正, 此时可以得到每次出射时的角度变化.
+方位散射只需要考虑$\phi$, 即只需要考虑投影到$yz$平面上的圆, 以顺时针为正, 此时可以得到每次出射时的角度变化.
 
 $$
 \begin{equation}
@@ -1335,11 +1333,11 @@ $$
 
 $$
 \begin{equation}
-l_t(x,s,[a,b])=\frac{l(x,s)}{\int_a^b l(x',s)dx'}
+l_t(x,s,[a,b])=\frac{l(x,s)}{\int_a^b l(x',s)\mathrm{d}x'}
 \end{equation}
 $$
 
-pbrt根据\\(\beta_n\\)计算\\(s\\).
+pbrt根据$\beta_n$计算$s$.
 
 $$
 \begin{equation}
@@ -1349,15 +1347,15 @@ $$
 
 ### 散射模型求解
 
-头发表面的凸起角度\\(\alpha\\)会影响\\(\theta\\), pbrt估计\\(R\\)偏移\\(2\alpha\\), \\(TT\\)偏移\\(-\alpha\\), \\(TRT\\)会偏移\\(-4\alpha\\). 角度的偏移会导致高光瓣的偏移, 在头发上呈现出来的就是不同颜色的分层高光, 因为反射不影响颜色而折射会吸收光线.
+头发表面的凸起角度$\alpha$会影响$\theta$, pbrt估计$R$偏移$2\alpha$, $TT$偏移$-\alpha$, $TRT$会偏移$-4\alpha$. 角度的偏移会导致高光瓣的偏移, 在头发上呈现出来的就是不同颜色的分层高光, 因为反射不影响颜色而折射会吸收光线.
 
 #### 可逆性
 
-毛发BSDF是不可逆的, 这是由凸起方向以及\\(A_p\\), \\(N_p\\)与折射方向相关导致的.
+毛发BSDF是不可逆的, 这是由凸起方向以及$A_p$, $N_p$与折射方向相关导致的.
 
 ### 采样
 
-首先以\\(A_p\\)作为概率分布采样\\(p\\), 然后分别采样\\(M_p\\)与\\(N_p\\), 这两项都可以实现精确采样.
+首先以$A_p$作为概率分布采样$p$, 然后分别采样$M_p$与$N_p$, 这两项都可以实现精确采样.
 
 ### 毛发吸收系数
 

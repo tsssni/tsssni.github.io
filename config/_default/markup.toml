@@ -3,7 +3,7 @@
 
 [goldmark]
 [goldmark.renderer]
-  unsafe = true
+  unsafe = false
 [goldmark.extensions.passthrough]
   enable = true
 [goldmark.extensions.passthrough.delimiters]

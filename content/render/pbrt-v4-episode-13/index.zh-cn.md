@@ -6,19 +6,17 @@ description: "pbrt-v4 episode 13"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-{{<katex>}}
-
 ## 光线传播方程
 
 光线传播方程(light transport equation, LTE)描述场景中的辐亮度分布. 本章不考虑介质, 下一章再介绍.
 
 ### 基础推导
 
-pbrt中的LTE不考虑波动光学, 并认为场景中的辐亮度分布是守恒的. LTE的核心是能量守恒, 离开系统与进入系统的能量的差值和发出与吸收的能量的差值是相等的. 令\\(t(p,\omega)\\)为光线投射方程, 代表从\\(p\\)点出发方向为\\(\omega\\)的光线的第一个相交点, 此时空间中任意一点的辐亮度可以按如下方式表示.
+pbrt中的LTE不考虑波动光学, 并认为场景中的辐亮度分布是守恒的. LTE的核心是能量守恒, 离开系统与进入系统的能量的差值和发出与吸收的能量的差值是相等的. 令$t(p,\omega)$为光线投射方程, 代表从$p$点出发方向为$\omega$的光线的第一个相交点, 此时空间中任意一点的辐亮度可以按如下方式表示.
 
 $$
 \begin{equation}
-L(p,\omega_o)=L_e(p,\omega_o)+\int_\Theta f(p,\omega_o,\omega_i)L(t(p,\omega_i),-\omega_i)|\cos\theta_i| d\omega_i
+L(p,\omega_o)=L_e(p,\omega_o)+\int_\Theta f(p,\omega_o,\omega_i)L(t(p,\omega_i),-\omega_i)|\cos\theta_i| \mathrm{d}\omega_i
 \end{equation}
 $$
 
@@ -28,28 +26,28 @@ $$
 
 ### LTE表面形式
 
-LTE的复杂度部分原因为光线投射方程只能隐式表达场景中几何物体的关系, pbrt通过过将LTE的积分转为面积上的积分来显示表达几何物体的分布. 令\\(L(p' \to p)=L(p',\omega)\\), \\(f(p'' \to p' \to p)=f(p',\omega_o,\omega_i)\\), 根据立体角转面积的Jacobian行列式, 可以得到如下LTE. 其中\\(V\\)为可见性方程, 两点互相可见为1, 否则为0, 这可以通过追踪光线获取, \\(G\\)为几何方程.
+LTE的复杂度部分原因为光线投射方程只能隐式表达场景中几何物体的关系, pbrt通过过将LTE的积分转为面积上的积分来显示表达几何物体的分布. 令$L(p' \to p)=L(p',\omega)$, $f(p'' \to p' \to p)=f(p',\omega_o,\omega_i)$, 根据立体角转面积的Jacobian行列式, 可以得到如下LTE. 其中$V$为可见性方程, 两点互相可见为1, 否则为0, 这可以通过追踪光线获取, $G$为几何方程.
 
 $$
 \begin{equation}
 \begin{aligned}
 L(p' \to p)
-&=L_e(p' \to p) + \int_A f(p'' \to p' \to p)L(p'' \to p')V(p \longleftrightarrow p')\frac{|\cos\theta||\cos\theta'|}{\Vert p-p' \Vert^2}dA(p'')\\\\
-&=L_e(p' \to p) + \int_A f(p'' \to p' \to p)L(p'' \to p')G(p \longleftrightarrow p')dA(p'')\\\\
+&=L_e(p' \to p) + \int_A f(p'' \to p' \to p)L(p'' \to p')V(p \longleftrightarrow p')\frac{|\cos\theta||\cos\theta'|}{\Vert p-p' \Vert^2}\mathrm{d}A(p'')\\
+&=L_e(p' \to p) + \int_A f(p'' \to p' \to p)L(p'' \to p')G(p \longleftrightarrow p')\mathrm{d}A(p'')\\
 \end{aligned}
 \end{equation}
 $$
 
 ### 路径空间积分
 
-\\(p_0\\)为相机位置, 所有具有\\(n+1\\)个顶点的光线传播路径的积分如下, T为路径通量.
+$p_0$为相机位置, 所有具有$n+1$个顶点的光线传播路径的积分如下, T为路径通量.
 
 $$
 \begin{equation}
 \begin{aligned}
 P(\bar{p}_n)
-&=\underbrace{\int_A\int_A\cdots\int_A}\_{n} L_e(p_n \to p\_{n-1})(\prod\_{i=1}^{n-1} f(p\_{i+1} \to p_i \to p\_{i-1})G(p\_{i+1} \longleftrightarrow p_i))dA(p_1) \cdots dA(p_n)\\\\
-&=\underbrace{\int_A\int_A\cdots\int_A}\_{n} L_e(p_n \to p\_{n-1})T(\bar{p}_n)dA(p_1) \cdots dA(p_n)
+&=\underbrace{\int_A\int_A\cdots\int_A}_{n} L_e(p_n \to p_{n-1})(\prod_{i=1}^{n-1} f(p_{i+1} \to p_i \to p_{i-1})G(p_{i+1} \longleftrightarrow p_i))\mathrm{d}A(p_1) \cdots \mathrm{d}A(p_n)\\
+&=\underbrace{\int_A\int_A\cdots\int_A}_{n} L_e(p_n \to p_{n-1})T(\bar{p}_n)\mathrm{d}A(p_1) \cdots \mathrm{d}A(p_n)
 \end{aligned}
 \end{equation}
 $$
@@ -88,7 +86,7 @@ $$
 
 $$
 \begin{equation}
-P(\bar{p}_i)\approx\frac{L_e(p_i \to p\_{i-1})f(p_i \to p\_{i-1} \to p\_{i-2})G(p_i \longleftrightarrow p\_{i-1})}{p_e(p_i)}(\prod\_{j=1}^{i-2}\frac{f(p\_{j+1} \to p_j \to p\_{j-1})|\cos\theta_j|}{p\_\omega(\omega_j)})
+P(\bar{p}_i)\approx\frac{L_e(p_i \to p_{i-1})f(p_i \to p_{i-1} \to p_{i-2})G(p_i \longleftrightarrow p_{i-1})}{p_e(p_i)}(\prod_{j=1}^{i-2}\frac{f(p_{j+1} \to p_j \to p_{j-1})|\cos\theta_j|}{p_\omega(\omega_j)})
 \end{equation}
 $$
 
@@ -121,11 +119,11 @@ class SimplePathIntegrator : public RayIntegrator {
 };
 ```
 
-路径传播过程中会记录路径通量权重, 每次到达新顶点都会更新, 其定义如下. \\(\beta\\)中包含了历史顶点的信息, 因此只有当前顶点的状态需要被记录.
+路径传播过程中会记录路径通量权重, 每次到达新顶点都会更新, 其定义如下. $\beta$中包含了历史顶点的信息, 因此只有当前顶点的状态需要被记录.
 
 $$
 \begin{equation}
-\beta = \prod\_{j=1}^{i-2}\frac{f(p\_{j+1} \to p_j \to p\_{j-1})|\cos\theta_j|}{p\_\omega(\omega_j)}
+\beta = \prod_{j=1}^{i-2}\frac{f(p_{j+1} \to p_j \to p_{j-1})|\cos\theta_j|}{p_\omega(\omega_j)}
 \end{equation}
 $$
 
@@ -174,11 +172,11 @@ if (!bsdf) {
 }
 ```
 
-若`sampleLights`为`true`, 此时摄像机接收到的直接光照的表达式如下, \\(p_l(\omega_i)\\)为当前光源采样到当前入射方向的概率, \\(p(l)\\)为积分器采样到当前光源的概率.
+若`sampleLights`为`true`, 此时摄像机接收到的直接光照的表达式如下, $p_l(\omega_i)$为当前光源采样到当前入射方向的概率, $p(l)$为积分器采样到当前光源的概率.
 
 $$
 \begin{equation}
-P(\bar{p}_i)=\frac{L_e(p_i \to p\_{i-1})f(p_i \to p\_{i-1} \to p\_{i-2})|\cos\theta_i|V(p_i \longleftrightarrow p\_{i-1})}{p_l(\omega_i)p(l)}\beta
+P(\bar{p}_i)=\frac{L_e(p_i \to p_{i-1})f(p_i \to p_{i-1} \to p_{i-2})|\cos\theta_i|V(p_i \longleftrightarrow p_{i-1})}{p_l(\omega_i)p(l)}\beta
 \end{equation}
 $$
 
@@ -253,8 +251,8 @@ $$
 \begin{equation}
 \begin{aligned}
 P(\bar{p}_i)\approx
-&w_l(\omega_l)\frac{L_e(p_l \to p\_{i-1})f(p_l \to p\_{i-1} \to p\_{i-2})|\cos\theta_l|V(p_l \longleftrightarrow p\_{i-1})}{p_l(\omega_l)}\beta +\\\\
-&w_b(\omega_b)\frac{L_e(p_b \to p\_{i-1})f(p_b \to p\_{i-1} \to p\_{i-2})|\cos\theta_l|V(p_b \longleftrightarrow p\_{i-1})}{p_b(\omega_b)}\beta
+&w_l(\omega_l)\frac{L_e(p_l \to p_{i-1})f(p_l \to p_{i-1} \to p_{i-2})|\cos\theta_l|V(p_l \longleftrightarrow p_{i-1})}{p_l(\omega_l)}\beta +\\
+&w_b(\omega_b)\frac{L_e(p_b \to p_{i-1})f(p_b \to p_{i-1} \to p_{i-2})|\cos\theta_l|V(p_b \longleftrightarrow p_{i-1})}{p_b(\omega_b)}\beta
 \end{aligned}
 \end{equation}
 $$
@@ -446,7 +444,7 @@ if (Le) {
 }
 ```
 
-俄罗斯轮盘的概率选择方式会极大的影响渲染效果, pbrt会将路径通量权重作为俄罗斯轮盘的概率, 同时通过`etaScale`抵消折射对\\(\beta\\)的影响, 因为如果光线进入物体后又从当前介质中离开, 折射导致的\\(\beta\\)的减小会由于连续的介质变化而被抵消, 如果由于折射导致\\(\beta\\)过小很难再次离开物体会影响渲染效果. 同时pbrt会选用采样波长中的最大\\(\beta\\), 在高饱和度即部分波长的\\(\beta\\)远小于其他波长的\\(\beta\\)的情况下, 这可以有效阻止由于俄罗斯轮盘导致某一个波长的\\(\beta\\)大于\\(1\\), 因为如果采用平均值而非最大值的话无法判断\\(\beta\\)的某一项大于\\(1\\).
+俄罗斯轮盘的概率选择方式会极大的影响渲染效果, pbrt会将路径通量权重作为俄罗斯轮盘的概率, 同时通过`etaScale`抵消折射对$\beta$的影响, 因为如果光线进入物体后又从当前介质中离开, 折射导致的$\beta$的减小会由于连续的介质变化而被抵消, 如果由于折射导致$\beta$过小很难再次离开物体会影响渲染效果. 同时pbrt会选用采样波长中的最大$\beta$, 在高饱和度即部分波长的$\beta$远小于其他波长的$\beta$的情况下, 这可以有效阻止由于俄罗斯轮盘导致某一个波长的$\beta$大于$1$, 因为如果采用平均值而非最大值的话无法判断$\beta$的某一项大于$1$.
 
 ```c++
 // Possibly terminate the path with Russian roulette

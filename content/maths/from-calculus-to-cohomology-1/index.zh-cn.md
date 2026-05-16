@@ -190,33 +190,33 @@ $$\operatorname{rot} F = \begin{vmatrix} \mathbf{e}_1 & \mathbf{e}_2 & \mathbf{e
 
 设$\Sigma \subset \mathbb{R}^3$是带边光滑有向曲面, 单位法向量为$\mathbf{n}$, 边界$\partial\Sigma$按右手定则取向, 则对光滑向量场$F$有
 
-$$\iint_\Sigma \operatorname{rot} F \cdot \mathbf{n}\ d\sigma = \int_{\partial\Sigma} f_1 dx_1 + f_2 dx_2 + f_3 dx_3$$
+$$\iint_\Sigma \operatorname{rot} F \cdot \mathbf{n}\ \mathrm{d}\sigma = \int_{\partial\Sigma} f_1 \mathrm{d}x_1 + f_2 \mathrm{d}x_2 + f_3 \mathrm{d}x_3$$
 
 **证明**: 思路是先把$\Sigma$切成许多小曲面片, 在每片上验证公式, 再把所有片的等式拼成全局.
 
 把$\Sigma$剖分为充分小的曲面片$\Sigma_1, \ldots, \Sigma_n$. 曲面积分天然可加, 公式左侧拆为
 
-$$\iint_\Sigma \operatorname{rot} F \cdot \mathbf{n}\ d\sigma = \sum_i \iint_{\Sigma_i} \operatorname{rot} F \cdot \mathbf{n}\ d\sigma$$
+$$\iint_\Sigma \operatorname{rot} F \cdot \mathbf{n}\ \mathrm{d}\sigma = \sum_i \iint_{\Sigma_i} \operatorname{rot} F \cdot \mathbf{n}\ \mathrm{d}\sigma$$
 
 若能在每片上验证局部 Stokes
 
-$$\iint_{\Sigma_i} \operatorname{rot} F \cdot \mathbf{n}\ d\sigma = \int_{\partial\Sigma_i} f_1 dx_1 + f_2 dx_2 + f_3 dx_3$$
+$$\iint_{\Sigma_i} \operatorname{rot} F \cdot \mathbf{n}\ \mathrm{d}\sigma = \int_{\partial\Sigma_i} f_1 \mathrm{d}x_1 + f_2 \mathrm{d}x_2 + f_3 \mathrm{d}x_3$$
 
 把所有片的等式相加, 右侧每条内部公共边(同时属于两片的边界)在$\partial\Sigma_i, \partial\Sigma_j$中各贡献一次、走向相反, 求和后相消; 不被任何其他片共享的外部边恰好拼成原边界$\partial\Sigma$. 于是问题归约为在每片上证局部 Stokes.
 
-$$\sum_i \int_{\partial\Sigma_i} f_1 dx_1 + f_2 dx_2 + f_3 dx_3 = \int_{\partial\Sigma} f_1 dx_1 + f_2 dx_2 + f_3 dx_3$$
+$$\sum_i \int_{\partial\Sigma_i} f_1 \mathrm{d}x_1 + f_2 \mathrm{d}x_2 + f_3 \mathrm{d}x_3 = \int_{\partial\Sigma} f_1 \mathrm{d}x_1 + f_2 \mathrm{d}x_2 + f_3 \mathrm{d}x_3$$
 
 取小片充分细时, 每片可近似为其切平面内的小矩形, 误差为面积的高阶无穷小, 极限下可视为相等. 故只需在该小矩形上验证公式.
 
 选取$T$使$T\mathbf{n} = \mathbf{e}_3$(这样的$T$总存在), 则原切平面被旋转到$x_3 = 0$平面, 小矩形落入其中. 故不失一般性, 可在此标准位置上验证.
 
-设旋转后的小矩形为$R = [a, b] \times [c, d]$. 此时$\mathbf{n} = \mathbf{e}_3$, $d\sigma = dx_1 dx_2$, $dx_3 = 0$沿$\partial R$, 故只剩$f_1 dx_1 + f_2 dx_2$. 沿$\partial R$逆时针:
+设旋转后的小矩形为$R = [a, b] \times [c, d]$. 此时$\mathbf{n} = \mathbf{e}_3$, $\mathrm{d}\sigma = \mathrm{d}x_1 \mathrm{d}x_2$, $\mathrm{d}x_3 = 0$沿$\partial R$, 故只剩$f_1 \mathrm{d}x_1 + f_2 \mathrm{d}x_2$. 沿$\partial R$逆时针:
 
-$$\int_{\partial R} f_1 dx_1 + f_2 dx_2 = \int_a^b \big[f_1(x_1, c) - f_1(x_1, d)\big] dx_1 + \int_c^d \big[f_2(b, x_2) - f_2(a, x_2)\big] dx_2$$
+$$\int_{\partial R} f_1 \mathrm{d}x_1 + f_2 \mathrm{d}x_2 = \int_a^b \big[f_1(x_1, c) - f_1(x_1, d)\big] \mathrm{d}x_1 + \int_c^d \big[f_2(b, x_2) - f_2(a, x_2)\big] \mathrm{d}x_2$$
 
 对每项用Newton-Leibniz公式:
 
-$$= -\iint_R \frac{\partial f_1}{\partial x_2} dx_1 dx_2 + \iint_R \frac{\partial f_2}{\partial x_1} dx_1 dx_2 = \iint_R \left(\frac{\partial f_2}{\partial x_1} - \frac{\partial f_1}{\partial x_2}\right) d\sigma$$
+$$= -\iint_R \frac{\partial f_1}{\partial x_2} \mathrm{d}x_1 \mathrm{d}x_2 + \iint_R \frac{\partial f_2}{\partial x_1} \mathrm{d}x_1 \mathrm{d}x_2 = \iint_R \left(\frac{\partial f_2}{\partial x_1} - \frac{\partial f_1}{\partial x_2}\right) \mathrm{d}\sigma$$
 
 而$\operatorname{rot} F$的第三分量$\dfrac{\partial f_2}{\partial x_1} - \dfrac{\partial f_1}{\partial x_2} = \operatorname{rot} F \cdot \mathbf{e}_3$, 故等式成立.
 
@@ -228,13 +228,13 @@ $$= -\iint_R \frac{\partial f_1}{\partial x_2} dx_1 dx_2 + \iint_R \frac{\partia
 
 $$F(\mathbf{x}) \times \mathbf{x} = \big(f_2(\mathbf{x}) x_3 - f_3(\mathbf{x}) x_2,\ f_3(\mathbf{x}) x_1 - f_1(\mathbf{x}) x_3,\ f_1(\mathbf{x}) x_2 - f_2(\mathbf{x}) x_1\big)$$
 
-$\operatorname{rot}$是对空间变量$\mathbf{x}$的偏导$\frac{\partial}{\partial x_j}$的组合, 而$\int_0^1 \cdots dt$是对参数变量$t$的积分, 可交换次序:
+$\operatorname{rot}$是对空间变量$\mathbf{x}$的偏导$\frac{\partial}{\partial x_j}$的组合, 而$\int_0^1 \cdots \mathrm{d}t$是对参数变量$t$的积分, 可交换次序:
 
-$$\operatorname{rot} G(\mathbf{x}) = \operatorname{rot} \int_0^1 F(t\mathbf{x}) \times t\mathbf{x} \ dt = \int_0^1 \operatorname{rot}\big(F(t\mathbf{x}) \times t\mathbf{x}\big) \ dt$$
+$$\operatorname{rot} G(\mathbf{x}) = \operatorname{rot} \int_0^1 F(t\mathbf{x}) \times t\mathbf{x} \ \mathrm{d}t = \int_0^1 \operatorname{rot}\big(F(t\mathbf{x}) \times t\mathbf{x}\big) \ \mathrm{d}t$$
 
 直接计算给出:
 
-$$\operatorname{rot}\big(F(t\mathbf{x}) \times t\mathbf{x}\big) = \frac{d}{dt}\big(t^2 F(t\mathbf{x})\big)$$
+$$\operatorname{rot}\big(F(t\mathbf{x}) \times t\mathbf{x}\big) = \frac{\mathrm{d}}{\mathrm{d}t}\big(t^2 F(t\mathbf{x})\big)$$
 
 以第一分量为例验证. 由链式法则, $f_i(t\mathbf{x})$对$x_j$求偏导等于对$tx_j$求偏导再乘以$t$: $\dfrac{\partial}{\partial x_j}\big[f_i(t\mathbf{x})\big] = t\dfrac{\partial f_i(t\mathbf{x})}{\partial (tx_j)}$. 由叉积展开, $F(t\mathbf{x}) \times t\mathbf{x}$的分量为$A_2 = t\big(f_3(t\mathbf{x}) x_1 - f_1(t\mathbf{x}) x_3\big)$, $A_3 = t\big(f_1(t\mathbf{x}) x_2 - f_2(t\mathbf{x}) x_1\big)$, 故
 
@@ -250,13 +250,13 @@ $$\frac{\partial A_3}{\partial x_2} - \frac{\partial A_2}{\partial x_3} = t\left
 
 $$= 2t f_1(t\mathbf{x}) + t^2\left[\frac{\partial f_1(t\mathbf{x})}{\partial (tx_1)} x_1 + \frac{\partial f_1(t\mathbf{x})}{\partial (tx_2)} x_2 + \frac{\partial f_1(t\mathbf{x})}{\partial (tx_3)} x_3\right]$$
 
-另一方面, 由链式法则$\dfrac{d}{dt} f_1(t\mathbf{x}) = \sum_j \dfrac{\partial f_1(t\mathbf{x})}{\partial (tx_j)} x_j$, 可得两式相等:
+另一方面, 由链式法则$\dfrac{\mathrm{d}}{\mathrm{d}t} f_1(t\mathbf{x}) = \sum_j \dfrac{\partial f_1(t\mathbf{x})}{\partial (tx_j)} x_j$, 可得两式相等:
 
-$$\frac{d}{dt}\big(t^2 f_1(t\mathbf{x})\big) = 2t f_1(t\mathbf{x}) + t^2 \sum_j \frac{\partial f_1(t\mathbf{x})}{\partial (tx_j)} x_j$$
+$$\frac{\mathrm{d}}{\mathrm{d}t}\big(t^2 f_1(t\mathbf{x})\big) = 2t f_1(t\mathbf{x}) + t^2 \sum_j \frac{\partial f_1(t\mathbf{x})}{\partial (tx_j)} x_j$$
 
 代入可得:
 
-$$\operatorname{rot} G(\mathbf{x}) = \int_0^1 \frac{d}{dt}\big(t^2 F(t\mathbf{x})\big) \ dt = \Big[t^2 F(t\mathbf{x})\Big]_0^1 = 1^2 \cdot F(\mathbf{x}) - 0 = F(\mathbf{x})$$
+$$\operatorname{rot} G(\mathbf{x}) = \int_0^1 \frac{\mathrm{d}}{\mathrm{d}t}\big(t^2 F(t\mathbf{x})\big) \ \mathrm{d}t = \Big[t^2 F(t\mathbf{x})\Big]_0^1 = 1^2 \cdot F(\mathbf{x}) - 0 = F(\mathbf{x})$$
 
 故$F = \operatorname{rot} G \in \operatorname{Im}(\operatorname{rot})$. 由$F$任意, $\operatorname{Ker}(\operatorname{div}) \subseteq \operatorname{Im}(\operatorname{rot})$; 又$\operatorname{div} \circ \operatorname{rot} = 0$给出反向包含, 故$\operatorname{Ker}(\operatorname{div}) = \operatorname{Im}(\operatorname{rot})$, 即
 
@@ -290,11 +290,11 @@ $$\frac{\partial g}{\partial u} = -\frac{v}{u^2+v^2},\qquad \frac{\partial g}{\p
 
 根据链式法则
 
-$$\frac{d}{du}\arctan\frac{u}{v} = \frac{1}{v} \cdot \frac{1}{1+\left(\dfrac{u}{v}\right)^2} = \frac{v}{u^2+v^2}$$
+$$\frac{\mathrm{d}}{\mathrm{d}u}\arctan\frac{u}{v} = \frac{1}{v} \cdot \frac{1}{1+\left(\dfrac{u}{v}\right)^2} = \frac{v}{u^2+v^2}$$
 
 对$u$积分(把$v$视为常数):
 
-$$g(u, v) = \int -\frac{v}{u^2+v^2}\,du = -\arctan\frac{u}{v} + C(v)$$
+$$g(u, v) = \int -\frac{v}{u^2+v^2}\,\mathrm{d}u = -\arctan\frac{u}{v} + C(v)$$
 
 对$v$求偏导匹配另一式:
 
