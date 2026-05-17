@@ -2,7 +2,7 @@
   description = "blog devenv";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     tsssni = {
       url = "github:tsssni/tsssni.nix";
       inputs.nixpkgs.follows = "nixpkgs";

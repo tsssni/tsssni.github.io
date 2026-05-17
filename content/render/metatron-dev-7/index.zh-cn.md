@@ -153,7 +153,7 @@ public struct buf<T> {
 }
 ```
 
-`tag<T>`由于MSL不支持多重指针, 这里需要先转为Ptr<uptr>, 再转为Ptr<T>.
+`tag<T>`由于MSL不支持多重指针, 这里需要先转为`Ptr<uptr>`, 再转为`Ptr<T>`.
 
 ```slang
 public struct tag<T> {
