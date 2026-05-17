@@ -3,11 +3,16 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    tsssni = {
+      url = "github:tsssni/tsssni.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       nixpkgs,
+      tsssni,
       ...
     }:
     let
@@ -25,29 +30,21 @@
       devShells = mapSystems (
         system:
         let
-          pkgs = import nixpkgs { inherit system; };
-          ibm-plex-web = pkgs.ibm-plex.overrideAttrs (old: {
-            src = old.src.overrideAttrs (_: {
-              postBuild = ''
-                find "$out" \( -name hinted -or -name unhinted \) -exec rm -fr {} +
-              '';
-            });
-            postInstall = (old.postInstall or "") + ''
-              mkdir -p $webfont
-              cp -r $src/css $src/fonts $webfont/
-            '';
-          });
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = tsssni.pkgs;
+          };
         in
         {
           default = pkgs.mkShell.override { stdenv = pkgs.stdenvNoCC; } {
             shellHook = ''
               export SHELL=nu
-              export IBM_PLEX_WEB=${ibm-plex-web.webfont}
+              export IBM_PLEX_WEB=${pkgs.ibm-plex.webfont}/share/fonts
             '';
             packages = with pkgs; [
               hugo
               nodejs
-              ibm-plex-web
+              ibm-plex
             ];
           };
         }

@@ -1,5 +1,5 @@
 ---
-title: "De Rham Cohomology I"
+title: "De Rham Cohomology I: 引言"
 date: 2026-05-10
 draft: false
 description: "from culculus to cohomology"
