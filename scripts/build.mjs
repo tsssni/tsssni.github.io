@@ -1,12 +1,12 @@
 import { spawnSync } from 'node:child_process';
-import { dyeing } from './highlight.mjs';
-import { copyFonts } from './fonts.mjs';
+import { fetchFonts } from './fonts.mjs';
+import { fetchGrammars } from './grammars.mjs';
 
-await copyFonts();
-console.log('fonts: copied IBM Plex');
+await fetchFonts();
+console.log('fonts: fetched');
+
+await fetchGrammars();
+console.log('grammars: fetched');
 
 const hugo = spawnSync('hugo', { stdio: 'inherit' });
 if (hugo.status !== 0) process.exit(hugo.status ?? 1);
-
-const { processed, blocksReplaced } = await dyeing();
-console.log(`shiki: processed ${processed} files, replaced ${blocksReplaced} code blocks`);

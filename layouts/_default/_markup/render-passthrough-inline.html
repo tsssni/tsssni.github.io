@@ -1,3 +1,0 @@
-{{- with try (transform.ToMath .Inner (dict "output" "htmlAndMathml")) -}}
-  {{- with .Err }}{{ errorf "%s: %s" $.Position . }}{{ else }}{{ .Value }}{{ end -}}
-{{- end -}}

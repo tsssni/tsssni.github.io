@@ -1,18 +1,6 @@
-{{ $katexCSS := resources.Get "lib/katex/katex.min.css" | resources.Fingerprint "sha512" }}
-<link type="text/css" rel="stylesheet" href="{{ $katexCSS.RelPermalink }}" integrity="{{ $katexCSS.Data.Integrity }}" />
-{{ range resources.Match "lib/katex/fonts/*" }}
-<!-- {{ .RelPermalink }} -->
-{{ end }}
-
-{{ $planaCSS := resources.Get "css/plana.css" | resources.Fingerprint "sha512" }}
-<link type="text/css" rel="stylesheet" href="{{ $planaCSS.RelPermalink }}" integrity="{{ $planaCSS.Data.Integrity }}" />
+<link rel="stylesheet" href="/fonts/css/ibm-plex-sans-default.css" />
+<link rel="stylesheet" href="/fonts/css/ibm-plex-mono-default.css" />
 
 {{ if hugo.IsServer }}
 <script src="http://localhost:35729/livereload.js?snipver=1"></script>
 {{ end }}
-
-{{ $vimkeys := resources.Get "js/vimkeys.js" | resources.Fingerprint "sha512" }}
-<script defer src="{{ $vimkeys.RelPermalink }}" integrity="{{ $vimkeys.Data.Integrity }}"></script>
-
-{{ $appSwitch := resources.Get "js/appearance-switch.js" | resources.ExecuteAsTemplate "js/appearance-switch.js" . | resources.Minify | resources.Fingerprint "sha512" }}
-<script src="{{ $appSwitch.RelPermalink }}" integrity="{{ $appSwitch.Data.Integrity }}"></script>

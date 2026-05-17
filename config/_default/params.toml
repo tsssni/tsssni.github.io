@@ -1,9 +1,10 @@
 colorScheme = "plana"
-defaultAppearance = "light"
+defaultAppearance = "dark"
 autoSwitchAppearance = true
-enableSearch = false
+enableSearch = true
 enableCodeCopy = false
-mainSections = [ "render", "unix", "maths", "acgn", "about" ]
+shikiTheme = "plana"
+mainSections = [ "render", "maths", "unix", "acgn", "about" ]
 disableImageOptimization = false
 disableTextInHeader = false
 defaultFeaturedImage = "plana.png"
@@ -20,13 +21,14 @@ showScrollToTop = true
 
 [homepage]
 layout = "background"
+showTitle = false
 showRecent = true
 showRecentItems = 5
 showMoreLink = false
 showMoreLinkDest = "/posts"
 cardView = false
 cardViewScreenWidth = false
-layoutBackgroundBlur = true
+layoutBackgroundBlur = false
 
 [article]
 showDate = true
@@ -36,7 +38,7 @@ showDateOnlyInArticle = false
 showDateUpdated = false
 showAuthor = true
 showHero = true
-layoutBackgroundBlur = true
+layoutBackgroundBlur = false
 layoutBackgroundHeaderSpace = true
 showBreadcrumbs = false
 showDraftLabel = true
@@ -57,7 +59,7 @@ heroStyle = "basic"
 
 [list]
 showHero = true
-layoutBackgroundBlur = true
+layoutBackgroundBlur = false
 layoutBackgroundHeaderSpace = true
 showBreadcrumbs = false
 showSummary = false
