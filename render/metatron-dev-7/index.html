@@ -373,7 +373,7 @@
     "keywords": ["graphics","rendering","metatron","metal","vulkan"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "2554"
+    "wordCount": "2575"
   }]
   </script>
 
@@ -1069,7 +1069,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-01-09T00:00:00&#43;00:00">2026 January 9</time><span class="px-2 text-primary-500">&middot;</span><span>2554 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">6 分钟</span>
+      <time datetime="2026-01-09T00:00:00&#43;00:00">2026 January 9</time><span class="px-2 text-primary-500">&middot;</span><span>2575 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">6 分钟</span>
     
 
     
@@ -1438,7 +1438,7 @@ struct tag final {
     public __subscript(u32 i) -&gt; T { get { return Ptr&lt;T&gt;(ptr)[i]; } }
 }
 </code></pre>
-<p><code>tag&lt;T&gt;</code>由于MSL不支持多重指针, 这里需要先转为Ptr<!-- raw HTML omitted -->, 再转为Ptr<!-- raw HTML omitted -->.</p>
+<p><code>tag&lt;T&gt;</code>由于MSL不支持多重指针, 这里需要先转为<code>Ptr&lt;uptr&gt;</code>, 再转为<code>Ptr&lt;T&gt;</code>.</p>
 <pre><code class="language-slang">public struct tag&lt;T&gt; {
     public u32 idx;
     public func get() -&gt; Ptr&lt;T&gt; {
@@ -1521,6 +1521,19 @@ struct tag final {
           
         </span>
         <span class="flex flex-col items-end">
+          
+            <a
+              class="flex text-right text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400"
+              href="/render/interview-1/">
+              <span class="leading-6">
+                Interview: Metal + Asahi Linux分析Apple Silicon GPU架构&ensp;<span class="inline-block rtl:rotate-180">&rarr;</span>
+              </span>
+            </a>
+            
+              <span class="me-6 mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time>
+              </span>
+            
           
         </span>
       </div>
