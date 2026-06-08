@@ -1,9 +1,9 @@
 ---
-title: "Interview: Metal + Asahi Linux分析Apple Silicon GPU架构"
+title: "Interview I: Metal + Asahi分析Apple Silicon GPU架构"
 date: 2026-06-06
 draft: false
 description: "interview"
-tags: ["graphics", "rendering", "cpp"]
+tags: ["graphics", "rendering", "gpu"]
 ---
 
 ## Rasterizer
@@ -47,3 +47,55 @@ $$
 b_i &= \frac{s_i / w_i}{\sum_j s_j / w_j}
 \end{aligned}
 $$
+
+## Descriptor
+
+### Descriptor Buffer
+
+`VK_EXT_descriptor_buffer`使得descriptor set暴露底层的`VkBuffer`, 可直接操作该buffer, 通过一系列接口暴露descriptor offset/size等信息来执行更新. vulkan descriptor size不等长, 驱动也可能对重排用户声明的descriptor顺序, 因此必须事先查询.
+
+硬件可能特殊处理sampler, 例如hk定义了长度1024, 全局唯一的`hk_sampler_heap`, 创建sampler时写入该heap并去重, descriptor set中只存储指向该堆的索引.
+
+### Descriptor Heap
+
+`VK_EXT_descriptor_heap`可以兼容d3d12 descriptor heap, 不再有隐含的descriptor重排. 若在hlsl中用`ResourceDescriptorHeap`访问任意类型descriptor, 需要保持descriptor等长, 可用最大descriptor size作为统一stride.
+
+### Descriptor Pool
+
+对于许多现代设备, descriptor pool底层与descriptor buffer一致. 例如hk的descriptor pool封装的是可以容纳最大数量descriptor set的heap, 分配set时从heap中分配内存.
+
+旧设备/嵌入式设备的descriptor set可能封装了其它分配/绑定方式, 例如raspberry pi v3dv使用openg时代的做法, 将uniform设置为地址或值; 更旧的硬件可能直接将descriptor写入寄存器.
+
+### Push Constants
+
+hk push constants位于`hk_root_descriptor_table`, 在command buffer中共享. push constants被上传到显存, 设置uniform寄存器为地址.
+
+### Inline Uniform Block
+
+inline unifomr block将ubo数据直接写入descriptor set内存而非描述符, hk编译期将ubo访问翻译为在descriptor set中寻址.
+
+## Synchronization
+
+### Image Layout
+
+[So Long, Image Layouts: Simplifying Vulkan Synchronization](https://www.khronos.org/blog/so-long-image-layouts-simplifying-vulkan-synchronisation)阐明了image layout出现的原因: 初始化, 外部组件共享, 内部格式解析. 前两者现代GPU依然需要, 例如将图片转为显示引擎可读的格式.
+
+内部格式解析在大部分设备上已不再重要, `VK_KHR_unified_image_layout`启用后保证`VK_IMAGE_LAYOUT_GENERAL`具有最高效率. 例如hk/nvk在图像创建时解析是否可以压缩, 绑定内存时设置压缩元数据, 后续交给硬件处理.
+
+RADV驱动中依然依赖image layout执行格式解析, 因此`VK_KHR_unified_image_layout`不受支持, 例如:
+- htile(hierarchical tile)
+    - src: `VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL`
+    - dst: `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`
+    - 在受支持的设备使用htile压缩depth attachment, 若非texture cache compatible则触发解压
+- dcc(delta color compression)
+    - src: `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`
+    - dst: `VK_IMAGE_LAYOUT_GENERAL`
+    - 在受支持的设备使用dcc压缩color attachment, compute engine上转换为`VK_IMAGE_LAYOUT_GENERAL`代表image可写, 不识别dcc的旧硬件使用通用内存格式, 需要解压.
+- 片元掩码(fragment mask)
+    - src: `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`
+    - dst: `VK_IMAGE_LAYOUT_GENERAL`
+    - 4样本MSAA像素覆盖两个三角形, 只写入两种颜色以降低带宽, 用于索引的fmask设为[0, 0, 1, 1], 后续写入退化为完整存储4个样本.
+- 快速清屏消除(fast clear eliminate)
+    - src: `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`
+    - dst: `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`
+    - 非texture cache compatible MSAA图像无法读取快速清屏值, layout转移触发将该值写入MSAA样本
