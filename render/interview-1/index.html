@@ -14,8 +14,8 @@
 
   
   
-    <title>Interview: Metal &#43; Asahi Linux分析Apple Silicon GPU架构 &middot; TSSSNI&#39;S BLOG</title>
-    <meta name="title" content="Interview: Metal &#43; Asahi Linux分析Apple Silicon GPU架构 &middot; TSSSNI&#39;S BLOG">
+    <title>Interview I: Metal &#43; Asahi分析Apple Silicon GPU架构 &middot; TSSSNI&#39;S BLOG</title>
+    <meta name="title" content="Interview I: Metal &#43; Asahi分析Apple Silicon GPU架构 &middot; TSSSNI&#39;S BLOG">
   
 
   
@@ -33,7 +33,7 @@
     <meta name="description" content="interview">
   
   
-    <meta name="keywords" content="graphics,rendering,cpp,">
+    <meta name="keywords" content="graphics,rendering,gpu,">
   
   
   
@@ -48,7 +48,7 @@
   
   <meta property="og:url" content="https://tsssni.github.io/render/interview-1/">
   <meta property="og:site_name" content="TSSSNI&#39;S BLOG">
-  <meta property="og:title" content="Interview: Metal &#43; Asahi Linux分析Apple Silicon GPU架构">
+  <meta property="og:title" content="Interview I: Metal &#43; Asahi分析Apple Silicon GPU架构">
   <meta property="og:description" content="interview">
   <meta property="og:locale" content="zh_cn">
   <meta property="og:type" content="article">
@@ -57,13 +57,13 @@
     <meta property="article:modified_time" content="2026-06-06T00:00:00+00:00">
     <meta property="article:tag" content="Graphics">
     <meta property="article:tag" content="Rendering">
-    <meta property="article:tag" content="Cpp">
+    <meta property="article:tag" content="Gpu">
     <meta property="og:image" content="https://tsssni.github.io/render/interview-1/featured.jpg">
 
   
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://tsssni.github.io/render/interview-1/featured.jpg">
-  <meta name="twitter:title" content="Interview: Metal &#43; Asahi Linux分析Apple Silicon GPU架构">
+  <meta name="twitter:title" content="Interview I: Metal &#43; Asahi分析Apple Silicon GPU架构">
   <meta name="twitter:description" content="interview">
 
   
@@ -353,8 +353,8 @@
     "@context": "https://schema.org",
     "@type": "Article",
     "articleSection": "Render",
-    "name": "Interview: Metal \u002b Asahi Linux分析Apple Silicon GPU架构",
-    "headline": "Interview: Metal \u002b Asahi Linux分析Apple Silicon GPU架构",
+    "name": "Interview I: Metal \u002b Asahi分析Apple Silicon GPU架构",
+    "headline": "Interview I: Metal \u002b Asahi分析Apple Silicon GPU架构",
     "description": "interview",
     "inLanguage": "zh-cn",
     "url" : "https://tsssni.github.io/render/interview-1/",
@@ -368,10 +368,10 @@
     
     "dateModified": "2026-06-06T00:00:00\u002b00:00",
     
-    "keywords": ["graphics","rendering","cpp"],
+    "keywords": ["graphics","rendering","gpu"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "912"
+    "wordCount": "2264"
   }]
   </script>
 
@@ -1015,7 +1015,7 @@
     <header id="single_header" class="mt-5 max-w-prose">
       
       <h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
-        Interview: Metal + Asahi Linux分析Apple Silicon GPU架构
+        Interview I: Metal + Asahi分析Apple Silicon GPU架构
       </h1>
       <div class="mt-1 mb-6 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
         
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>912 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">2 分钟</span>
+      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>2264 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">5 分钟</span>
     
 
     
@@ -1137,7 +1137,7 @@
             
             
               
-                <a class="relative mt-[0.5rem] me-2" href="/tags/cpp/">
+                <a class="relative mt-[0.5rem] me-2" href="/tags/gpu/">
                   <span class="flex cursor-pointer">
   
   
@@ -1146,7 +1146,7 @@
     <span
       class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
   
-    Cpp
+    Gpu
   </span>
 </span>
 
@@ -1218,6 +1218,20 @@
     <nav id="TableOfContents">
   <ul>
     <li><a href="#rasterizer">Rasterizer</a></li>
+    <li><a href="#descriptor">Descriptor</a>
+      <ul>
+        <li><a href="#descriptor-buffer">Descriptor Buffer</a></li>
+        <li><a href="#descriptor-heap">Descriptor Heap</a></li>
+        <li><a href="#descriptor-pool">Descriptor Pool</a></li>
+        <li><a href="#push-constants">Push Constants</a></li>
+        <li><a href="#inline-uniform-block">Inline Uniform Block</a></li>
+      </ul>
+    </li>
+    <li><a href="#synchronization">Synchronization</a>
+      <ul>
+        <li><a href="#image-layout">Image Layout</a></li>
+      </ul>
+    </li>
   </ul>
 </nav>
   </div>
@@ -1232,6 +1246,20 @@
     <nav id="TableOfContents">
   <ul>
     <li><a href="#rasterizer">Rasterizer</a></li>
+    <li><a href="#descriptor">Descriptor</a>
+      <ul>
+        <li><a href="#descriptor-buffer">Descriptor Buffer</a></li>
+        <li><a href="#descriptor-heap">Descriptor Heap</a></li>
+        <li><a href="#descriptor-pool">Descriptor Pool</a></li>
+        <li><a href="#push-constants">Push Constants</a></li>
+        <li><a href="#inline-uniform-block">Inline Uniform Block</a></li>
+      </ul>
+    </li>
+    <li><a href="#synchronization">Synchronization</a>
+      <ul>
+        <li><a href="#image-layout">Image Layout</a></li>
+      </ul>
+    </li>
   </ul>
 </nav>
   </div>
@@ -1287,6 +1315,126 @@ T(\mathbf{P})
 b_i &amp;= \frac{s_i / w_i}{\sum_j s_j / w_j}
 \end{aligned}
 </annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:8.6595em;vertical-align:-4.0797em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.5797em;"><span style="top:-6.648em;"><span class="pstrut" style="height:3.4397em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-3.7865em;"><span class="pstrut" style="height:3.4397em;"></span><span class="mord"><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-0.7818em;"><span class="pstrut" style="height:3.4397em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:4.0797em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.5797em;"><span style="top:-6.648em;"><span class="pstrut" style="height:3.4397em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.1218em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-3.7865em;"><span class="pstrut" style="height:3.4397em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4397em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.6897em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.1218em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.1218em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-0.7818em;"><span class="pstrut" style="height:3.4397em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.1218em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:4.0797em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+<h2 class="relative group">Descriptor
+    <div id="descriptor" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#descriptor" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+
+<h3 class="relative group">Descriptor Buffer
+    <div id="descriptor-buffer" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#descriptor-buffer" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p><code>VK_EXT_descriptor_buffer</code>使得descriptor set暴露底层的<code>VkBuffer</code>, 可直接操作该buffer, 通过一系列接口暴露descriptor offset/size等信息来执行更新. vulkan descriptor size不等长, 驱动也可能对重排用户声明的descriptor顺序, 因此必须事先查询.</p>
+<p>硬件可能特殊处理sampler, 例如hk定义了长度1024, 全局唯一的<code>hk_sampler_heap</code>, 创建sampler时写入该heap并去重, descriptor set中只存储指向该堆的索引.</p>
+
+<h3 class="relative group">Descriptor Heap
+    <div id="descriptor-heap" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#descriptor-heap" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p><code>VK_EXT_descriptor_heap</code>可以兼容d3d12 descriptor heap, 不再有隐含的descriptor重排. 若在hlsl中用<code>ResourceDescriptorHeap</code>访问任意类型descriptor, 需要保持descriptor等长, 可用最大descriptor size作为统一stride.</p>
+
+<h3 class="relative group">Descriptor Pool
+    <div id="descriptor-pool" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#descriptor-pool" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p>对于许多现代设备, descriptor pool底层与descriptor buffer一致. 例如hk的descriptor pool封装的是可以容纳最大数量descriptor set的heap, 分配set时从heap中分配内存.</p>
+<p>旧设备/嵌入式设备的descriptor set可能封装了其它分配/绑定方式, 例如raspberry pi v3dv使用openg时代的做法, 将uniform设置为地址或值; 更旧的硬件可能直接将descriptor写入寄存器.</p>
+
+<h3 class="relative group">Push Constants
+    <div id="push-constants" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#push-constants" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p>hk push constants位于<code>hk_root_descriptor_table</code>, 在command buffer中共享. push constants被上传到显存, 设置uniform寄存器为地址.</p>
+
+<h3 class="relative group">Inline Uniform Block
+    <div id="inline-uniform-block" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#inline-uniform-block" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p>inline unifomr block将ubo数据直接写入descriptor set内存而非描述符, hk编译期将ubo访问翻译为在descriptor set中寻址.</p>
+
+<h2 class="relative group">Synchronization
+    <div id="synchronization" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#synchronization" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+
+<h3 class="relative group">Image Layout
+    <div id="image-layout" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#image-layout" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p><a href="https://www.khronos.org/blog/so-long-image-layouts-simplifying-vulkan-synchronisation"  target="_blank" rel="noreferrer">So Long, Image Layouts: Simplifying Vulkan Synchronization</a>阐明了image layout出现的原因: 初始化, 外部组件共享, 内部格式解析. 前两者现代GPU依然需要, 例如将图片转为显示引擎可读的格式.</p>
+<p>内部格式解析在大部分设备上已不再重要, <code>VK_KHR_unified_image_layout</code>启用后保证<code>VK_IMAGE_LAYOUT_GENERAL</code>具有最高效率. 例如hk/nvk在图像创建时解析是否可以压缩, 绑定内存时设置压缩元数据, 后续交给硬件处理.</p>
+<p>RADV驱动中依然依赖image layout执行格式解析, 因此<code>VK_KHR_unified_image_layout</code>不受支持, 例如:</p>
+<ul>
+<li>htile(hierarchical tile)
+<ul>
+<li>src: <code>VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL</code></li>
+<li>dst: <code>VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL</code></li>
+<li>在受支持的设备使用htile压缩depth attachment, 若非texture cache compatible则触发解压</li>
+</ul>
+</li>
+<li>dcc(delta color compression)
+<ul>
+<li>src: <code>VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL</code></li>
+<li>dst: <code>VK_IMAGE_LAYOUT_GENERAL</code></li>
+<li>在受支持的设备使用dcc压缩color attachment, compute engine上转换为<code>VK_IMAGE_LAYOUT_GENERAL</code>代表image可写, 不识别dcc的旧硬件使用通用内存格式, 需要解压.</li>
+</ul>
+</li>
+<li>片元掩码(fragment mask)
+<ul>
+<li>src: <code>VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL</code></li>
+<li>dst: <code>VK_IMAGE_LAYOUT_GENERAL</code></li>
+<li>4样本MSAA像素覆盖两个三角形, 只写入两种颜色以降低带宽, 用于索引的fmask设为[0, 0, 1, 1], 后续写入退化为完整存储4个样本.</li>
+</ul>
+</li>
+<li>快速清屏消除(fast clear eliminate)
+<ul>
+<li>src: <code>VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL</code></li>
+<li>dst: <code>VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL</code></li>
+<li>非texture cache compatible MSAA图像无法读取快速清屏值, layout转移触发将该值写入MSAA样本</li>
+</ul>
+</li>
+</ul>
+
           
           
           
