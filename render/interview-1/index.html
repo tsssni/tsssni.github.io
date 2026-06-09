@@ -371,7 +371,7 @@
     "keywords": ["graphics","rendering","gpu"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "3011"
+    "wordCount": "3204"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>3011 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">7 分钟</span>
+      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>3204 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">7 分钟</span>
     
 
     
@@ -1222,11 +1222,7 @@
       <ul>
         <li><a href="#command-pool">Command Pool</a></li>
         <li><a href="#command-buffer">Command Buffer</a></li>
-        <li><a href="#command-encoder">Command Encoder</a>
-          <ul>
-            <li><a href="#render-pass">Render Pass</a></li>
-          </ul>
-        </li>
+        <li><a href="#command-encoder">Command Encoder</a></li>
       </ul>
     </li>
     <li><a href="#descriptor">Descriptor</a>
@@ -1261,11 +1257,7 @@
       <ul>
         <li><a href="#command-pool">Command Pool</a></li>
         <li><a href="#command-buffer">Command Buffer</a></li>
-        <li><a href="#command-encoder">Command Encoder</a>
-          <ul>
-            <li><a href="#render-pass">Render Pass</a></li>
-          </ul>
-        </li>
+        <li><a href="#command-encoder">Command Encoder</a></li>
       </ul>
     </li>
     <li><a href="#descriptor">Descriptor</a>
@@ -1378,17 +1370,8 @@ b_i &amp;= \frac{s_i / w_i}{\sum_j s_j / w_j}
     </span>
     
 </h3>
-
-<h4 class="relative group">Render Pass
-    <div id="render-pass" class="anchor"></div>
-    
-    <span
-        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
-        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#render-pass" aria-label="锚点">#</a>
-    </span>
-    
-</h4>
-<p>hk只实现了<code>VK_KHR_dynamic_rendering</code>, <code>vkCmdBeginRendering</code>和<code>vkCmdEndRendering</code>标记tile绘制边界. subpass在mesa中由dynamic rendering模拟, 多个subpass间的tile复用退化为显存读写.</p>
+<p>Metal的command encoder负责标记状态共享边界与命令同步, 例如<code>MTLRenderCommandEncoder</code>标记tile复用边界, 同时提供<code>MTL(Compute|AccelerationStructure|Blit)CommandEncoder</code>等丰富的作用域控制功能.</p>
+<p>Vulkan除render pass外使用command buffer全局共享状态, <code>vkCmd(Begin|end)(RenderPass|Rendering)</code>对应<code>MTLRenderCommandEncoder</code>. hk实现了<code>VK_KHR_dynamic_rendering</code>, subpass在mesa中由dynamic rendering模拟, 多个subpass间的tile复用退化为显存读写.</p>
 <p><code>vkCmdBeginRendering</code>中, hk会执行多项准备工作, 例如:</p>
 <ol>
 <li>基于color attachment的alignment排序, 最大化每个sample可用空间的利用率, hk中每个sample最多占用64字节</li>
@@ -1416,7 +1399,7 @@ b_i &amp;= \frac{s_i / w_i}{\sum_j s_j / w_j}
     </span>
     
 </h3>
-<p><code>VK_EXT_descriptor_buffer</code>使得descriptor set暴露底层的<code>VkBuffer</code>, 可直接操作该buffer, 通过一系列接口暴露descriptor offset/size等信息来执行更新. vulkan descriptor size不等长, 驱动也可能对重排用户声明的descriptor顺序, 因此必须事先查询.</p>
+<p><code>VK_EXT_descriptor_buffer</code>使得descriptor set暴露底层的<code>VkBuffer</code>, 可直接操作该buffer, 通过一系列接口暴露descriptor offset/size等信息来执行更新. Vulkan descriptor size不等长, 驱动也可能对重排用户声明的descriptor顺序, 因此必须事先查询.</p>
 <p>硬件可能特殊处理sampler, 例如hk定义了长度1024, 全局唯一的<code>hk_sampler_heap</code>, 创建sampler时写入该heap并去重, descriptor set中只存储指向该堆的索引.</p>
 
 <h3 class="relative group">Descriptor Heap
