@@ -371,7 +371,7 @@
     "keywords": ["graphics","rendering","gpu"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "3204"
+    "wordCount": "3443"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>3204 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">7 分钟</span>
+      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>3443 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">7 分钟</span>
     
 
     
@@ -1223,6 +1223,7 @@
         <li><a href="#command-pool">Command Pool</a></li>
         <li><a href="#command-buffer">Command Buffer</a></li>
         <li><a href="#command-encoder">Command Encoder</a></li>
+        <li><a href="#command-queue">Command Queue</a></li>
       </ul>
     </li>
     <li><a href="#descriptor">Descriptor</a>
@@ -1258,6 +1259,7 @@
         <li><a href="#command-pool">Command Pool</a></li>
         <li><a href="#command-buffer">Command Buffer</a></li>
         <li><a href="#command-encoder">Command Encoder</a></li>
+        <li><a href="#command-queue">Command Queue</a></li>
       </ul>
     </li>
     <li><a href="#descriptor">Descriptor</a>
@@ -1348,7 +1350,7 @@ b_i &amp;= \frac{s_i / w_i}{\sum_j s_j / w_j}
     </span>
     
 </h3>
-<p>mesa中的command pool负责在cpu分配和回收command buffer, 即使用户将command buffer作为一次性对象来频繁销毁创建, mesa中也足够高效. hk的实现中, command pool同时为它所分配的所有command buffer管理显存分配.</p>
+<p>Mesa中的command pool负责在CPU分配和回收command buffer, 即使用户将command buffer作为一次性对象来频繁销毁创建, mesa中也足够高效. hk的实现中, command pool同时为它所分配的所有command buffer管理显存分配.</p>
 
 <h3 class="relative group">Command Buffer
     <div id="command-buffer" class="anchor"></div>
@@ -1359,7 +1361,7 @@ b_i &amp;= \frac{s_i / w_i}{\sum_j s_j / w_j}
     </span>
     
 </h3>
-<p>hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在cpu状态机中, 若调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据由command buffer管理显存, 因此为保证数据有效, command buffer不能在执行完成前重置. hk单独分配usc(unified shader core)启动命令, agx要求它们位于虚拟地址低位, 例如descriptor set地址.</p>
+<p>hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在CPU状态机中, 若调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据由command buffer管理显存, 因此为保证数据有效, command buffer不能在执行完成前重置. hk单独分配usc(unified shader core)启动命令, agx要求它们位于虚拟地址低位, 例如descriptor set地址.</p>
 
 <h3 class="relative group">Command Encoder
     <div id="command-encoder" class="anchor"></div>
@@ -1379,6 +1381,17 @@ b_i &amp;= \frac{s_i / w_i}{\sum_j s_j / w_j}
 <li>处理partial render, 例如tile处理的图元过多, 只能部分绘制, 需要写回显存, 加载剩余图元后回读并继续</li>
 <li>非全屏绘制时, 某些tile可能只有一部分位于绘制范围, 因此无法使用tile粒度的fast clear, 执行软件实现</li>
 </ol>
+
+<h3 class="relative group">Command Queue
+    <div id="command-queue" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#command-queue" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p><code>MTLCommandQueue</code>/<code>VkQueue</code>对应GPU上的的命令提交前端, 它负责发送命令, 执行屏障. <code>VkQueueFamilyProperties</code>的<code>queueCount</code>和<code>queueFlags</code>表示提交前端的并发数量与处理能力. <code>MTLCommandQueue</code>不暴露<code>queueFlags</code>, 相当于通用queue. AGX底层拥有多个硬件前端, 在Metal中切换encoder可能触发前端切换. 例如hk使用render和compute两种, 但逻辑上只暴露1个queue并串行化命令.</p>
 
 <h2 class="relative group">Descriptor
     <div id="descriptor" class="anchor"></div>
