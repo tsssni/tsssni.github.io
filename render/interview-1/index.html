@@ -371,7 +371,7 @@
     "keywords": ["graphics","rendering","gpu"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "2638"
+    "wordCount": "3011"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>2638 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">6 分钟</span>
+      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>3011 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">7 分钟</span>
     
 
     
@@ -1222,6 +1222,11 @@
       <ul>
         <li><a href="#command-pool">Command Pool</a></li>
         <li><a href="#command-buffer">Command Buffer</a></li>
+        <li><a href="#command-encoder">Command Encoder</a>
+          <ul>
+            <li><a href="#render-pass">Render Pass</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
     <li><a href="#descriptor">Descriptor</a>
@@ -1256,6 +1261,11 @@
       <ul>
         <li><a href="#command-pool">Command Pool</a></li>
         <li><a href="#command-buffer">Command Buffer</a></li>
+        <li><a href="#command-encoder">Command Encoder</a>
+          <ul>
+            <li><a href="#render-pass">Render Pass</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
     <li><a href="#descriptor">Descriptor</a>
@@ -1357,8 +1367,35 @@ b_i &amp;= \frac{s_i / w_i}{\sum_j s_j / w_j}
     </span>
     
 </h3>
-<p>hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在cpu状态机中, 若实际调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据也由command buffer管理, shader使用command buffer持有的地址. 因此为保证数据有效, command buffer不能在执行完成前重置.</p>
-<p>hk单独分配usc(unified shader core)启动命令, apple silicon要求它们位于虚拟地址低位, 例如shader代码地址, descriptor set地址.</p>
+<p>hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在cpu状态机中, 若调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据由command buffer管理显存, 因此为保证数据有效, command buffer不能在执行完成前重置. hk单独分配usc(unified shader core)启动命令, agx要求它们位于虚拟地址低位, 例如descriptor set地址.</p>
+
+<h3 class="relative group">Command Encoder
+    <div id="command-encoder" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#command-encoder" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+
+<h4 class="relative group">Render Pass
+    <div id="render-pass" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#render-pass" aria-label="锚点">#</a>
+    </span>
+    
+</h4>
+<p>hk只实现了<code>VK_KHR_dynamic_rendering</code>, <code>vkCmdBeginRendering</code>和<code>vkCmdEndRendering</code>标记tile绘制边界. subpass在mesa中由dynamic rendering模拟, 多个subpass间的tile复用退化为显存读写.</p>
+<p><code>vkCmdBeginRendering</code>中, hk会执行多项准备工作, 例如:</p>
+<ol>
+<li>基于color attachment的alignment排序, 最大化每个sample可用空间的利用率, hk中每个sample最多占用64字节</li>
+<li>sample最大空间无法容纳所有attachment, 需要将溢出部分驻留显存, agx无法处理显存中的压缩格式, 需要解压</li>
+<li>处理partial render, 例如tile处理的图元过多, 只能部分绘制, 需要写回显存, 加载剩余图元后回读并继续</li>
+<li>非全屏绘制时, 某些tile可能只有一部分位于绘制范围, 因此无法使用tile粒度的fast clear, 执行软件实现</li>
+</ol>
 
 <h2 class="relative group">Descriptor
     <div id="descriptor" class="anchor"></div>
