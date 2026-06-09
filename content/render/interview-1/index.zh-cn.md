@@ -102,6 +102,27 @@ inline unifomr block将ubo数据直接写入descriptor set内存而非描述符,
 
 ## Synchronization
 
+### Stage
+
+Vulkan认为管线在GPU上是完全并行的, 阶段屏障提供细粒度执行顺序控制实现最大效率. 若上个管线后续阶段不修改当前管线的依赖, 当前管线不再阻塞; 当前管线前置阶段没有依赖, 可前进到有依赖关系的阶段再阻塞.
+
+### Access
+
+访问屏障用于内存一致性保证, 以RADV为例:
+
+- RAW
+    - src: `VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT`
+    - dst: `VK_ACCESS_SHADER_SAMPLED_READ_BIT`
+    - `FLUSH_AND_INV_CB`将color buffer cache写回L2, `INV_VCACHE`强制L0/L1失效
+- WAR
+    - src: `VK_ACCESS_SHADER_SAMPLED_READ_BIT`
+    - dst: `VK_ACCESS_TRANSFER_WRITE_BIT`
+    - `PS_PARTIAL_FLUSH`等待读取完成
+- WAW
+    - src: `VK_ACCESS_SHADER_STORAGE_WRITE_BIT`
+    - dst: `VK_ACCESS_SHADER_STORAGE_WRITE_BIT`
+    - `WB_L2`将buffer cache写回L2, `CS_PARTIAL_FLUSH`等待写入完成
+
 ### Image Layout
 
 [So Long, Image Layouts: Simplifying Vulkan Synchronization](https://www.khronos.org/blog/so-long-image-layouts-simplifying-vulkan-synchronisation)阐明了image layout出现的原因: 初始化, 外部组件共享, 内部格式解析. 前两者现代GPU依然需要, 例如将图片转为显示引擎可读的格式.
