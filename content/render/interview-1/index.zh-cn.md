@@ -52,11 +52,11 @@ $$
 
 ### Command Pool
 
-mesa中的command pool负责在cpu分配和回收command buffer, 即使用户将command buffer作为一次性对象来频繁销毁创建, mesa中也足够高效. hk的实现中, command pool同时为它所分配的所有command buffer管理显存分配.
+Mesa中的command pool负责在CPU分配和回收command buffer, 即使用户将command buffer作为一次性对象来频繁销毁创建, mesa中也足够高效. hk的实现中, command pool同时为它所分配的所有command buffer管理显存分配.
 
 ### Command Buffer
 
-hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在cpu状态机中, 若调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据由command buffer管理显存, 因此为保证数据有效, command buffer不能在执行完成前重置. hk单独分配usc(unified shader core)启动命令, agx要求它们位于虚拟地址低位, 例如descriptor set地址.
+hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在CPU状态机中, 若调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据由command buffer管理显存, 因此为保证数据有效, command buffer不能在执行完成前重置. hk单独分配usc(unified shader core)启动命令, agx要求它们位于虚拟地址低位, 例如descriptor set地址.
 
 ### Command Encoder
 
@@ -69,6 +69,10 @@ Vulkan除render pass外使用command buffer全局共享状态, `vkCmd(Begin|end)
 2. sample最大空间无法容纳所有attachment, 需要将溢出部分驻留显存, agx无法处理显存中的压缩格式, 需要解压
 3. 处理partial render, 例如tile处理的图元过多, 只能部分绘制, 需要写回显存, 加载剩余图元后回读并继续
 4. 非全屏绘制时, 某些tile可能只有一部分位于绘制范围, 因此无法使用tile粒度的fast clear, 执行软件实现
+
+### Command Queue
+
+`MTLCommandQueue`/`VkQueue`对应GPU上的的命令提交前端, 它负责发送命令, 执行屏障. `VkQueueFamilyProperties`的`queueCount`和`queueFlags`表示提交前端的并发数量与处理能力. `MTLCommandQueue`不暴露`queueFlags`, 相当于通用queue. AGX底层拥有多个硬件前端, 在Metal中切换encoder可能触发前端切换. 例如hk使用render和compute两种, 但逻辑上只暴露1个queue并串行化命令.
 
 ## Descriptor
 
