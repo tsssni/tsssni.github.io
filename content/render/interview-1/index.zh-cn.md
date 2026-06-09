@@ -48,6 +48,18 @@ b_i &= \frac{s_i / w_i}{\sum_j s_j / w_j}
 \end{aligned}
 $$
 
+## Command
+
+### Command Pool
+
+mesa中的command pool负责在cpu分配和回收command buffer, 即使用户将command buffer作为一次性对象来频繁销毁创建, mesa中也足够高效. hk的实现中, command pool同时为它所分配的所有command buffer管理显存分配.
+
+### Command Buffer
+
+hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在cpu状态机中, 若实际调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据也由command buffer管理, shader使用command buffer持有的地址. 因此为保证数据有效, command buffer不能在执行完成前重置.
+
+hk单独分配usc(unified shader core)启动命令, apple silicon要求它们位于虚拟地址低位, 例如shader代码地址, descriptor set地址.
+
 ## Descriptor
 
 ### Descriptor Buffer
