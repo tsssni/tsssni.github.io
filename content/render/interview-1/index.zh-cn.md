@@ -74,32 +74,6 @@ Vulkan除render pass外使用command buffer全局共享状态, `vkCmd(Begin|end)
 
 `MTLCommandQueue`/`VkQueue`对应GPU上的的命令提交前端, 它负责发送命令, 执行屏障. `VkQueueFamilyProperties`的`queueCount`和`queueFlags`表示提交前端的并发数量与处理能力. `MTLCommandQueue`不暴露`queueFlags`, 相当于通用queue. AGX底层拥有多个硬件前端, 在Metal中切换encoder可能触发前端切换. 例如hk使用render和compute两种, 但逻辑上只暴露1个queue并串行化命令.
 
-## Descriptor
-
-### Descriptor Buffer
-
-`VK_EXT_descriptor_buffer`使得descriptor set暴露底层的`VkBuffer`, 可直接操作该buffer, 通过一系列接口暴露descriptor offset/size等信息来执行更新. Vulkan descriptor size不等长, 驱动也可能对重排用户声明的descriptor顺序, 因此必须事先查询.
-
-硬件可能特殊处理sampler, 例如hk定义了长度1024, 全局唯一的`hk_sampler_heap`, 创建sampler时写入该heap并去重, descriptor set中只存储指向该堆的索引.
-
-### Descriptor Heap
-
-`VK_EXT_descriptor_heap`可以兼容d3d12 descriptor heap, 不再有隐含的descriptor重排. 若在hlsl中用`ResourceDescriptorHeap`访问任意类型descriptor, 需要保持descriptor等长, 可用最大descriptor size作为统一stride.
-
-### Descriptor Pool
-
-对于许多现代设备, descriptor pool底层与descriptor buffer一致. 例如hk的descriptor pool封装的是可以容纳最大数量descriptor set的heap, 分配set时从heap中分配内存.
-
-旧设备/嵌入式设备的descriptor set可能封装了其它分配/绑定方式, 例如raspberry pi v3dv使用openg时代的做法, 将uniform设置为地址或值; 更旧的硬件可能直接将descriptor写入寄存器.
-
-### Push Constants
-
-hk push constants位于`hk_root_descriptor_table`, 在command buffer中共享. push constants被上传到显存, 设置uniform寄存器为地址.
-
-### Inline Uniform Block
-
-inline unifomr block将ubo数据直接写入descriptor set内存而非描述符, hk编译期将ubo访问翻译为在descriptor set中寻址.
-
 ## Synchronization
 
 ### Stage
@@ -146,3 +120,33 @@ RADV驱动中依然依赖image layout执行格式解析, 因此`VK_KHR_unified_i
     - src: `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`
     - dst: `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`
     - 非texture cache compatible MSAA图像无法读取快速清屏值, layout转移触发将该值写入MSAA样本
+
+## Pipeline
+
+现代API通过显示声明管线支持AOT, Vulkan中`VkPipelineLayout`和`VkShaderModule`等状态必须静态, viewport等可按需求选择. Metal支持`MTL(Render|Compute)PipelineState`, 从`MTLLibrary`中提取函数, Metal始终不允许静态化viewport等状态, 避免组合爆炸. Vulkan后续推出`VK_EXT_graphics_pipeline_library`, 允许管线不同阶段独立编译再链接, 降低编译开销但同时阻止了跨阶段编译优化.
+
+## Descriptor
+
+### Descriptor Buffer
+
+`VK_EXT_descriptor_buffer`使得descriptor set暴露底层的`VkBuffer`, 可直接操作该buffer, 通过一系列接口暴露descriptor offset/size等信息来执行更新. Vulkan descriptor size不等长, 驱动也可能对重排用户声明的descriptor顺序, 因此必须事先查询.
+
+硬件可能特殊处理sampler, 例如hk定义了长度1024, 全局唯一的`hk_sampler_heap`, 创建sampler时写入该heap并去重, descriptor set中只存储指向该堆的索引.
+
+### Descriptor Heap
+
+`VK_EXT_descriptor_heap`可以兼容d3d12 descriptor heap, 不再有隐含的descriptor重排. 若在hlsl中用`ResourceDescriptorHeap`访问任意类型descriptor, 需要保持descriptor等长, 可用最大descriptor size作为统一stride.
+
+### Descriptor Pool
+
+对于许多现代设备, descriptor pool底层与descriptor buffer一致. 例如hk的descriptor pool封装的是可以容纳最大数量descriptor set的heap, 分配set时从heap中分配内存.
+
+旧设备/嵌入式设备的descriptor set可能封装了其它分配/绑定方式, 例如raspberry pi v3dv使用openg时代的做法, 将uniform设置为地址或值; 更旧的硬件可能直接将descriptor写入寄存器.
+
+### Push Constants
+
+hk push constants位于`hk_root_descriptor_table`, 在command buffer中共享. push constants被上传到显存, 设置uniform寄存器为地址.
+
+### Inline Uniform Block
+
+inline unifomr block将ubo数据直接写入descriptor set内存而非描述符, hk编译期将ubo访问翻译为在descriptor set中寻址.
