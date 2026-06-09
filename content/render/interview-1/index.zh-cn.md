@@ -56,15 +56,25 @@ mesa中的command pool负责在cpu分配和回收command buffer, 即使用户将
 
 ### Command Buffer
 
-hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在cpu状态机中, 若实际调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据也由command buffer管理, shader使用command buffer持有的地址. 因此为保证数据有效, command buffer不能在执行完成前重置.
+hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在cpu状态机中, 若调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据由command buffer管理显存, 因此为保证数据有效, command buffer不能在执行完成前重置. hk单独分配usc(unified shader core)启动命令, agx要求它们位于虚拟地址低位, 例如descriptor set地址.
 
-hk单独分配usc(unified shader core)启动命令, apple silicon要求它们位于虚拟地址低位, 例如shader代码地址, descriptor set地址.
+### Command Encoder
+
+Metal的command encoder负责标记状态共享边界与命令同步, 例如`MTLRenderCommandEncoder`标记tile复用边界, 同时提供`MTL(Compute|AccelerationStructure|Blit)CommandEncoder`等丰富的作用域控制功能.
+
+Vulkan除render pass外使用command buffer全局共享状态, `vkCmd(Begin|end)(RenderPass|Rendering)`对应`MTLRenderCommandEncoder`. hk实现了`VK_KHR_dynamic_rendering`, subpass在mesa中由dynamic rendering模拟, 多个subpass间的tile复用退化为显存读写.
+
+`vkCmdBeginRendering`中, hk会执行多项准备工作, 例如:
+1. 基于color attachment的alignment排序, 最大化每个sample可用空间的利用率, hk中每个sample最多占用64字节
+2. sample最大空间无法容纳所有attachment, 需要将溢出部分驻留显存, agx无法处理显存中的压缩格式, 需要解压
+3. 处理partial render, 例如tile处理的图元过多, 只能部分绘制, 需要写回显存, 加载剩余图元后回读并继续
+4. 非全屏绘制时, 某些tile可能只有一部分位于绘制范围, 因此无法使用tile粒度的fast clear, 执行软件实现
 
 ## Descriptor
 
 ### Descriptor Buffer
 
-`VK_EXT_descriptor_buffer`使得descriptor set暴露底层的`VkBuffer`, 可直接操作该buffer, 通过一系列接口暴露descriptor offset/size等信息来执行更新. vulkan descriptor size不等长, 驱动也可能对重排用户声明的descriptor顺序, 因此必须事先查询.
+`VK_EXT_descriptor_buffer`使得descriptor set暴露底层的`VkBuffer`, 可直接操作该buffer, 通过一系列接口暴露descriptor offset/size等信息来执行更新. Vulkan descriptor size不等长, 驱动也可能对重排用户声明的descriptor顺序, 因此必须事先查询.
 
 硬件可能特殊处理sampler, 例如hk定义了长度1024, 全局唯一的`hk_sampler_heap`, 创建sampler时写入该heap并去重, descriptor set中只存储指向该堆的索引.
 
