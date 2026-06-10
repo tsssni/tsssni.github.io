@@ -14,19 +14,11 @@ Mesa中的command pool负责在CPU分配和回收command buffer, 即使用户将
 
 ### Command Buffer
 
-hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在CPU状态机中, 若调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据由command buffer管理显存, 因此为保证数据有效, command buffer不能在执行完成前重置. hk单独分配usc(unified shader core)启动命令, agx要求它们位于虚拟地址低位, 例如descriptor set地址.
+hk录制的命令存到control stream链表, 通过尾部jump指令链接. 状态修改发生在CPU状态机中, 若调用绘制且状态变化, 上传状态到新分配的显存供shader读取. push constatns等内部数据由command buffer管理显存, 因此为保证数据有效, command buffer不能在执行完成前重置. hk单独分配usc(unified shader core)启动命令, AGX要求它们位于虚拟地址低位, 例如descriptor set地址.
 
 ### Command Encoder
 
-Metal的command encoder负责标记状态共享边界与命令同步, 例如`MTLRenderCommandEncoder`标记tile复用边界, 同时提供`MTL(Compute|AccelerationStructure|Blit)CommandEncoder`等丰富的作用域控制功能.
-
-Vulkan除render pass外使用command buffer全局共享状态, `vkCmd(Begin|end)(RenderPass|Rendering)`对应`MTLRenderCommandEncoder`. hk实现了`VK_KHR_dynamic_rendering`, subpass在mesa中由dynamic rendering模拟, 多个subpass间的tile复用退化为显存读写.
-
-`vkCmdBeginRendering`中, hk会执行多项准备工作, 例如:
-1. 基于color attachment的alignment排序, 最大化每个sample可用空间的利用率, hk中每个sample最多占用64字节
-2. sample最大空间无法容纳所有attachment, 需要将溢出部分驻留显存, agx无法处理显存中的压缩格式, 需要解压
-3. 处理partial render, 例如tile处理的图元过多, 只能部分绘制, 需要写回显存, 加载剩余图元后回读并继续
-4. 非全屏绘制时, 某些tile可能只有一部分位于绘制范围, 因此无法使用tile粒度的fast clear, 执行软件实现
+Metal的command encoder负责标记状态共享边界与命令同步, 提供`MTL(Render|Compute|AccelerationStructure|Blit)CommandEncoder`等丰富的作用域控制功能. Vulkan除render pass外使用command buffer全局共享状态.
 
 ### Command Queue
 
@@ -86,6 +78,20 @@ RADV驱动中依然依赖image layout执行格式解析, 因此`VK_KHR_unified_i
 ### Input Assembly
 
 IA阶段负责图元装配与顶点数据获取. 通常图元装配是固定管线, 硬件扫描index buffer, 执行vertex去重, 使用更紧凑的索引, 直到图元或顶点数量达到上限. 顶点数据获取的实现更多样, 例如hk将该阶段转为vertex shader前置的软件内存读取, nvk则完全硬件化.
+
+### TBDR
+
+为减少频繁写入显存的功耗开销, 将屏幕划分为tile, 让多次绘制只操作tile内的缓存, `vk(Begin|End)Rendering`/`MTLRenderCommandEncoder`标记tile复用边界. tiling phase中硬件tiler将render pass内多次绘制的所有图元按tile分类, rendering phase以tile为单位启动并读取图元, 执行剔除与着色.
+
+AGX使用逐像素的HSR(hierarchical surface removal), 会等待tile内所有图元完成深度测试. Adreno生成只计算position的vertex shader, 在tiling phase执行并生成1/8 LRZ(low resolution z), 即8x8最近深度中的最远值, rendering phase使用LRZ剔除. Mali使用保守的Early-Z, 根据已写入depth判断是否着色.
+
+`vkCmdBeginRendering`中, hk会执行多项准备工作, 例如:
+1. 基于color attachment的alignment排序, 最大化每个sample可用空间的利用率, hk中每个sample最多占用64字节
+2. sample最大空间无法容纳所有attachment, 需要将溢出部分驻留显存, AGX无法处理显存中的压缩格式, 需要解压
+3. tiler heap容量有限, 图元过多时触发partial render执行部分绘制, 需要写回显存, 加载剩余图元后回读并继续
+4. 非全屏绘制时, 某些tile可能只有一部分位于绘制范围, 因此无法使用tile粒度的fast clear, 执行软件实现
+
+hk的alpha test/blending等output merger操作都使用软件实现, 插入fragment shader尾部以在tile内执行. hk实现了`VK_KHR_dynamic_rendering`, subpass在mesa中由dynamic rendering模拟, 多个subpass间的tile复用退化为显存读写, 因此不推荐在mesa中使用subpass.
 
 ### Rasterizer
 
