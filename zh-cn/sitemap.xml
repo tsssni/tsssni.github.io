@@ -3,20 +3,20 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
   <url>
-    <loc>https://tsssni.github.io/render/interview-1/</loc>
-    <lastmod>2026-06-06T00:00:00+00:00</lastmod>
+    <loc>https://tsssni.github.io/render/interview-2/</loc>
+    <lastmod>2026-06-10T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://tsssni.github.io/render/</loc>
-    <lastmod>2026-06-06T00:00:00+00:00</lastmod>
+    <lastmod>2026-06-10T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://tsssni.github.io/</loc>
-    <lastmod>2026-06-06T00:00:00+00:00</lastmod>
+    <lastmod>2026-06-10T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
     <xhtml:link
@@ -29,6 +29,12 @@
       hreflang="zh-cn"
       href="https://tsssni.github.io/"
     />
+  </url>
+  <url>
+    <loc>https://tsssni.github.io/render/interview-1/</loc>
+    <lastmod>2026-06-06T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://tsssni.github.io/maths/de-rham-1/</loc>

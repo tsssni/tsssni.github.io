@@ -7,7 +7,37 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>© 2026 </copyright>
-    <lastBuildDate>Sat, 06 Jun 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 10 Jun 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Concurrent</title>
+      <link>https://tsssni.github.io/tags/concurrent/</link>
+      <pubDate>Wed, 10 Jun 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/tags/concurrent/</guid>
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>Cpp</title>
+      <link>https://tsssni.github.io/tags/cpp/</link>
+      <pubDate>Wed, 10 Jun 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/tags/cpp/</guid>
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>Template</title>
+      <link>https://tsssni.github.io/tags/template/</link>
+      <pubDate>Wed, 10 Jun 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/tags/template/</guid>
+      <description></description>
+      
+    </item>
     
     <item>
       <title>Gpu</title>
@@ -210,7 +240,7 @@
     </item>
     
     <item>
-      <title>Macos</title>
+      <title>MacOS</title>
       <link>https://tsssni.github.io/tags/macos/</link>
       <pubDate>Sat, 14 Sep 2024 00:00:00 +0000</pubDate>
       
