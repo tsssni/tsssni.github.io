@@ -65,3 +65,69 @@ auto g(std::convertible_to<long> auto) {} // 约束auto
 template<typename T> requires std::integral<T> auto h(T) {}
 template<typename T> requires std::integral<T> && std::signed_integral<T> auto h(T) {} // 约束更强, h(0)选中
 ```
+
+## Pack
+
+C++参数包用于定义不定长的参数, 除函数模板外定义模板参数时参数包必须位于尾部. 例如:
+
+```cpp
+template<typename... Ts> struct T: Ts... {}; // 类型包
+template<int n, int... ns> using M = Matrix<int, n, ns...>; // 非类型包
+template<auto... xs> auto static x = std::make_tuple(xs...); // 可推导非类型包
+template<Concept... Cs> struct T {}; // 概念包
+template<template<typename...> typename... Ts> struct T { using v = std::variant<Ts<int, float>...>; }; // 模板模板形参包
+```
+
+对于函数模板参数包, 若不位于尾部, 只要后续模板参数不产生歧义即合法. 例如:
+
+```cpp
+template<typename F, typename... Ts, std::size_t N>
+auto foreach(F f, Vector<Ts, N>... vectors); // 所有模板参数都可自动推导, 不产生歧义
+template<typename... Ts, typename R>
+auto reduce(R init, Ts... xs); // 函数中参数包位于尾部, 无歧义, 模板参数可不位于尾部
+template<typename... Ts, typename R>
+auto make(Ts... xs) -> R; // R不参与推导, 需写make<T1, T2, R>, R是否位于参数包有歧义
+```
+
+由于`[]`和`()`的优先级高于`*`, `&`等前缀, 函数/数组的指针/引用需要额外添加`()`, 对这些类型添加参数包时, `...`需要位于括号内, 例如:
+
+```cpp
+template<int... N> auto f(int (&... arrs)[N]) -> void;
+template<typename... Ts> auto f(Ts (*... ptrs)(int)) -> void;
+template<typename... Ts> auto f(auto (Ts::*... ptrs)() -> void) -> void;
+```
+
+C++20支持lambda捕获参数包, C++26支持结构化绑定参数包和参数包索引. 两种新参数包需要定义新名字, `...`前置以解决与参数包展开的冲突, 例如:
+
+```cpp
+template<typename... Ts>
+auto defer(Ts... args) { return [...xs = args] { return g(xs...); }; }
+auto [first, ...rest] = std::tuple{1, 2.0, '3'};
+template<typename... Ts>
+auto front(Ts... xs) -> Ts...[0] { return xs...[0]; }
+```
+
+展开参数包时以左侧最大语法树节点为单位展开, 若有嵌套则先展开内层, 例如:
+
+```cpp
+f(&xs...); // f(&x0, &x1, &x2)
+f(n, ++xs...); // f(n, ++x0, ++x1, ++x2);
+f((Args const*)&xs...); // f((T0 const*)&x0, (T1 const*)&x1, (T2 const*)&x2)
+f(g(xs...) + xs...); // f(g(x0, x1, x2) + x0, g(x0, x1, x2) + x1, g(x0, x1, x2) + x2)
+f<Ts&...>(T{&xs...}) // f<T0&, T1&, T2&>(T{&x0, &x1, &x2})
+template<typename Bs> struct A: public Bs... {}; // public B0, public B1, public B2
+```
+
+折叠表达式来自函数式语言, 例如Haskell的`foldl`和`foldr`, 使得参数包之间可以直接通过运算符连接, 可以区分左右折叠并添加初值. 为不与参数包展开冲突, 必须添加括号. 例如:
+
+```cpp
+template<int... ns>
+auto f() -> int {
+    return 0
+    + (... - xs) // 一元左折叠: ((1 - 2) - 3) = -4
+    + (xs - ...) // 一元右折叠: (1 - (2 - 3)) = 2
+    + (10 - ... - xs) // 二元左折叠: (((10 - 1) - 2) - 3) = 4
+    + (xs - ... - 10) // 二元右折叠: (1 - (2 - (3 - 10))) = -8
+    ;
+}
+```
