@@ -371,7 +371,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "834"
+    "wordCount": "1576"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>834 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">2 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>1576 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">4 分钟</span>
     
 
     
@@ -1219,6 +1219,7 @@
   <ul>
     <li><a href="#dependent-name">Dependent Name</a></li>
     <li><a href="#concept">Concept</a></li>
+    <li><a href="#pack">Pack</a></li>
   </ul>
 </nav>
   </div>
@@ -1234,6 +1235,7 @@
   <ul>
     <li><a href="#dependent-name">Dependent Name</a></li>
     <li><a href="#concept">Concept</a></li>
+    <li><a href="#pack">Pack</a></li>
   </ul>
 </nav>
   </div>
@@ -1310,6 +1312,62 @@ template&lt;integral T&gt; auto f(T) {} // 约束模板形参
 auto g(std::convertible_to&lt;long&gt; auto) {} // 约束auto
 template&lt;typename T&gt; requires std::integral&lt;T&gt; auto h(T) {}
 template&lt;typename T&gt; requires std::integral&lt;T&gt; &amp;&amp; std::signed_integral&lt;T&gt; auto h(T) {} // 约束更强, h(0)选中
+</code></pre>
+
+<h2 class="relative group">Pack
+    <div id="pack" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#pack" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p>C++参数包用于定义不定长的参数, 除函数模板外定义模板参数时参数包必须位于尾部. 例如:</p>
+<pre><code class="language-cpp">template&lt;typename... Ts&gt; struct T: Ts... {}; // 类型包
+template&lt;int n, int... ns&gt; using M = Matrix&lt;int, n, ns...&gt;; // 非类型包
+template&lt;auto... xs&gt; auto static x = std::make_tuple(xs...); // 可推导非类型包
+template&lt;Concept... Cs&gt; struct T {}; // 概念包
+template&lt;template&lt;typename...&gt; typename... Ts&gt; struct T { using v = std::variant&lt;Ts&lt;int, float&gt;...&gt;; }; // 模板模板形参包
+</code></pre>
+<p>对于函数模板参数包, 若不位于尾部, 只要后续模板参数不产生歧义即合法. 例如:</p>
+<pre><code class="language-cpp">template&lt;typename F, typename... Ts, std::size_t N&gt;
+auto foreach(F f, Vector&lt;Ts, N&gt;... vectors); // 所有模板参数都可自动推导, 不产生歧义
+template&lt;typename... Ts, typename R&gt;
+auto reduce(R init, Ts... xs); // 函数中参数包位于尾部, 无歧义, 模板参数可不位于尾部
+template&lt;typename... Ts, typename R&gt;
+auto make(Ts... xs) -&gt; R; // R不参与推导, 需写make&lt;T1, T2, R&gt;, R是否位于参数包有歧义
+</code></pre>
+<p>由于<code>[]</code>和<code>()</code>的优先级高于<code>*</code>, <code>&amp;</code>等前缀, 函数/数组的指针/引用需要额外添加<code>()</code>, 对这些类型添加参数包时, <code>...</code>需要位于括号内, 例如:</p>
+<pre><code class="language-cpp">template&lt;int... N&gt; auto f(int (&amp;... arrs)[N]) -&gt; void;
+template&lt;typename... Ts&gt; auto f(Ts (*... ptrs)(int)) -&gt; void;
+template&lt;typename... Ts&gt; auto f(auto (Ts::*... ptrs)() -&gt; void) -&gt; void;
+</code></pre>
+<p>C++20支持lambda捕获参数包, C++26支持结构化绑定参数包和参数包索引. 两种新参数包需要定义新名字, <code>...</code>前置以解决与参数包展开的冲突, 例如:</p>
+<pre><code class="language-cpp">template&lt;typename... Ts&gt;
+auto defer(Ts... args) { return [...xs = args] { return g(xs...); }; }
+auto [first, ...rest] = std::tuple{1, 2.0, '3'};
+template&lt;typename... Ts&gt;
+auto front(Ts... xs) -&gt; Ts...[0] { return xs...[0]; }
+</code></pre>
+<p>展开参数包时以左侧最大语法树节点为单位展开, 若有嵌套则先展开内层, 例如:</p>
+<pre><code class="language-cpp">f(&amp;xs...); // f(&amp;x0, &amp;x1, &amp;x2)
+f(n, ++xs...); // f(n, ++x0, ++x1, ++x2);
+f((Args const*)&amp;xs...); // f((T0 const*)&amp;x0, (T1 const*)&amp;x1, (T2 const*)&amp;x2)
+f(g(xs...) + xs...); // f(g(x0, x1, x2) + x0, g(x0, x1, x2) + x1, g(x0, x1, x2) + x2)
+f&lt;Ts&amp;...&gt;(T{&amp;xs...}) // f&lt;T0&amp;, T1&amp;, T2&amp;&gt;(T{&amp;x0, &amp;x1, &amp;x2})
+template&lt;typename Bs&gt; struct A: public Bs... {}; // public B0, public B1, public B2
+</code></pre>
+<p>折叠表达式来自函数式语言, 例如Haskell的<code>foldl</code>和<code>foldr</code>, 使得参数包之间可以直接通过运算符连接, 可以区分左右折叠并添加初值. 为不与参数包展开冲突, 必须添加括号. 例如:</p>
+<pre><code class="language-cpp">template&lt;int... ns&gt;
+auto f() -&gt; int {
+    return 0
+    + (... - xs) // 一元左折叠: ((1 - 2) - 3) = -4
+    + (xs - ...) // 一元右折叠: (1 - (2 - 3)) = 2
+    + (10 - ... - xs) // 二元左折叠: (((10 - 1) - 2) - 3) = 4
+    + (xs - ... - 10) // 二元右折叠: (1 - (2 - (3 - 10))) = -8
+    ;
+}
 </code></pre>
 
           
