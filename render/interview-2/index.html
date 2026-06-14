@@ -371,7 +371,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "2781"
+    "wordCount": "3034"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>2781 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">6 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>3034 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">7 分钟</span>
     
 
     
@@ -1220,6 +1220,7 @@
     <li><a href="#dependent-name">Dependent Name</a></li>
     <li><a href="#concept">Concept</a></li>
     <li><a href="#pack">Pack</a></li>
+    <li><a href="#crtp">CRTP</a></li>
     <li><a href="#atomic">Atomic</a></li>
     <li><a href="#memory-order">Memory Order</a></li>
     <li><a href="#promise">Promise</a></li>
@@ -1239,6 +1240,7 @@
     <li><a href="#dependent-name">Dependent Name</a></li>
     <li><a href="#concept">Concept</a></li>
     <li><a href="#pack">Pack</a></li>
+    <li><a href="#crtp">CRTP</a></li>
     <li><a href="#atomic">Atomic</a></li>
     <li><a href="#memory-order">Memory Order</a></li>
     <li><a href="#promise">Promise</a></li>
@@ -1374,6 +1376,30 @@ auto f() -&gt; int {
     + (xs - ... - 10) // 二元右折叠: (1 - (2 - (3 - 10))) = -8
     ;
 }
+</code></pre>
+
+<h2 class="relative group">CRTP
+    <div id="crtp" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#crtp" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p>当模板类在构造时不需要模板类型参数的完整定义, 将派生类型传给基类是不会导致循环依赖的, 从而实现奇异递归模板模式. C++23支持<code>this</code>推导, 首参为<code>this Self&amp;&amp;</code>时<code>Self</code>推导为调用它的对象的类型. lambda是实现了<code>operator()</code>的匿名对象, 但<code>this</code>被用于捕获外围对象, 无法再使用lambda自身的<code>this</code>, <code>this</code>推导使得lambda可以递归.</p>
+<pre><code class="language-cpp">struct B {
+    auto f(this auto&amp;&amp; self) { self.g(); }
+};
+
+struct D: B {
+    auto g() { auto x = 0; }
+    auto h() { f(); } // f执行D::g
+};
+
+auto fib = [](this auto self, int n) -&gt; int {
+    return n &lt; 2 ? n : self(n - 1) + self(n - 2);
+};
 </code></pre>
 
 <h2 class="relative group">Atomic
