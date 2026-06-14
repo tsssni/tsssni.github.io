@@ -371,7 +371,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "1576"
+    "wordCount": "1950"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>1576 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">4 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>1950 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">4 分钟</span>
     
 
     
@@ -1220,6 +1220,7 @@
     <li><a href="#dependent-name">Dependent Name</a></li>
     <li><a href="#concept">Concept</a></li>
     <li><a href="#pack">Pack</a></li>
+    <li><a href="#memory-order">Memory Order</a></li>
   </ul>
 </nav>
   </div>
@@ -1236,6 +1237,7 @@
     <li><a href="#dependent-name">Dependent Name</a></li>
     <li><a href="#concept">Concept</a></li>
     <li><a href="#pack">Pack</a></li>
+    <li><a href="#memory-order">Memory Order</a></li>
   </ul>
 </nav>
   </div>
@@ -1369,6 +1371,19 @@ auto f() -&gt; int {
     ;
 }
 </code></pre>
+
+<h2 class="relative group">Memory Order
+    <div id="memory-order" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#memory-order" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p>编译器重排和乱序执行导致并发内存读写顺序不被保证, 存储缓冲和失效队列导致可见性延迟, 可通过内存序<code>std::memory_order</code>解决. <code>relaxed</code>只保证原子操作本身语义正确, 不约束周围内存读写.</p>
+<p><code>release</code>保证原子操作前的内存读写不重排到之后, 保证之前的内存写入先于<code>release</code>本身进入缓存和发出失效消息. <code>acquire</code>保证原子操作之后的内存读写不重排到之前, 并处理已入队的失效消息, 当<code>acquire</code>读到<code>release</code>的写入, <code>release</code>前的写入已被失效队列处理, 因此已经可见.</p>
+<p><code>acq_rel</code>兼具<code>acquire</code>/<code>release</code>的特性, 而<code>seq_cst</code>在此基础上要求原子写入执行后立即排空存储缓冲并发送失效消息, 后续<code>acquire</code>触发的失效队列排空令写入可见, 因此<code>acqure</code>读取执行顺序在<code>seq_cst</code>写入之后时能立即获取写入结果.</p>
 
           
           
