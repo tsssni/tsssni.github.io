@@ -145,3 +145,9 @@ ARM等架构为LL/SC, 即`load-linked`/`store-conditional`一对指令: `load-li
 `release`保证原子操作前的内存读写不重排到之后, 保证之前的内存写入先于`release`本身进入缓存和发出失效消息. `acquire`保证原子操作之后的内存读写不重排到之前, 并处理已入队的失效消息, 当`acquire`读到`release`的写入, `release`前的写入已被失效队列处理, 因此已经可见.
 
 `acq_rel`兼具`acquire`/`release`的特性, 而`seq_cst`在此基础上要求原子写入执行后立即排空存储缓冲并发送失效消息, 后续`acquire`触发的失效队列排空令写入可见, 因此`acquire`读取执行顺序在`seq_cst`写入之后时能立即获取写入结果.
+
+## Promise
+
+`std::promise<T>`是一次性值/异常的写端, 配对的读端`std::future<T>`由`get_future`获得. 生产者调用`set_value`/`set_exception`写入, 消费者调用`future.get()`, 未就绪时阻塞, 就绪后返回值或重抛异常.
+
+`std::packaged_task`包装可调用对象, 自动用返回值填充内部`promise`. `std::async`启动任务并返回`std::future`. `std::launch::async`立即执行, 对应的`future`析构时会阻塞. `std::launch::deferred`延迟到首次`future`读取, 相当于在调用线程同步执行. `std::shared_future`将返回值以`T const&`的形式暴露, 可被多个消费者重复读取.
