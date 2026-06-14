@@ -132,10 +132,16 @@ auto f() -> int {
 }
 ```
 
+## Atomic
+
+`std::atomic`使得对同一原子变量的操作在多线程下串行化, `load`/`store`保证不存在并发的读取和写入. `wait`传入期望值, 原子变量等于该值时阻塞, `notify_one`/`notify_all`唤醒一个或多个等待线程. `compare_exchange`比较期望值与原子变量实际值, 相等时执行修改, 否则写回实际值. 例如上次读取原子变量的结果是期望值, 我们期望它未被其它线程修改. `compare_exchange`保证修改一定进入缓存以对后续`compare_exchange`可见.
+
+ARM等架构为LL/SC, 即`load-linked`/`store-conditional`一对指令: `load-linked`读取值并对该地址登记独占监视, `store-conditional`仅当监视未被上下文切换, 中断, 其它核心触碰同一缓存行等操作破坏才写入. 这导致`compare_exchange_weak`伪失败即值相等时也由于`store-conditional`而返回假. LL/SC架构的`compare_exchange_strong`需在内部循环重试以消除伪失败, 因此开销更高.
+
 ## Memory Order
 
 编译器重排和乱序执行导致并发内存读写顺序不被保证, 存储缓冲和失效队列导致可见性延迟, 可通过内存序`std::memory_order`解决. `relaxed`只保证原子操作本身语义正确, 不约束周围内存读写.
 
 `release`保证原子操作前的内存读写不重排到之后, 保证之前的内存写入先于`release`本身进入缓存和发出失效消息. `acquire`保证原子操作之后的内存读写不重排到之前, 并处理已入队的失效消息, 当`acquire`读到`release`的写入, `release`前的写入已被失效队列处理, 因此已经可见.
 
-`acq_rel`兼具`acquire`/`release`的特性, 而`seq_cst`在此基础上要求原子写入执行后立即排空存储缓冲并发送失效消息, 后续`acquire`触发的失效队列排空令写入可见, 因此`acqure`读取执行顺序在`seq_cst`写入之后时能立即获取写入结果.
+`acq_rel`兼具`acquire`/`release`的特性, 而`seq_cst`在此基础上要求原子写入执行后立即排空存储缓冲并发送失效消息, 后续`acquire`触发的失效队列排空令写入可见, 因此`acquire`读取执行顺序在`seq_cst`写入之后时能立即获取写入结果.
