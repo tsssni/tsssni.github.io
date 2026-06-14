@@ -132,6 +132,25 @@ auto f() -> int {
 }
 ```
 
+## CRTP
+
+当模板类在构造时不需要模板类型参数的完整定义, 将派生类型传给基类是不会导致循环依赖的, 从而实现奇异递归模板模式. C++23支持`this`推导, 首参为`this Self&&`时`Self`推导为调用它的对象的类型. lambda是实现了`operator()`的匿名对象, 但`this`被用于捕获外围对象, 无法再使用lambda自身的`this`, `this`推导使得lambda可以递归.
+
+```cpp
+struct B {
+    auto f(this auto&& self) { self.g(); }
+};
+
+struct D: B {
+    auto g() { auto x = 0; }
+    auto h() { f(); } // f执行D::g
+};
+
+auto fib = [](this auto self, int n) -> int {
+    return n < 2 ? n : self(n - 1) + self(n - 2);
+};
+```
+
 ## Atomic
 
 `std::atomic`使得对同一原子变量的操作在多线程下串行化, `load`/`store`保证不存在并发的读取和写入. `wait`传入期望值, 原子变量等于该值时阻塞, `notify_one`/`notify_all`唤醒一个或多个等待线程. `compare_exchange`比较期望值与原子变量实际值, 相等时执行修改, 否则写回实际值. 例如上次读取原子变量的结果是期望值, 我们期望它未被其它线程修改. `compare_exchange`保证修改一定进入缓存以对后续`compare_exchange`可见.
