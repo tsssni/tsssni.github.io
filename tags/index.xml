@@ -7,7 +7,37 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>© 2026 </copyright>
-    <lastBuildDate>Wed, 10 Jun 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 15 Jun 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Global Illumination</title>
+      <link>https://tsssni.github.io/tags/global-illumination/</link>
+      <pubDate>Mon, 15 Jun 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/tags/global-illumination/</guid>
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>Graphics</title>
+      <link>https://tsssni.github.io/tags/graphics/</link>
+      <pubDate>Mon, 15 Jun 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/tags/graphics/</guid>
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>Rendering</title>
+      <link>https://tsssni.github.io/tags/rendering/</link>
+      <pubDate>Mon, 15 Jun 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/tags/rendering/</guid>
+      <description></description>
+      
+    </item>
     
     <item>
       <title>Concurrent</title>
@@ -45,26 +75,6 @@
       <pubDate>Sat, 06 Jun 2026 00:00:00 +0000</pubDate>
       
       <guid>https://tsssni.github.io/tags/gpu/</guid>
-      <description></description>
-      
-    </item>
-    
-    <item>
-      <title>Graphics</title>
-      <link>https://tsssni.github.io/tags/graphics/</link>
-      <pubDate>Sat, 06 Jun 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/tags/graphics/</guid>
-      <description></description>
-      
-    </item>
-    
-    <item>
-      <title>Rendering</title>
-      <link>https://tsssni.github.io/tags/rendering/</link>
-      <pubDate>Sat, 06 Jun 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/tags/rendering/</guid>
       <description></description>
       
     </item>

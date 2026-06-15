@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Global Illumination on TSSSNI&#39;S BLOG</title>
+    <link>https://tsssni.github.io/tags/global-illumination/</link>
+    <description>Recent content in Global Illumination on TSSSNI&#39;S BLOG</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <copyright>© 2026 </copyright>
+    <lastBuildDate>Mon, 15 Jun 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/global-illumination/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Interview III: SSGI</title>
+      <link>https://tsssni.github.io/render/interview-3/</link>
+      <pubDate>Mon, 15 Jun 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/interview-3/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/interview-3/featured.jpg" />
+    </item>
+    
+  </channel>
+</rss>
