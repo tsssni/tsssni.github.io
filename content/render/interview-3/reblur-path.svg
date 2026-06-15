@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" font-size="17" font-family="'IBM Plex Sans',sans-serif">
+  <title>ReBLUR virtual position path</title>
+  <style>
+    .ink   { stroke:#16404f; }
+    .inkf  { fill:#16404f; }
+    .axis  { stroke:#16404f; stroke-width:1.4; }
+    .guide { stroke:#9aa7ad; stroke-width:1.2; stroke-dasharray:4 4; }
+    .normal{ stroke:#f5a623; stroke-width:1.8; stroke-dasharray:6 4; }
+    .rin   { stroke:#4c8dff; stroke-width:2.2; }
+    .rout  { stroke:#2bb673; stroke-width:2.2; }
+    .lbl   { fill:#16404f; font-family:'IBM Plex Sans',sans-serif; }
+    .blue  { fill:#4c8dff; font-family:'IBM Plex Sans',sans-serif; }
+    .green { fill:#2bb673; font-family:'IBM Plex Sans',sans-serif; }
+    .amber { fill:#f5a623; font-family:'IBM Plex Sans',sans-serif; }
+    .dot   { fill:#16404f; }
+    @media (prefers-color-scheme: dark) {
+      .ink, .axis { stroke:#cdd6da; }
+      .inkf, .lbl { fill:#cdd6da; }
+      .dot { fill:#cdd6da; }
+    }
+  </style>
+  <defs>
+    <marker id="ar-in" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#4c8dff"/>
+    </marker>
+    <marker id="ar-out" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#2bb673"/>
+    </marker>
+  </defs>
+  <line x1="110.00" y1="235.00" x2="520.00" y2="235.00" class="ink" stroke-width="2.4"/>
+  <line x1="250.00" y1="235.00" x2="250.00" y2="120.00" class="normal" />
+  <text x="258.00" y="122.00" text-anchor="start" class="lbl" font-style="italic" >N</text>
+  <line x1="70.00" y1="55.00" x2="250.00" y2="235.00" class="rin" marker-end="url(#ar-in)"/>
+  <circle cx="70.00" cy="55.00" r="3.4" class="dot"/>
+  <text x="62.00" y="49.00" text-anchor="end" class="lbl" >pixel</text>
+  <line x1="250.00" y1="235.00" x2="450.00" y2="118.00" class="rout" marker-end="url(#ar-out)"/>
+  <circle cx="450.00" cy="118.00" r="3.4" class="dot"/>
+  <text x="460.00" y="114.00" text-anchor="start" class="lbl" font-style="italic" >O</text>
+  <line x1="250.00" y1="235.00" x2="343.60" y2="328.60" class="guide" />
+  <circle cx="343.60" cy="328.60" r="3.4" class="dot"/>
+  <text x="353.60" y="333.60" text-anchor="start" class="inkf" font-style="italic" >X<tspan baseline-shift="sub" font-size="0.72em">virt</tspan></text>
+  <circle cx="250.00" cy="235.00" r="3.4" class="dot"/>
+  <text x="236.00" y="259.00" text-anchor="middle" class="lbl" font-style="italic" >X = P</text>
+</svg>
