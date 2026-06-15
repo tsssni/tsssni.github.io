@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 445" font-size="17" font-family="'IBM Plex Sans',sans-serif">
+  <title>Refraction half-vector Jacobian (two circles)</title>
+  <style>
+    .ink   { stroke:#16404f; }
+    .surf  { stroke:#16404f; stroke-width:2.4; }
+    .mvec  { stroke:#16404f; stroke-width:2.4; }
+    .guide { stroke:#9aa7ad; stroke-width:1.0; stroke-dasharray:4 4; }
+    .cA    { stroke:#e8821e; stroke-width:1.2; stroke-dasharray:6 4; fill:none; }
+    .cB    { stroke:#2bb673; stroke-width:1.2; stroke-dasharray:6 4; fill:none; }
+    .gi    { stroke:#2bb673; stroke-width:2.4; }
+    .go    { stroke:#e8821e; stroke-width:2.4; }
+    .lbl   { fill:#16404f; font-family:'IBM Plex Sans',sans-serif; }
+    .gif   { fill:#2bb673; font-family:'IBM Plex Sans',sans-serif; }
+    .gof   { fill:#e8821e; font-family:'IBM Plex Sans',sans-serif; }
+    .dot   { fill:#16404f; }
+    @media (prefers-color-scheme: dark) {
+      .ink, .surf, .mvec { stroke:#cdd6da; }
+      .lbl { fill:#cdd6da; }
+      .dot { fill:#cdd6da; }
+    }
+  </style>
+  <defs>
+    <marker id="ai" markerWidth="5" markerHeight="5" refX="4.4" refY="2.5" orient="auto">
+      <path d="M0,0 L5,2.5 L0,5 z" fill="#3f6b7d"/>
+    </marker>
+    <marker id="agi" markerWidth="5" markerHeight="5" refX="4.4" refY="2.5" orient="auto">
+      <path d="M0,0 L5,2.5 L0,5 z" fill="#2bb673"/>
+    </marker>
+    <marker id="ago" markerWidth="5" markerHeight="5" refX="4.4" refY="2.5" orient="auto">
+      <path d="M0,0 L5,2.5 L0,5 z" fill="#e8821e"/>
+    </marker>
+  </defs>
+  <line x1="60.00" y1="200.00" x2="260.00" y2="200.00" class="surf" />
+  <text x="258.00" y="192.00" text-anchor="end" class="lbl" font-style="italic" font-size="13" >microfacet</text>
+  <line x1="160.00" y1="200.00" x2="210.71" y2="138.13" class="go" marker-end="url(#ago)"/>
+  <text x="220.71" y="132.13" text-anchor="start" class="gof" font-style="italic" >&#969;<tspan baseline-shift="sub" font-size="0.72em">o</tspan></text>
+  <line x1="160.00" y1="200.00" x2="126.19" y2="272.50" class="gi" marker-end="url(#agi)"/>
+  <text x="116.19" y="288.50" text-anchor="end" class="gif" font-style="italic" >&#969;<tspan baseline-shift="sub" font-size="0.72em">i</tspan></text>
+  <line x1="160.00" y1="200.00" x2="160.00" y2="280.00" class="mvec" marker-end="url(#ai)"/>
+  <text x="172.00" y="294.00" text-anchor="start" class="lbl" font-style="italic" >&#969;<tspan baseline-shift="sub" font-size="0.72em">m</tspan></text>
+  <circle cx="160.00" cy="200.00" r="3.2" class="dot"/>
+  <text x="160.00" y="420.00" text-anchor="middle" class="lbl" font-size="15" >表面折射</text>
+  <circle cx="530.84" cy="272.60" r="92.00" class="cA"/>
+  <circle cx="589.16" cy="201.45" r="138.00" class="cB"/>
+  <line x1="516.03" y1="318.48" x2="530.84" y2="272.60" class="guide" />
+  <line x1="546.51" y1="332.70" x2="530.84" y2="272.60" class="guide" />
+  <path d="M 516.03 318.48 A 138.00 138.00 0 0 0 546.51 332.70" class="gi" fill="none" stroke-width="3.2"/>
+  <path d="M 519.62 363.92 A 92.00 92.00 0 0 0 542.05 363.92" class="ink" fill="none" stroke-width="2.8"/>
+  <line x1="530.84" y1="272.60" x2="530.84" y2="364.60" class="mvec" marker-end="url(#ai)"/>
+  <line x1="530.84" y1="272.60" x2="589.16" y2="201.45" class="go" marker-end="url(#ago)"/>
+  <line x1="589.16" y1="201.45" x2="530.84" y2="326.52" class="gi" marker-end="url(#agi)"/>
+  <circle cx="530.84" cy="326.52" r="3.2" class="dot"/>
+  <circle cx="589.16" cy="201.45" r="3.2" class="dot"/>
+  <circle cx="530.84" cy="272.60" r="3.2" class="dot"/>
+  <text x="554.00" y="229.03" text-anchor="end" class="gof" font-style="italic" >&#951;<tspan baseline-shift="sub" font-size="0.72em">o</tspan>&#969;<tspan baseline-shift="sub" font-size="0.72em">o</tspan></text>
+  <text x="572.00" y="265.99" text-anchor="start" class="gif" font-style="italic" >&#951;<tspan baseline-shift="sub" font-size="0.72em">i</tspan>&#969;<tspan baseline-shift="sub" font-size="0.72em">i</tspan></text>
+  <text x="518.84" y="344.52" text-anchor="end" class="gif" font-style="italic" font-size="15" >&#951;<tspan baseline-shift="sub" font-size="0.72em">i</tspan><tspan baseline-shift="super" font-size="0.72em">2</tspan> d&#969;<tspan baseline-shift="sub" font-size="0.72em">i</tspan></text>
+  <text x="518.84" y="368.60" text-anchor="end" class="lbl" font-style="italic" font-size="15" >d&#969;<tspan baseline-shift="sub" font-size="0.72em">m</tspan></text>
+  <text x="542.84" y="324.52" text-anchor="start" class="lbl" font-style="italic" font-size="14" >&#951;<tspan baseline-shift="sub" font-size="0.72em">i</tspan>&#969;<tspan baseline-shift="sub" font-size="0.72em">i</tspan> + &#951;<tspan baseline-shift="sub" font-size="0.72em">o</tspan>&#969;<tspan baseline-shift="sub" font-size="0.72em">o</tspan></text>
+  <text x="518.84" y="268.60" text-anchor="end" class="lbl" font-style="italic" >O</text>
+  <text x="599.16" y="195.45" text-anchor="start" class="lbl" font-style="italic" >Q</text>
+  <text x="583.00" y="420.00" text-anchor="middle" class="lbl" font-size="15" >半向量构造</text>
+</svg>
