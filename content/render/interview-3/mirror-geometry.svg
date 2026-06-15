@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-size="17" font-family="'IBM Plex Sans',sans-serif">
+  <title>Gaussian concave mirror imaging</title>
+  <style>
+    .ink   { stroke:#16404f; }
+    .inkf  { fill:#16404f; }
+    .axis  { stroke:#16404f; stroke-width:1.4; }
+    .guide { stroke:#9aa7ad; stroke-width:1.2; stroke-dasharray:4 4; }
+    .normal{ stroke:#f5a623; stroke-width:1.8; stroke-dasharray:6 4; }
+    .rin   { stroke:#4c8dff; stroke-width:2.2; }
+    .rout  { stroke:#2bb673; stroke-width:2.2; }
+    .lbl   { fill:#16404f; font-family:'IBM Plex Sans',sans-serif; }
+    .blue  { fill:#4c8dff; font-family:'IBM Plex Sans',sans-serif; }
+    .green { fill:#2bb673; font-family:'IBM Plex Sans',sans-serif; }
+    .amber { fill:#f5a623; font-family:'IBM Plex Sans',sans-serif; }
+    .dot   { fill:#16404f; }
+    @media (prefers-color-scheme: dark) {
+      .ink, .axis { stroke:#cdd6da; }
+      .inkf, .lbl { fill:#cdd6da; }
+      .dot { fill:#cdd6da; }
+    }
+  </style>
+  <defs>
+    <marker id="ar-in" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#4c8dff"/>
+    </marker>
+    <marker id="ar-out" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#2bb673"/>
+    </marker>
+  </defs>
+  <path d="M 520.34 114.03 A 348.00 348.00 0 0 1 520.34 385.97" class="ink" fill="none" stroke-width="2.6"/>
+  <line x1="43.40" y1="250.00" x2="588.60" y2="250.00" class="axis" />
+  <text x="604.60" y="255.00" text-anchor="start" class="lbl" font-style="italic" >axis</text>
+  <line x1="84.00" y1="250.00" x2="531.04" y2="142.70" class="rin" marker-end="url(#ar-in)"/>
+  <line x1="531.04" y1="142.70" x2="269.60" y2="250.00" class="rout" marker-end="url(#ar-out)"/>
+  <line x1="531.04" y1="142.70" x2="200.00" y2="250.00" class="normal" />
+  <line x1="531.04" y1="142.70" x2="531.04" y2="250.00" class="guide" />
+  <text x="521.04" y="201.35" text-anchor="end" class="lbl" font-style="italic" >h</text>
+  <path d="M 134.00 250.00 A 50 50 0 0 0 132.62 238.33" class="ink" fill="none" stroke-width="1.3"/>
+  <text x="148.00" y="241.00" text-anchor="start" class="lbl" >&#945;</text>
+  <path d="M 242.00 250.00 A 42 42 0 0 0 239.95 237.05" class="ink" fill="none" stroke-width="1.3"/>
+  <text x="230.00" y="234.00" text-anchor="start" class="lbl" >&#946;</text>
+  <path d="M 301.60 250.00 A 32 32 0 0 0 299.20 237.85" class="ink" fill="none" stroke-width="1.3"/>
+  <text x="307.60" y="239.00" text-anchor="start" class="lbl" >&#947;</text>
+  <circle cx="84.00" cy="250.00" r="3.4" class="dot"/>
+  <text x="84.00" y="276.00" text-anchor="middle" class="lbl" font-style="italic" >O</text>
+  <circle cx="269.60" cy="250.00" r="3.4" class="dot"/>
+  <text x="269.60" y="276.00" text-anchor="middle" class="lbl" font-style="italic" >I</text>
+  <circle cx="200.00" cy="250.00" r="3.4" class="dot"/>
+  <text x="200.00" y="276.00" text-anchor="middle" class="lbl" font-style="italic" >C</text>
+  <circle cx="374.00" cy="250.00" r="3.4" class="dot"/>
+  <text x="374.00" y="276.00" text-anchor="middle" class="lbl" font-style="italic" >F</text>
+  <circle cx="548.00" cy="250.00" r="3.4" class="dot"/>
+  <text x="562.00" y="274.00" text-anchor="middle" class="lbl" font-style="italic" >P</text>
+  <circle cx="531.04" cy="142.70" r="3.4" class="dot"/>
+  <text x="543.04" y="136.70" text-anchor="start" class="lbl" font-style="italic" >M</text>
+  <line x1="34.00" y1="48.00" x2="62.00" y2="48.00" class="rin" marker-end="url(#ar-in)"/>
+  <text x="70.00" y="53.00" text-anchor="start" class="blue" >incident  O&#8594;M</text>
+  <line x1="34.00" y1="74.00" x2="62.00" y2="74.00" class="rout" marker-end="url(#ar-out)"/>
+  <text x="70.00" y="79.00" text-anchor="start" class="green" >reflected  M&#8594;I</text>
+  <line x1="34.00" y1="100.00" x2="62.00" y2="100.00" class="normal" />
+  <text x="70.00" y="105.00" text-anchor="start" class="amber" >normal  M&#8594;C</text>
+</svg>
