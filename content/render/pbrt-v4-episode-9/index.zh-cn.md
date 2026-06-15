@@ -540,8 +540,8 @@ $$
 \begin{aligned}
 \eta_o \cos\theta_o \mathrm{d}\theta_o
 &= \eta_i \cos\theta_i \mathrm{d}\theta_i\\
-\eta_o \frac{\cos\theta_o}{\sin\theta_o} \mathrm{d}\omega_o \mathrm{d}\phi_o
-&= \eta_i \frac{\cos\theta_i}{\sin\theta_i} \mathrm{d}\omega_i \mathrm{d}\phi_i\\
+\eta_o \frac{\cos\theta_o}{\sin\theta_o} \frac{\mathrm{d}\omega_o}{\mathrm{d}\phi_o}
+&= \eta_i \frac{\cos\theta_i}{\sin\theta_i} \frac{\mathrm{d}\omega_i}{\mathrm{d}\phi_i}\\
 \eta_o^2 \cos\theta_o \mathrm{d}\omega_o
 &= \eta_i^2 \cos\theta_i \mathrm{d}\omega_i
 \end{aligned}
@@ -560,7 +560,11 @@ $$
 
 $$
 \begin{equation}
-\eta_o^2 f_t(p, \omega_o, \omega_i) = \eta_i^2 f_t(p, \omega_i, \omega_o)
+\begin{aligned}
+f_t(p, \omega_i, \omega_o) &= \frac{L_o^0}{L_i^0 \cos\theta_i \mathrm{d}\omega_o} = \frac{\eta_o^2}{\eta_i^2 \cos\theta_i \mathrm{d}\omega_i}\\
+f_t(p, \omega_o, \omega_i) &= \frac{L_i^1}{L_o^1 \cos\theta_o \mathrm{d}\omega_i} = \frac{\eta_i^2}{\eta_o^2 \cos\theta_o \mathrm{d}\omega_o}\\
+f_t(p, \omega_i, \omega_o) &= \frac{f_t(p, \omega_o, \omega_i)}{\eta^2}
+\end{aligned}
 \end{equation}
 $$
 
@@ -993,7 +997,7 @@ $$
 \end{equation}
 $$
 
-![refract jacobi](refract-jacobi.png)
+![refract-jacobi](refract-jacobi.svg)
 
 ### 粗糙绝缘体BSDF
 

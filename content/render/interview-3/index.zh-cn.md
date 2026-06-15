@@ -1,5 +1,5 @@
 ---
-title: "Interview III: SSGI"
+title: "Interview III: 项目分析"
 date: 2026-06-15
 draft: false
 description: "interview"
