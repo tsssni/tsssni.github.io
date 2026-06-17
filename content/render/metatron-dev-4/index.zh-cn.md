@@ -121,7 +121,7 @@ $$
 
 ## ReSTIR GI
 
-每次蓄水池复用最终都存储无偏权重, 因此根据GRIS下次复用也可以得到无偏结果. 通常蓄水池结构如下:
+每次蓄水池复用最终都存储无偏权重, 因此根据GRIS下次复用也可以得到无偏结果, 即链式GRIS. 目标像素的蓄水池总是被使用, 因此满足$\mathrm{supp}(Y) \subseteq \bigcup_{n=1}^M T_n(\mathrm{supp}(X_n))$. 蓄水池结构为:
 
 ```cpp
 struct Reservoir {
@@ -137,3 +137,9 @@ struct Reservoir {
 ReSTIR DI/GI都将$M$解释为蓄水池的样本数量, 但它实际决定MIS权重, 可以自由调整, 因此认为$M$是样本置信度更合理, 只是通常它与样本数相关. 若追求无偏, 需要复用过程中投射阴影光线, 若被遮挡不合并该蓄水池, 保证$\sum_{n \in \mathcal{N}(y)} m_n(y) = 1$.
 
 由于Lambertian的均匀分布特性, 基于入射辐亮度分布采样效率更高, 因此ReSTIR GI使用入射辐亮度作为目标分布. 由于Lambertian出射辐亮度均匀, 新样本不需要重新计算. Torrance-Sparrow直接基于BSDF抽样效率更高, 若一定要应用ReSTIR, 新样本目标分布计算开销大, 可采用Blinn-Phong等简单模型.
+
+## ReSTIR PT
+
+对于当前像素$y$, 从对所有像素相同的相机顶点$y_0$出发, 在某个spp下发射确定的初始光线击中$y_1$, 之后都是随机采样, 由随机数$u_i$生成散射方向$\omega_i$. 复用时使用另一个像素$x$的路径使用的随机数, 从$y_1$出发生成新的$\omega^y_i$, 若$y_i$, $x_i$, $x_{i+1}$都满足条件(材质足够粗糙, 顶点距离足够远...), 将$y_i$连接到$x_{i+1}$并复用后续路径, 得到新路径$\mathbf{y}$.
+
+注意到由于重连接$\mathbf{y}$和$\mathbf{x}$拥有相同的顶点数, 且除生成$y_i \to x_{i+1}$使用的随机数外其余随机数相同, 因此Jacobian简化为$J_{u^x_i \to u^y_i}=\left|\frac{\partial u^y_i}{\partial u^x_i}\right|=\left|\frac{\partial u^y_i}{\partial \omega^y_i}\right|\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|\left|\frac{\partial \omega^x_i}{\partial u^x_i}\right|$. 由于重要性抽样中$U$为目标分布的CDF, 因此$J_{u^x_i \to u^y_i}=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|$. 目标分布为路径积分结果对像素的贡献, 初始无偏权重为$1/p(\mathbf{x})$, 此时可执行链式GRIS.
