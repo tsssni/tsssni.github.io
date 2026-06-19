@@ -6,7 +6,17 @@ description: "pbrt v4 episode 2"
 tags: ["graphics", "rendering", "pbrt"]
 ---
 
-随机模拟, 或者说Monte Carlo方法, 是很常用的统计学方法, 渲染任务往往通过大量采样来渲染方程积分结果. pbrt中基本都采用无偏采样器, `SPPMIntegrator`是个例外. Monte Carlo通用形式如下.
+随机模拟, 或者说Monte Carlo方法, 是很常用的统计学方法, 渲染任务往往通过大量采样来渲染方程积分结果. pbrt中基本都采用无偏采样器, `SPPMIntegrator`是个例外.
+
+支撑集定义如下:
+
+$$
+\begin{equation}
+\mathrm{supp}(f)=\{x: f(x) \neq 0\}
+\end{equation}
+$$
+
+单分布Monte Carlo形式如下, 要求$\mathrm{supp}(f)\subseteq\mathrm{supp}(p)$.
 
 $$
 \begin{equation}
@@ -186,15 +196,15 @@ $$
 
 #### 多重重要性抽样
 
-积分式往往是由多个方程组成的, 我们可以分别选取与各个方程相似的PDF, 这被称为多重重要性抽样, 简称MIS, 若为无偏估计则在采样结果相同时$\sum_{i=1}^n \omega_i(x) = 1$, 且当$p_i(x) = 0$时$\omega_i(x) = 0$否则由于概率为0使得权重不产生影响上一个条件不成立, 证明如下.
+积分式往往是由多个方程组成的, 我们可以分别选取与各个方程相似的PDF, 这被称为多重重要性抽样, 简称MIS, 若为无偏估计则在采样结果相同时$\sum_{i=1,x\in\mathrm{supp}(p_i)}^n \omega_i(x) = 1$:
 
 $$
 \begin{equation}
 \begin{aligned}
 F
 &=E(\sum_{i=1}^n \frac{1}{n_i} \sum_{j=1}^{n_i} \omega_i(X_{i,j})\frac{f(X_{i,j})}{p_i(X_{i,j})})\\
-&\approx\sum_{i=1}^n\int\omega_i(x)\frac{f(x)}{p_i(x)}p_i(x)\mathrm{d}x\\
-&=\int\sum_{i=1}^n\omega_i(x)f(x)\mathrm{d}x\\
+&\approx\sum_{i=1}^n\int_{\mathrm{supp}(p_i)}\omega_i(x)\frac{f(x)}{p_i(x)}p_i(x)\mathrm{d}x\\
+&=\int\sum_{i=1,x\in\mathrm{supp}(p_i)}^n\omega_i(x)f(x)\mathrm{d}x\\
 &=\int f(x)\mathrm{d}x
 \end{aligned}
 \end{equation}
@@ -223,8 +233,8 @@ $$
 \begin{aligned}
 F
 &=E(\frac{w_i(X)}{q_i}\frac{f(X)}{p_i(X)})\\
-&=\sum_{i=1}^n\int\frac{\omega_i(x)}{q_i}\frac{f(x)}{p_i(x)}p_i(x)q_i \mathrm{d}x\\
-&=\int\sum_{i=1}^n\omega_i(x)f(x)\mathrm{d}x\\
+&=\sum_{i=1}^n q_i \int_{\mathrm{supp}(p_i)}\frac{\omega_i(x)}{q_i}\frac{f(x)}{p_i(x)}p_i(x)\mathrm{d}x\\
+&=\int\sum_{i=1, x\in\mathrm{supp}(p_i)}^n\omega_i(x)f(x)\mathrm{d}x\\
 &=\int f(x)\mathrm{d}x
 \end{aligned}
 \end{equation}
@@ -234,11 +244,11 @@ $$
 
 #### MIS补偿
 
-MIS中每个PDF都可以单独用于Monte Carlo, 函数值非0处只需要有一个概率分布不为0即可. 将PDF较小处调整为0可以进一步缩小方差, 这被称为MIS补偿, 一种补偿方法如下.
+合法的抽样分布只要求$x\in\bigcup_{i=1}^n\mathrm{supp(p_i)}$, 将PDF较小处调整为0且保证位于其它抽样分布的支撑集, 可进一步缩小方差以实现MIS补偿, 一种补偿方法如下.
 
 $$
 \begin{equation}
-p'(x) = \frac{\max(0, p(x) - \delta)}{\int_\Omega max(0, p(x) - \delta) \mathrm{d}x}
+p'(x) = \frac{\max(0, p(x) - \delta)}{\int \max(0, p(x) - \delta) \mathrm{d}x}
 \end{equation}
 $$
 
@@ -319,18 +329,37 @@ $$
 
 ## 分布变换
 
-为了使得变换后的CDF具有如下性质, 我们要求$Y=T(X)$在每个维度上都单调递增.
+多维PDF定义如下:
 
 $$
 \begin{equation}
-P(Y(X)) = P(X)
+P_X(\mathbf{x}) = \mathrm{Pr}(X_1\leq x_1,\cdots,X_d\leq x_d)
 \end{equation}
 $$
 
-此时通过求导可以得到二者PDF的关系, 其中$|J_T(x)|$代表Jacobi矩阵的行列式.
+为了使得变换后的CDF具有如下性质, 我们要求$\mathbf{y}=T(\mathbf{x})$每个变量可分离即$y_i$只依赖$x_i$, 且在每个维度上都单调递增.
 
 $$
 \begin{equation}
-p_T(y)=p_T(T(x))=\frac{p(x)}{|J_T(x)|}
+P_Y(T(\mathbf{x})) = P_X(\mathbf{x})
+\end{equation}
+$$
+
+此时通过微分计算Jacobian行列式可以得到二者PDF的关系:
+
+$$
+\begin{equation}
+p_Y(\mathbf{y})=p_Y(T(\mathbf{x}))=p_X(\mathbf{x})\left|\frac{\partial T(\mathbf{x})}{\partial\mathbf{x}}\right|^{-1}
+\end{equation}
+$$
+
+基于测度守恒的证明只需要可微:
+
+$$
+\begin{equation}
+\begin{aligned}
+p_Y(\mathbf{y})\mathrm{d}\mathbf{y}&=p_X(\mathbf{x})\mathrm{d}\mathbf{x}\\
+p_Y(\mathbf{y})&=p_X(\mathbf{x})\left|\frac{\partial\mathbf{x}}{\partial\mathbf{y}}\right|\\
+\end{aligned}
 \end{equation}
 $$

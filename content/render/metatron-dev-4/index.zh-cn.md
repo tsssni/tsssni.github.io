@@ -8,7 +8,7 @@ tags: ["graphics", "rendering", "restir", "metatron"]
 
 ## RIS
 
-定义无偏贡献权重为随机变量$W$, $\mathrm{supp}(X)$为$f$在$X$的支撑集, 即$f(X) \neq 0$的集合.
+定义无偏贡献权重为随机变量$W$, $\mathrm{supp}(X)$为$f$在$X$的支撑集.
 
 $$
 \begin{equation}

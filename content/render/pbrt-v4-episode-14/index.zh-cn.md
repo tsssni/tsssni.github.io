@@ -20,7 +20,7 @@ $$
 
 $$
 \begin{equation}
-L_i(p',\omega)=\frac{-\int_0^{t} T_r(p'' \to p)\sigma_t(p'',\omega)L_s(p'',-\omega)\mathrm{d}t'+C}{T_r(p' \to p)}
+L_i(p',\omega)=\frac{-\int_0^{t} \sigma_t(p'',\omega)T_r(p'' \to p)L_s(p'',-\omega)\mathrm{d}t'+C}{T_r(p' \to p)}
 \end{equation}
 $$
 
@@ -28,7 +28,7 @@ $$
 
 $$
 \begin{equation}
-L_i(p',\omega)=\frac{-\int_0^t T_r(p'' \to p)\sigma_t(p'',\omega)L_s(p'',-\omega)\mathrm{d}t'+L_o(p_s,-\omega)T_r(p_s \to p)+\int_0^{t_s} T_r(p'' \to p)\sigma_t(p'',\omega)L_s(p'',-\omega)\mathrm{d}t'}{T_r(p' \to p)}
+L_i(p',\omega)=\frac{-\int_0^t \sigma_t(p'',\omega)T_r(p'' \to p)L_s(p'',-\omega)\mathrm{d}t'+L_o(p_s,-\omega)T_r(p_s \to p)+\int_0^{t_s} \sigma_t(p'',\omega)T_r(p'' \to p)L_s(p'',-\omega)\mathrm{d}t'}{T_r(p' \to p)}
 \end{equation}
 $$
 
@@ -158,21 +158,30 @@ PBRT_CPU_GPU SampledSpectrum SampleT_maj(Ray ray, Float tMax, Float u, RNG &rng,
 
 $$
 \begin{equation}
-P=\bigcup_{n=1}^{\infty}(A \cup V \cup V_\emptyset)^{n}
+\begin{aligned}
+P_n^c&=\overset{n}{\underset{i=1}{\times}}
+\begin{cases}
+A, & \text{if}\ c_i = 0\\
+V, & \text{if}\ c_i = 1\\
+V_\emptyset, & \text{if}\ c_i = 2
+\end{cases}
+\\
+P_n&=\bigcup_{c \in \{0,1,2\}^n}P_n^c
+\end{aligned}
 \end{equation}
 $$
 
-对于长度为$n$的路径, 其微分项如下.
+令$D \subseteq P_n$为$P_n$的可测子集, 测度定义如下:
 
 $$
 \begin{equation}
 \begin{aligned}
-d\bar{p}_n&=\prod_{i=1}^n dp_i\\
-dp_i&=
+\mu_n(D)&=\sum_{c\in\{0,1,2\}^n}\mu_n^c(D \cap P_n^c)\\
+\mu_n^c(D)&=\int_D\prod_{i=1}^n
 \begin{cases}
-\mathrm{d}A(p_i) & p_i \in A\\
-\mathrm{d}V(p_i) & p_i \in V\\
-\mathrm{d}V_\emptyset(p_i) & p_i \in V_\emptyset
+dA(p_i), & \text{if}\ c_i = 0\\
+dV(p_i), & \text{if}\ c_i = 1\\
+dV_{\emptyset}(p_i), & \text{if}\ c_i = 2
 \end{cases}
 \end{aligned}
 \end{equation}
@@ -254,7 +263,7 @@ $p_0$为相机, 所有长度为$n+1$的路径如下.
 
 $$
 \begin{equation}
-\hat{P}(\bar{p}_n)=\int_{P_{n}}\hat{L_e}(p_n \to p_{n-1})\hat{T}(\bar{p}_n)d\bar{p}_{n}
+\hat{P}(\bar{p}_n)=\int_{P_{n}}\hat{L_e}(p_n \to p_{n-1})\hat{T}(\bar{p}_n)\mathrm{d}\mu_{n}(p_1,\cdots,p_n)
 \end{equation}
 $$
 
@@ -458,7 +467,7 @@ $$
 \begin{equation}
 \begin{aligned}
 \hat{P}(\bar{p}_n)
-&=\omega_u(\bar{p}_n)\frac{\hat{T}(\bar{p}_n)L_e(p_n \to p_{n-1})}{p_{u,\lambda_1}(\bar{p}_n)}+\omega_l(\bar{p}'_n)\frac{\hat{T}(\bar{p}'_n)L_e(p'_n \to p'_{n-1})}{p_{l,\lambda_1}(\bar{p}'_n)}
+&=\frac{\omega_u(\bar{p}_n)}{\frac{1}{m}}\frac{\hat{T}(\bar{p}_n)L_e(p_n \to p_{n-1})}{p_{u,\lambda_1}(\bar{p}_n)}+\frac{\omega_l(\bar{p}'_n)}{\frac{1}{m}}\frac{\hat{T}(\bar{p}'_n)L_e(p'_n \to p'_{n-1})}{p_{l,\lambda_1}(\bar{p}'_n)}
 \end{aligned}
 \end{equation}
 $$
@@ -468,8 +477,8 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-\omega_u(\bar{p}_n)=\frac{p_{u,\lambda_1}(\bar{p}_n)}{\frac{1}{m}\left(\sum_{i=1}^m p_{u,\lambda_i}(\bar{p}_n)+\sum_{i=1}^m p_{l,\lambda_i}(\bar{p}'_n)\right)}\\
-\omega_l(\bar{p}_n)=\frac{p_{l,\lambda_1}(\bar{p}_n)}{\frac{1}{m}\left(\sum_{i=1}^m p_{u,\lambda_i}(\bar{p}_n)+\sum_{i=1}^m p_{l,\lambda_i}(\bar{p}'_n)\right)}
+\omega_u(\bar{p}_n)=\frac{p_{u,\lambda_1}(\bar{p}_n)}{\left(\sum_{i=1}^m p_{u,\lambda_i}(\bar{p}_n)+\sum_{i=1}^m p_{l,\lambda_i}(\bar{p}'_n)\right)}\\
+\omega_l(\bar{p}'_n)=\frac{p_{l,\lambda_1}(\bar{p}'_n)}{\left(\sum_{i=1}^m p_{u,\lambda_i}(\bar{p}_n)+\sum_{i=1}^m p_{l,\lambda_i}(\bar{p}'_n)\right)}
 \end{aligned}
 \end{equation}
 $$
