@@ -142,4 +142,35 @@ ReSTIR DI/GI都将$M$解释为蓄水池的样本数量, 但它实际决定MIS权
 
 对于当前像素$y$, 从对所有像素相同的相机顶点$y_0$出发, 在某个spp下发射确定的初始光线击中$y_1$, 之后都是随机采样, 由随机数$u_i$生成散射方向$\omega_i$. 复用时使用另一个像素$x$的路径使用的随机数, 从$y_1$出发生成新的$\omega^y_i$, 若$y_i$, $x_i$, $x_{i+1}$都满足条件(材质足够粗糙, 顶点距离足够远...), 将$y_i$连接到$x_{i+1}$并复用后续路径, 得到新路径$\mathbf{y}$.
 
-注意到由于重连接$\mathbf{y}$和$\mathbf{x}$拥有相同的顶点数, 且除生成$y_i \to x_{i+1}$使用的随机数外其余随机数相同, 因此Jacobian简化为$J_{u^x_i \to u^y_i}=\left|\frac{\partial u^y_i}{\partial u^x_i}\right|=\left|\frac{\partial u^y_i}{\partial \omega^y_i}\right|\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|\left|\frac{\partial \omega^x_i}{\partial u^x_i}\right|$. 由于重要性抽样中$U$为目标分布的CDF, 因此$J_{u^x_i \to u^y_i}=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|$. 目标分布为路径积分结果对像素的贡献, 初始无偏权重为$1/p(\mathbf{x})$, 此时可执行链式GRIS.
+注意到由于重连接$\mathbf{y}$和$\mathbf{x}$拥有相同的顶点数, 且除生成$y_i \to y_{i+1} \to y_{i+2}$使用的随机数外其余随机数相同, 若未使用VNDF等视线相关抽样则只需考虑$y_i \to y_{i+1}$. 由于重要性抽样中$U$为目标分布的CDF, 令$\theta$为立体角与法线的夹角, 对于同序顶点Jacobian形式如下:
+
+$$
+\begin{equation}
+\begin{aligned}
+\left|\frac{\partial u^y_i}{\partial u^x_i}\right|
+&=\left|\frac{\partial u^y_i}{\partial \omega^y_i}\right|\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|\left|\frac{\partial \omega^x_i}{\partial u^x_i}\right|
+=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|\\
+&=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
+\end{aligned}
+\end{equation}
+$$
+
+对于非同序顶点, 我们无法得到最后立体角微分的解析形式. 但由于$\omega^x_{i+1}$只依赖$\omega^x_{i}$, 可得$\frac{\partial \omega^y_i}{\partial \omega^x_{i+1}}=0$, Jacobian为下三角行列式. 由于$\omega^y_{i+1}=\omega^x_{i+1}$, 形式如下:
+
+$$
+\begin{equation}
+\begin{aligned}
+J_{\mathbf{x}\to\mathbf{y}}
+&=\begin{vmatrix}
+\frac{\partial u^y_i}{\partial u^x_i}&
+\frac{\partial u^y_i}{\partial u^x_{i+1}}\\
+\frac{\partial u^y_{i+1}}{\partial u^x_i}&
+\frac{\partial u^y_{i+1}}{\partial u^x_{i+1}}
+\end{vmatrix}
+= \frac{\partial u^y_i}{\partial u^x_i}\frac{\partial u^y_{i+1}}{\partial u^x_{i+1}}\\
+&=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\frac{p_{y_{i+1}}(\omega^y_{i+1})}{p_{x_{i+1}}(\omega^x_{i+1})}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
+\end{aligned}
+\end{equation}
+$$
+
+目标分布为积分结果对像素的贡献, 初始无偏权重为$\frac{1}{p(\mathbf{x})}$, 链式GRIS可实现无偏复用.
