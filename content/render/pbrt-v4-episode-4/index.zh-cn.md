@@ -83,7 +83,7 @@ $$
 
 $$
 \begin{equation}
-I = \frac{\mathrm{d}Q}{\mathrm{d}\omega}
+I = \frac{\mathrm{d}\Phi}{\mathrm{d}\omega}
 \end{equation}
 $$
 

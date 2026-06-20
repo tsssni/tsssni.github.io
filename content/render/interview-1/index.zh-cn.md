@@ -168,3 +168,9 @@ hk push constants位于`hk_root_descriptor_table`, 在command buffer中共享. p
 ### Inline Uniform Block
 
 inline unifomr block将ubo数据直接写入descriptor set内存而非描述符, hk编译期将ubo访问翻译为在descriptor set中寻址.
+
+## Layout
+
+- scalar: C语言对齐, 成员的偏移必须满足自身对齐, 结构体使用最大成员的对齐.
+- base: `std430`, 增加向量对齐, `vec3`使用`vec4`对齐, 结构体向上取整到`vec4`.
+- extended: `std140`, 由于旧硬件UBO位于寄存器, 动态索引编译期无法分配寄存器, 只能运行时加载完整的16字节寄存器, 因此数组每个成员都向上取整到`vec4`.

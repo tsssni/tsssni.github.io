@@ -73,7 +73,7 @@ E[f(Y)W_Y]
 \end{equation}
 $$
 
-泛化为无偏权重$\frac{1}{p_x(X)} \to W_x$, 不显式定义$w$, 得到$W_Y=\hat{p}(Y)c_x(Y)J_{X \to Y}W_x$, 可以基于全期望公式证明$W_Y=c_x(Y)W_xJ_{X \to Y}\frac{\sum_{i=1}^M w_i}{w_x}$无偏:
+泛化为无偏权重$\frac{1}{p_x(X)} \to W_x$, 不显式定义$w$, 可以基于全期望公式证明蓄水池合并结果$W_Y=c_x(Y)W_xJ_{X \to Y}\frac{\sum_{i=1}^M w_i}{w_x}$无偏:
 
 $$
 \begin{equation}
@@ -140,6 +140,20 @@ ReSTIR DI/GI都将$M$解释为蓄水池的样本数量, 但它实际决定MIS权
 
 ## ReSTIR PT
 
+使用主样本空间执行积分, 令CDF为$P$, 这使得每个顶点生成光线的PDF不再属于无偏权重.
+
+$$
+\begin{equation}
+\begin{aligned}
+\int_{\mathbf{x}} f(\mathbf{x}) d\mathbf{x}
+&=\int_{\mathbf{u}} f(P^{-1}(\mathbf{u})) \left|\frac{\partial P^{-1}(\mathbf{u})}{\partial\mathbf{u}}\right| \mathrm{d}\mathbf{u}\\
+&=\int_{\mathbf{u}} \frac{f(P^{-1}(\mathbf{u}))}{p(\mathbf{x})} \mathrm{d}\mathbf{u}\\
+\end{aligned}
+\end{equation}
+$$
+
+不同顶点数的积分不相交, 即$f(\mathbf{x})=\sum_{i=1}^\infty\int_{\mathbf{x}_i}f(\mathbf{x}_i)\mathrm{d}\mathbf{x}_i$, $\bigcup_{i=1}^\infty\mathbf{x_i}=\mathbf{x}$使得样本满足$\mathrm{supp}(Y) \subseteq \bigcup_{n=1}^M T_n(\mathrm{supp}(X_n))$, 同时对于单个像素生成的光线, 生成的每个NEE样本总是顶点数不同, $\mathcal{N}(y)$只位于一个支撑集, MIS权重设置为$1$即可.
+
 对于当前像素$y$, 从对所有像素相同的相机顶点$y_0$出发, 在某个spp下发射确定的初始光线击中$y_1$, 之后都是随机采样, 由随机数$u_i$生成散射方向$\omega_i$. 复用时使用另一个像素$x$的路径使用的随机数, 从$y_1$出发生成新的$\omega^y_i$, 若$y_i$, $x_i$, $x_{i+1}$都满足条件(材质足够粗糙, 顶点距离足够远...), 将$y_i$连接到$x_{i+1}$并复用后续路径, 得到新路径$\mathbf{y}$.
 
 注意到由于重连接$\mathbf{y}$和$\mathbf{x}$拥有相同的顶点数, 且除生成$y_i \to y_{i+1} \to y_{i+2}$使用的随机数外其余随机数相同, 若未使用VNDF等视线相关抽样则只需考虑$y_i \to y_{i+1}$. 由于重要性抽样中$U$为目标分布的CDF, 令$\theta$为立体角与法线的夹角, 对于同序顶点Jacobian形式如下:
@@ -173,4 +187,4 @@ J_{\mathbf{x}\to\mathbf{y}}
 \end{equation}
 $$
 
-目标分布为积分结果对像素的贡献, 初始无偏权重为$\frac{1}{p(\mathbf{x})}$, 链式GRIS可实现无偏复用.
+目标分布为积分结果对像素的贡献, 初始权重为NEE/BSDF MIS无偏权重, 链式GRIS可实现无偏复用. 为节省内存, 采样时贪心的确定首对满足要求的$x_i,\ x_{i+1}$, 只存储随机数种子.
