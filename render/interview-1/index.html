@@ -371,7 +371,7 @@
     "keywords": ["graphics","rendering","gpu"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "5060"
+    "wordCount": "5199"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>5060 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">11 分钟</span>
+      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>5199 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">11 分钟</span>
     
 
     
@@ -1249,6 +1249,7 @@
         <li><a href="#inline-uniform-block">Inline Uniform Block</a></li>
       </ul>
     </li>
+    <li><a href="#layout">Layout</a></li>
   </ul>
 </nav>
   </div>
@@ -1294,6 +1295,7 @@
         <li><a href="#inline-uniform-block">Inline Uniform Block</a></li>
       </ul>
     </li>
+    <li><a href="#layout">Layout</a></li>
   </ul>
 </nav>
   </div>
@@ -1626,6 +1628,21 @@ c-10,0,-16.667,5,-20,15z M188 15 H145 v585 v1200 v585 h43z"/></svg></span></span
     
 </h3>
 <p>inline unifomr block将ubo数据直接写入descriptor set内存而非描述符, hk编译期将ubo访问翻译为在descriptor set中寻址.</p>
+
+<h2 class="relative group">Layout
+    <div id="layout" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#layout" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<ul>
+<li>scalar: C语言对齐, 成员的偏移必须满足自身对齐, 结构体使用最大成员的对齐.</li>
+<li>base: <code>std430</code>, 增加向量对齐, <code>vec3</code>使用<code>vec4</code>对齐, 结构体向上取整到<code>vec4</code>.</li>
+<li>extended: <code>std140</code>, 由于旧硬件UBO位于寄存器, 动态索引编译期无法分配寄存器, 只能运行时加载完整的16字节寄存器, 因此数组每个成员都向上取整到<code>vec4</code>.</li>
+</ul>
 
           
           
