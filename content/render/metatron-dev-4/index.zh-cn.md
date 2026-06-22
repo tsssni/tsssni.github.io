@@ -132,7 +132,7 @@ struct Reservoir {
 };
 ```
 
-蓄水池累积代码为`w = p_hat * W * M * J`, 可能的疑惑点在于, 相比GRIS定义的$w$, $m_x(Y)$被替换为$M$. 令累积后支撑集中的样本数为$N$, 实际上累积过程会统计$\sum_{i=1}^N M_i$, 最终计算无偏权重时使用`w_sum / p_hat / M_sum`, 此时`w`中的`M`被归一化, 得到满足$\sum_{i=1}^N m_i(Y) = 1$的MIS权重$m_n(Y)=\frac{M_n}{\sum_{i=1}^N M_i}$.
+蓄水池累积代码为`w = p_hat * W * M * J`, 可能的疑惑点在于, 相比GRIS定义的$w$, $m_x(Y)$被替换为$M$. 令累积后支撑集中的样本数为$N$, 实际上累积过程会统计$\sum_{i=1}^N M_i$, M是分配给该样本域的置信度, 因此该域中的样本具有相同MIS权重. 最终计算无偏权重时使用`w_sum / p_hat / M_sum`, 此时`w`中的`M`被归一化, 得到满足$\sum_{i=1}^N m_i(Y) = 1$的MIS权重$m_n(Y)=\frac{M_n}{\sum_{i=1}^N M_i}$.
 
 ReSTIR DI/GI都将$M$解释为蓄水池的样本数量, 但它实际决定MIS权重, 可以自由调整, 因此认为$M$是样本置信度更合理, 只是通常它与样本数相关. 若追求无偏, 需要复用过程中投射阴影光线, 若被遮挡不合并该蓄水池, 保证$\sum_{n \in \mathcal{N}(y)} m_n(y) = 1$.
 
@@ -183,6 +183,17 @@ J_{\mathbf{x}\to\mathbf{y}}
 \end{vmatrix}
 = \frac{\partial u^y_i}{\partial u^x_i}\frac{\partial u^y_{i+1}}{\partial u^x_{i+1}}\\
 &=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\frac{p_{y_{i+1}}(\omega^y_{i+1})}{p_{x_{i+1}}(\omega^x_{i+1})}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
+\end{aligned}
+\end{equation}
+$$
+
+如果直接用置信度计算权重, 需要了解当前样本是否位于所有被复用的样本域的支撑集中. 由于支撑集外的$\hat{p}(x)=0$, 基于它设置MIS权重天然的满足$\sum_{n \in \mathcal{N}(Y)} c_n(Y)=1$. 常用的配对MIS权重如下, 为计算中心规范样本中的$\hat{p}_{\leftarrow i}(y)$, 必须在执行合并前将$y$逆变换到每个候选空间执行重放. 最终重放次数为$2N$, 相比朴素的$O(N^2)$方法显著降低开销.
+
+$$
+\begin{equation}
+\begin{aligned}
+m_i(Y) &= \frac{1}{N+1}\frac{M_i\,\hat{p}_{\leftarrow i}(Y)}{M_i\,\hat{p}_{\leftarrow i}(Y) + \frac{M_c}{N}\hat{p}_c(Y)}, \quad i \neq c\\
+m_c(Y) &= \frac{1}{N+1}\left(1 + \sum_{i=1}^N \frac{\frac{M_c}{N}\hat{p}_c(Y)}{M_i\,\hat{p}_{\leftarrow i}(Y) + \frac{M_c}{N}\hat{p}_c(Y)}\right)
 \end{aligned}
 \end{equation}
 $$
