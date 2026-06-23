@@ -371,7 +371,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "3034"
+    "wordCount": "3543"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>3034 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">7 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>3543 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">8 分钟</span>
     
 
     
@@ -1224,6 +1224,7 @@
     <li><a href="#atomic">Atomic</a></li>
     <li><a href="#memory-order">Memory Order</a></li>
     <li><a href="#promise">Promise</a></li>
+    <li><a href="#value-category">Value Category</a></li>
   </ul>
 </nav>
   </div>
@@ -1244,6 +1245,7 @@
     <li><a href="#atomic">Atomic</a></li>
     <li><a href="#memory-order">Memory Order</a></li>
     <li><a href="#promise">Promise</a></li>
+    <li><a href="#value-category">Value Category</a></li>
   </ul>
 </nav>
   </div>
@@ -1438,6 +1440,71 @@ auto fib = [](this auto self, int n) -&gt; int {
 </h2>
 <p><code>std::promise&lt;T&gt;</code>是一次性值/异常的写端, 配对的读端<code>std::future&lt;T&gt;</code>由<code>get_future</code>获得. 生产者调用<code>set_value</code>/<code>set_exception</code>写入, 消费者调用<code>future.get()</code>, 未就绪时阻塞, 就绪后返回值或重抛异常.</p>
 <p><code>std::packaged_task</code>包装可调用对象, 自动用返回值填充内部<code>promise</code>. <code>std::async</code>启动任务并返回<code>std::future</code>. <code>std::launch::async</code>立即执行, 对应的<code>future</code>析构时会阻塞. <code>std::launch::deferred</code>延迟到首次<code>future</code>读取, 相当于在调用线程同步执行. <code>std::shared_future</code>将返回值以<code>T const&amp;</code>的形式暴露, 可被多个消费者重复读取.</p>
+
+<h2 class="relative group">Value Category
+    <div id="value-category" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#value-category" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p>具有身份即有稳定存储空间的表达式是泛左值, 否则为纯右值. 纯右值分为两种情况, 示例:</p>
+<pre><code class="language-cpp">auto x = 1 + 2 * 3;
+x = 1 + 2 * 4;
+struct A { int x; auto f(float x) { return x + 1.f; } };
+auto y = A{1 + 2 * 5};
+auto z = y.f(1.f);
+auto w = z;
+y.f(0.f);
+</code></pre>
+<ol>
+<li>计算内建运算符的操作数
+<ul>
+<li><code>1 + 2 * 3</code>中的<code>1</code>, <code>2</code>, <code>3</code>, <code>2 * 3</code>都是纯右值表达式</li>
+<li><code>1 + 2 * 3</code>是初始化语法<code>=</code>的操作数, 不符合定义</li>
+<li><code>1 + 2 * 4</code>是内建赋值运算符<code>=</code>的操作数, 符合定义</li>
+</ul>
+</li>
+<li>表达式初始化了一个对象
+<ul>
+<li><code>1 + 2 * 3</code>用于初始化<code>x</code>, 符合定义</li>
+<li><code>1 + 2 * 5</code>用于初始化<code>A::x</code>, 符合定义</li>
+<li><code>1.f</code>用于初始化<code>A::f</code>的形参<code>x</code>, 符合定义</li>
+<li><code>w = z</code>的<code>z</code>具有身份, 不符合定义</li>
+<li><code>y.f(0.f)</code>为丢弃表达式, 触发临时实体化对象的初始化, 符合定义</li>
+</ul>
+</li>
+</ol>
+<p>将亡值为标记资源可被复用的泛左值, 不具有名称, 如何复用取决于移动构造函数, 示例:</p>
+<pre><code class="language-cpp">auto pi = 3.14f;
+struct A { int x; float&amp;&amp; y; };
+A a{0, pi};
+A&amp;&amp; b = static_cast&lt;A&amp;&amp;&gt;(a);
+A&amp;&amp; c = std::move(a);
+A{1, pi}.x; A{}.y;
+</code></pre>
+<ol>
+<li>强制转换为右值引用
+<ul>
+<li><code>static_cast&lt;A&amp;&amp;&gt;(a)</code></li>
+</ul>
+</li>
+<li>函数返回右值引用
+<ul>
+<li><code>std::move(a)</code>执行强制转换, 返回右值引用, 符合定义</li>
+<li><code>A&amp;&amp; b</code>和<code>A&amp;&amp; c</code>都是具名引用, 不符合定义</li>
+</ul>
+</li>
+<li>临时实体化并向下传播
+<ul>
+<li><code>A{}.x</code>由于需要访问<code>x</code>, <code>A{}</code>被临时实体化, 符合定义</li>
+<li><code>A{}.x</code>为将亡值的成员, 符合定义</li>
+<li><code>A{}.y</code>访问引用成员, 访问引用的结果一定为左值, 不符合定义</li>
+</ul>
+</li>
+</ol>
 
           
           
