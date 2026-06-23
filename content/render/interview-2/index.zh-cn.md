@@ -132,6 +132,56 @@ auto f() -> int {
 }
 ```
 
+## Deduction
+
+若非类模板的模板参数需要推导, 与`T&&`和`auto&&`严格一致, 触发转发引用, 例如:
+
+```cpp
+template<typename T> auto f(T&&); // T需要被推导
+template<typename T> auto f(T const&&); // 不满足T&&
+template<typename T> auto f(std::type_identity_t<T>&&); // 不满足T&&
+
+auto f(auto&&); // auto需要被推导
+auto f(auto volatile&&); // 不满足auto&&
+
+template<typename T> struct S {
+    S(T&&); // auto s = S{x}; 类模板推导不触发转发, x为左值时报错
+    auto f(T&&); // auto s = S<int>{}; 已实例化T, 调用s.f(x)不需要推导
+    template<typename U> auto f(U&&); // U需要被推导
+};
+```
+
+若参数为左值, `T`推导为`T&`, 从而`T& && = T&`得到左值; 右值时推导为`T`, 类型为`T&&`. 由于具名变量都是左值, 即使推导出右值引用, 使用参数时仍然触发左值重载, 因此需要`std::forward<T>`将`T`的具体引用类型传播, 实现如下:
+
+```cpp
+template<typename T>
+auto constexpr forward(std::remove_reference_t<T>& t) noexcept -> T&& {
+    return static_cast<T&&>(t); // T& && = T&
+}
+
+template<typename T>
+auto constexpr forward(std::remove_reference_t<T>&& t) noexcept -> T&& {
+    static_assert(!std::is_lvalue_reference_v<T>);  // avoid forward<int&>(std::move(x))
+    return static_cast<T&&>(t); //  T&& && = T&&
+}
+
+template<typename... Args>
+auto f(Args&&... args) { g(std::forward<Args>(args)...); } // g接收到的引用类型和f一致
+```
+
+使用`auto`推导会删除cv限定符和引用, 需要用`auto&&`, `auto const&`等方式添加限定符, 若使用`decltype(auto)`则保留表达式类型.
+
+```cpp
+auto x = 1; // int
+auto& rx = x; // int&
+auto const& crx = x; // int const&
+auto y = crx; // int
+decltype(auto) z = crx; // int const&
+
+template<typename T> auto f(T&& x) { return x; } // return std::decay_t<T>
+template<typename T> decltype(auto) f(T&& x) { return x; } // return T&&
+```
+
 ## CRTP
 
 当模板类在构造时不需要模板类型参数的完整定义, 将派生类型传给基类是不会导致循环依赖的, 从而实现奇异递归模板模式. C++23支持`this`推导, 首参为`this Self&&`时`Self`推导为调用它的对象的类型. lambda是实现了`operator()`的匿名对象, 但`this`被用于捕获外围对象, 无法再使用lambda自身的`this`, `this`推导使得lambda可以递归.
