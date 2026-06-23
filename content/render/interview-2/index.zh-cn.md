@@ -184,11 +184,14 @@ template<typename T> decltype(auto) f(T&& x) { return x; } // return T&&
 
 ## CRTP
 
-当模板类在构造时不需要模板类型参数的完整定义, 将派生类型传给基类是不会导致循环依赖的, 从而实现奇异递归模板模式. C++23支持`this`推导, 首参为`this Self&&`时`Self`推导为调用它的对象的类型. lambda是实现了`operator()`的匿名对象, 但`this`被用于捕获外围对象, 无法再使用lambda自身的`this`, `this`推导使得lambda可以递归.
+当模板类在构造时不需要模板类型参数的完整定义时, 将派生类型传给基类不会导致循环依赖, 从而实现奇异递归模板模式. C++23支持`this`推导, 首参为`this Self&&`时`Self`推导为调用者类型, 且有推导的成员函数可以直接取指针并传入`this`. lambda是实现了`operator()`的匿名对象, 但`this`会捕获外围对象, 无法再使用lambda自身的`this`, `this`推导使得lambda可以递归.
 
 ```cpp
 struct B {
     auto f(this auto&& self) { self.g(); }
+    auto g() { return; }
+    auto p() { auto r = &f; r(*this); } // this deduction
+    auto q() { auto r = &g; this->(*r)(); } // member pointer
 };
 
 struct D: B {
@@ -270,3 +273,23 @@ A{1, pi}.x; A{}.y;
 如果期望使用`std::memcpy`复制或移动对象, 需要满足`std::is_trivially_copiable`, 通常只有聚合类型和标量能满足, 否则需要调用复制或移动构造函数. 许多对象是可重定位的, 例如对象内部只持有指针, 保证复制后不再使用原对象, 即可正确析构.
 
 C++17后标准要求纯右值的赋值直接在对象内存上初始化, 不执行复制或移动构造. 有提案主张引入`reloc`运算符, 将非引用对象转为纯右值并禁止再次使用, 引入重定位构造函数`T(T x)`以接收纯右值, 若类型满足重定位要求该函数优化为`memcpy`.
+
+## Reflection
+
+C++26引入静态反射, 可通过反射运算符`^^`在编译期获取命名空间, 类型和具名表达式的`std::meta::info`, 以及拼接器`[::]`将其还原.
+ `std::meta`中提供`membors_of`, `template_of`等函数以在编译期操作反射信息.
+
+```cpp
+auto constexpr iinfo = ^^int;
+using i32 = [:iinfo:];
+```
+
+## ABI
+
+应用二进制接口规定二进制层面的交互, 系统层面和C/C++语言层面都存在ABI, 例如:
+
+- ELF会做全局符号去重, LTO开启后跨动态库的符号为默认可见
+- Mach-O只将符号绑定到动态库内部, LTO开启后跨动态库符号不共享
+- System V AMD64和AAPCS64中小于16字节的对象使用寄存器传递参数
+- Itanium名称修饰以`_Z`开头, Windows以`?`开头
+- Itanium将虚基类偏移按序存储在负偏移, Windows在8字节偏移添加虚偏移指针
