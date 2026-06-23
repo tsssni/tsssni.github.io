@@ -170,3 +170,49 @@ ARM等架构为LL/SC, 即`load-linked`/`store-conditional`一对指令: `load-li
 `std::promise<T>`是一次性值/异常的写端, 配对的读端`std::future<T>`由`get_future`获得. 生产者调用`set_value`/`set_exception`写入, 消费者调用`future.get()`, 未就绪时阻塞, 就绪后返回值或重抛异常.
 
 `std::packaged_task`包装可调用对象, 自动用返回值填充内部`promise`. `std::async`启动任务并返回`std::future`. `std::launch::async`立即执行, 对应的`future`析构时会阻塞. `std::launch::deferred`延迟到首次`future`读取, 相当于在调用线程同步执行. `std::shared_future`将返回值以`T const&`的形式暴露, 可被多个消费者重复读取.
+
+## Value Category
+
+具有身份即有稳定存储空间的表达式是泛左值, 否则为纯右值. 纯右值分为两种情况, 示例:
+
+```cpp
+auto x = 1 + 2 * 3;
+x = 1 + 2 * 4;
+struct A { int x; auto f(float x) { return x + 1.f; } };
+auto y = A{1 + 2 * 5};
+auto z = y.f(1.f);
+auto w = z;
+y.f(0.f);
+```
+
+1. 计算内建运算符的操作数
+    - `1 + 2 * 3`中的`1`, `2`, `3`, `2 * 3`都是纯右值表达式
+    - `1 + 2 * 3`是初始化语法`=`的操作数, 不符合定义
+    - `1 + 2 * 4`是内建赋值运算符`=`的操作数, 符合定义
+2. 表达式初始化了一个对象
+    - `1 + 2 * 3`用于初始化`x`, 符合定义
+    - `1 + 2 * 5`用于初始化`A::x`, 符合定义
+    - `1.f`用于初始化`A::f`的形参`x`, 符合定义
+    - `w = z`的`z`具有身份, 不符合定义
+    - `y.f(0.f)`为丢弃表达式, 触发临时实体化对象的初始化, 符合定义
+
+将亡值为标记资源可被复用的泛左值, 不具有名称, 如何复用取决于移动构造函数, 示例:
+
+```cpp
+auto pi = 3.14f;
+struct A { int x; float&& y; };
+A a{0, pi};
+A&& b = static_cast<A&&>(a);
+A&& c = std::move(a);
+A{1, pi}.x; A{}.y;
+```
+
+1. 强制转换为右值引用
+    - `static_cast<A&&>(a)`
+2. 函数返回右值引用
+    - `std::move(a)`执行强制转换, 返回右值引用, 符合定义
+    - `A&& b`和`A&& c`都是具名引用, 不符合定义
+3. 临时实体化并向下传播
+    - `A{}.x`由于需要访问`x`, `A{}`被临时实体化, 符合定义
+    - `A{}.x`为将亡值的成员, 符合定义
+    - `A{}.y`访问引用成员, 访问引用的结果一定为左值, 不符合定义
