@@ -371,7 +371,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "4342"
+    "wordCount": "4732"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>4342 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">9 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>4732 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">10 分钟</span>
     
 
     
@@ -1226,6 +1226,8 @@
     <li><a href="#memory-order">Memory Order</a></li>
     <li><a href="#promise">Promise</a></li>
     <li><a href="#value-category">Value Category</a></li>
+    <li><a href="#reflection">Reflection</a></li>
+    <li><a href="#abi">ABI</a></li>
   </ul>
 </nav>
   </div>
@@ -1248,6 +1250,8 @@
     <li><a href="#memory-order">Memory Order</a></li>
     <li><a href="#promise">Promise</a></li>
     <li><a href="#value-category">Value Category</a></li>
+    <li><a href="#reflection">Reflection</a></li>
+    <li><a href="#abi">ABI</a></li>
   </ul>
 </nav>
   </div>
@@ -1440,9 +1444,12 @@ template&lt;typename T&gt; decltype(auto) f(T&amp;&amp; x) { return x; } // retu
     </span>
     
 </h2>
-<p>当模板类在构造时不需要模板类型参数的完整定义, 将派生类型传给基类是不会导致循环依赖的, 从而实现奇异递归模板模式. C++23支持<code>this</code>推导, 首参为<code>this Self&amp;&amp;</code>时<code>Self</code>推导为调用它的对象的类型. lambda是实现了<code>operator()</code>的匿名对象, 但<code>this</code>被用于捕获外围对象, 无法再使用lambda自身的<code>this</code>, <code>this</code>推导使得lambda可以递归.</p>
+<p>当模板类在构造时不需要模板类型参数的完整定义时, 将派生类型传给基类不会导致循环依赖, 从而实现奇异递归模板模式. C++23支持<code>this</code>推导, 首参为<code>this Self&amp;&amp;</code>时<code>Self</code>推导为调用者类型, 且有推导的成员函数可以直接取指针并传入<code>this</code>. lambda是实现了<code>operator()</code>的匿名对象, 但<code>this</code>会捕获外围对象, 无法再使用lambda自身的<code>this</code>, <code>this</code>推导使得lambda可以递归.</p>
 <pre><code class="language-cpp">struct B {
     auto f(this auto&amp;&amp; self) { self.g(); }
+    auto g() { return; }
+    auto p() { auto r = &amp;f; r(*this); } // this deduction
+    auto q() { auto r = &amp;g; this-&gt;(*r)(); } // member pointer
 };
 
 struct D: B {
@@ -1558,6 +1565,39 @@ A{1, pi}.x; A{}.y;
 </ol>
 <p>如果期望使用<code>std::memcpy</code>复制或移动对象, 需要满足<code>std::is_trivially_copiable</code>, 通常只有聚合类型和标量能满足, 否则需要调用复制或移动构造函数. 许多对象是可重定位的, 例如对象内部只持有指针, 保证复制后不再使用原对象, 即可正确析构.</p>
 <p>C++17后标准要求纯右值的赋值直接在对象内存上初始化, 不执行复制或移动构造. 有提案主张引入<code>reloc</code>运算符, 将非引用对象转为纯右值并禁止再次使用, 引入重定位构造函数<code>T(T x)</code>以接收纯右值, 若类型满足重定位要求该函数优化为<code>memcpy</code>.</p>
+
+<h2 class="relative group">Reflection
+    <div id="reflection" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#reflection" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p>C++26引入静态反射, 可通过反射运算符<code>^^</code>在编译期获取命名空间, 类型和具名表达式的<code>std::meta::info</code>, 以及拼接器<code>[::]</code>将其还原.
+<code>std::meta</code>中提供<code>membors_of</code>, <code>template_of</code>等函数以在编译期操作反射信息.</p>
+<pre><code class="language-cpp">auto constexpr iinfo = ^^int;
+using i32 = [:iinfo:];
+</code></pre>
+
+<h2 class="relative group">ABI
+    <div id="abi" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#abi" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p>应用二进制接口规定二进制层面的交互, 系统层面和C/C++语言层面都存在ABI, 例如:</p>
+<ul>
+<li>ELF会做全局符号去重, LTO开启后跨动态库的符号为默认可见</li>
+<li>Mach-O只将符号绑定到动态库内部, LTO开启后跨动态库符号不共享</li>
+<li>System V AMD64和AAPCS64中小于16字节的对象使用寄存器传递参数</li>
+<li>Itanium名称修饰以<code>_Z</code>开头, Windows以<code>?</code>开头</li>
+<li>Itanium将虚基类偏移按序存储在负偏移, Windows在8字节偏移添加虚偏移指针</li>
+</ul>
 
           
           
