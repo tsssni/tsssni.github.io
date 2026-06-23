@@ -371,7 +371,7 @@
     "keywords": ["graphics","rendering","gpu"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "5199"
+    "wordCount": "5467"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>5199 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">11 分钟</span>
+      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>5467 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">11 分钟</span>
     
 
     
@@ -1242,6 +1242,7 @@
     </li>
     <li><a href="#descriptor">Descriptor</a>
       <ul>
+        <li><a href="#descriptor-set">Descriptor Set</a></li>
         <li><a href="#descriptor-buffer">Descriptor Buffer</a></li>
         <li><a href="#descriptor-heap">Descriptor Heap</a></li>
         <li><a href="#descriptor-pool">Descriptor Pool</a></li>
@@ -1288,6 +1289,7 @@
     </li>
     <li><a href="#descriptor">Descriptor</a>
       <ul>
+        <li><a href="#descriptor-set">Descriptor Set</a></li>
         <li><a href="#descriptor-buffer">Descriptor Buffer</a></li>
         <li><a href="#descriptor-heap">Descriptor Heap</a></li>
         <li><a href="#descriptor-pool">Descriptor Pool</a></li>
@@ -1572,6 +1574,18 @@ c-10,0,-16.667,5,-20,15z M188 15 H145 v585 v1200 v585 h43z"/></svg></span></span
     
 </h2>
 
+<h3 class="relative group">Descriptor Set
+    <div id="descriptor-set" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#descriptor-set" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p>若设置<code>VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT</code>, descriptor count设置可以延迟到分配阶段, 这使得descriptor set layout可以被多个只有bindless descriptor count不同的descriptor set使用. Vulkan只允许在最后一个绑定点设置它.</p>
+<p>若设置<code>VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT</code>, descriptor set绑定后仍然可以更新descriptor, 使得bindless descriptor可在任意时间更新, 提升流式加载的性能.</p>
+
 <h3 class="relative group">Descriptor Buffer
     <div id="descriptor-buffer" class="anchor"></div>
     
@@ -1605,7 +1619,7 @@ c-10,0,-16.667,5,-20,15z M188 15 H145 v585 v1200 v585 h43z"/></svg></span></span
     
 </h3>
 <p>对于许多现代设备, descriptor pool底层与descriptor buffer一致. 例如hk的descriptor pool封装的是可以容纳最大数量descriptor set的heap, 分配set时从heap中分配内存.</p>
-<p>旧设备/嵌入式设备的descriptor set可能封装了其它分配/绑定方式, 例如raspberry pi v3dv使用openg时代的做法, 将uniform设置为地址或值; 更旧的硬件可能直接将descriptor写入寄存器.</p>
+<p>旧设备/嵌入式设备的descriptor set可能封装了其它分配/绑定方式, 例如raspberry pi v3dv使用opengl时代的做法, 将uniform设置为地址或值; 更旧的硬件可能直接将descriptor写入寄存器.</p>
 
 <h3 class="relative group">Push Constants
     <div id="push-constants" class="anchor"></div>
