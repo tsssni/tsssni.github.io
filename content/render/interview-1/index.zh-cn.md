@@ -145,6 +145,12 @@ $$
 
 ## Descriptor
 
+### Descriptor Set
+
+若设置`VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT`, descriptor count设置可以延迟到分配阶段, 这使得descriptor set layout可以被多个只有bindless descriptor count不同的descriptor set使用. Vulkan只允许在最后一个绑定点设置它.
+
+若设置`VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT`, descriptor set绑定后仍然可以更新descriptor, 使得bindless descriptor可在任意时间更新, 提升流式加载的性能.
+
 ### Descriptor Buffer
 
 `VK_EXT_descriptor_buffer`使得descriptor set暴露底层的`VkBuffer`, 可直接操作该buffer, 通过一系列接口暴露descriptor offset/size等信息来执行更新. Vulkan descriptor size不等长, 驱动也可能对重排用户声明的descriptor顺序, 因此必须事先查询.
@@ -159,7 +165,7 @@ $$
 
 对于许多现代设备, descriptor pool底层与descriptor buffer一致. 例如hk的descriptor pool封装的是可以容纳最大数量descriptor set的heap, 分配set时从heap中分配内存.
 
-旧设备/嵌入式设备的descriptor set可能封装了其它分配/绑定方式, 例如raspberry pi v3dv使用openg时代的做法, 将uniform设置为地址或值; 更旧的硬件可能直接将descriptor写入寄存器.
+旧设备/嵌入式设备的descriptor set可能封装了其它分配/绑定方式, 例如raspberry pi v3dv使用opengl时代的做法, 将uniform设置为地址或值; 更旧的硬件可能直接将descriptor写入寄存器.
 
 ### Push Constants
 
