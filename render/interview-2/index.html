@@ -371,7 +371,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "4094"
+    "wordCount": "4342"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>4094 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">9 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>4342 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">9 分钟</span>
     
 
     
@@ -1556,6 +1556,8 @@ A{1, pi}.x; A{}.y;
 </ul>
 </li>
 </ol>
+<p>如果期望使用<code>std::memcpy</code>复制或移动对象, 需要满足<code>std::is_trivially_copiable</code>, 通常只有聚合类型和标量能满足, 否则需要调用复制或移动构造函数. 许多对象是可重定位的, 例如对象内部只持有指针, 保证复制后不再使用原对象, 即可正确析构.</p>
+<p>C++17后标准要求纯右值的赋值直接在对象内存上初始化, 不执行复制或移动构造. 有提案主张引入<code>reloc</code>运算符, 将非引用对象转为纯右值并禁止再次使用, 引入重定位构造函数<code>T(T x)</code>以接收纯右值, 若类型满足重定位要求该函数优化为<code>memcpy</code>.</p>
 
           
           
