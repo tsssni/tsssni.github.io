@@ -26,9 +26,13 @@ Metal的命令编码器负责标记状态共享边界与命令同步, 提供`MTL
 
 ## Synchronization
 
+### Barrier
+
+Metal没有Vulkan的细粒度屏障, 不追踪风险时需要通过`MTLFence`在编码器间添加屏障. `MTLDispatchTypeSerial`同步编码器内依赖, `MTLDispatchTypeConcurrent`则不保证, 需要调用`memoryBarrier`, 只支持粗粒度的给调用时所有纹理/缓冲/渲染附件添加屏障.
+
 ### Stage
 
-Vulkan认为管线在GPU上是完全并行的, 阶段屏障提供细粒度执行顺序控制实现最大效率. 若上个管线后续阶段不修改当前管线的依赖, 当前管线不再阻塞; 当前管线前置阶段没有依赖, 可前进到有依赖关系的阶段再阻塞.
+Vulkan认为管线在GPU上是完全并行的, 阶段屏障提供细粒度执行顺序控制实现最大效率. 若当前管线的依赖不被上个管线的后续阶段修改, 管线不再阻塞; 管线前置阶段没有依赖, 可前进到有依赖关系的阶段再阻塞.
 
 ### Access
 
@@ -200,3 +204,7 @@ Metal只支持虚拟纹理, 使用`MTLResourceStateCommandEncoder`执行映射, 
 HK通过硬件DRM实现虚拟纹理与缓冲, 创建虚拟资源时将整段页表绑定到值为0的页面, 维护额外的稀疏页表. 由于AGX硬件页表16KB, Vulkan规范为64KB, HK将Z-Order连续的纹理页面绑定到Vulkan页面.
 
 对于虚拟纹理, 若支持Mipmap, Vulkan要求高Mip等级用连续内存绑定. AGX图像队列各层连续存储各自的Mip等级, 由于AGX页表为16KB, 小图可能与其它层共享64KB逻辑页面, 无法逐个绑定各层页表. 因此AGX返回`VK_SPARSE_IMAGE_FORMAT_SINGLE_MIPTAIL_BIT`, 偏移返回魔数, 用户将所有层的高Mip写到连续内存, HK将连续内存分散绑定到实际位置.
+
+### Residency Set
+
+Metal中需要通过`useResource`声明资源可被访问, 否则不保证虚拟地址映射到物理内存. 无绑定模型下难以声明所有资源, Metal3添加驻留集以支持一次声明多个资源的驻留情况, 允许向驻留集添加多个资源或内存堆.
