@@ -141,7 +141,7 @@ $$
 
 需要基于$\mathbf{x} = \begin{bmatrix}\frac{\partial u}{\partial x}\ \frac{\partial u}{\partial y} \\ \frac{\partial v}{\partial x}\ \frac{\partial v}{\partial y} \end{bmatrix}$计算纹理屏幕空间微分用于选择预滤波mipmap. 光追应用通常基于相邻像素发射微分光线与三角形求交计算$b = \begin{bmatrix}\frac{\partial\mathbf{P}}{\partial x}\ \frac{\partial\mathbf{P}}{\partial y}\end{bmatrix}$, 结合预计算的$A = \begin{bmatrix}\frac{\partial\mathbf{P}}{\partial u}\ \frac{\partial\mathbf{P}}{\partial v}\end{bmatrix}$, 求解$A\mathbf{x}=b$.
 
-光栅化硬件为提高效率, 通常在预计算边函数系数, 以固定宽度并行扫描包围盒内像素. 着色以2x2 quad为单位, 微分通过读取相邻线程$uv$计算, 三角形边缘处由范围外的helper lane补齐差分. 小三角形下硬件每时钟处理的三角形数量有限, 定宽扫描可能只生效一个像素, 成为串行瓶颈; 三次顶点着色可能只对应一次片元着色, quad中大部分lane为helper, 占用多余线程. nanite对小三角形改用软件光栅化, 上述流程只占用一个线程以减少浪费.
+光栅化硬件为提高效率, 通常在预计算边函数系数, 以固定宽度并行扫描包围盒内像素. 着色以2x2 quad为单位, 微分通过读取相邻线程$uv$计算, 三角形边缘处由范围外的helper lane补齐差分. 小三角形下硬件每时钟处理的三角形数量有限, 定宽扫描可能只生效一个像素, 成为串行瓶颈; 三次顶点着色可能只对应一次片元着色, quad中大部分lane为helper. nanite对小三角形改用软件光栅化, 上述流程只占用一个lane以减少浪费.
 
 ## Descriptor
 
@@ -175,8 +175,14 @@ hk push constants位于`hk_root_descriptor_table`, 在command buffer中共享. p
 
 inline unifomr block将ubo数据直接写入descriptor set内存而非描述符, hk编译期将ubo访问翻译为在descriptor set中寻址.
 
-## Layout
+### Layout
 
 - scalar: C语言对齐, 成员的偏移必须满足自身对齐, 结构体使用最大成员的对齐.
 - base: `std430`, 增加向量对齐, `vec3`使用`vec4`对齐, 结构体向上取整到`vec4`.
 - extended: `std140`, 由于旧硬件UBO位于寄存器, 动态索引编译期无法分配寄存器, 只能运行时加载完整的16字节寄存器, 因此数组每个成员都向上取整到`vec4`.
+
+### Register
+
+GCN架构中, VGPR是为subgroup中的每个lane单独分配, SGPR在subgroup中共享. VGPR与SGPR从不同的寄存器文件中分配, 计算分别发生在VALU与SALU. 将共享的数据使用SGPR分配可以显著减少ALU和寄存器压力.
+
+AGX使用统一的GPR, 以2字节为单位分配. 此外还有uniform register存储标量, 由于没有SALU, 只能在shader执行前加载或预计算, 除运行时计算结果外也存放push constants, descriptor等数据.
