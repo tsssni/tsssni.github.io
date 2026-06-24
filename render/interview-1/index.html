@@ -371,7 +371,7 @@
     "keywords": ["graphics","rendering","gpu"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "5584"
+    "wordCount": "5848"
   }]
   </script>
 
@@ -1067,7 +1067,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>5584 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">12 分钟</span>
+      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>5848 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">12 分钟</span>
     
 
     
@@ -1227,6 +1227,7 @@
     </li>
     <li><a href="#synchronization">Synchronization</a>
       <ul>
+        <li><a href="#barrier">Barrier</a></li>
         <li><a href="#stage">Stage</a></li>
         <li><a href="#access">Access</a></li>
         <li><a href="#image-layout">Image Layout</a></li>
@@ -1255,6 +1256,7 @@
     <li><a href="#resource">Resource</a>
       <ul>
         <li><a href="#sparse-memory">Sparse Memory</a></li>
+        <li><a href="#residency-set">Residency Set</a></li>
       </ul>
     </li>
   </ul>
@@ -1280,6 +1282,7 @@
     </li>
     <li><a href="#synchronization">Synchronization</a>
       <ul>
+        <li><a href="#barrier">Barrier</a></li>
         <li><a href="#stage">Stage</a></li>
         <li><a href="#access">Access</a></li>
         <li><a href="#image-layout">Image Layout</a></li>
@@ -1308,6 +1311,7 @@
     <li><a href="#resource">Resource</a>
       <ul>
         <li><a href="#sparse-memory">Sparse Memory</a></li>
+        <li><a href="#residency-set">Residency Set</a></li>
       </ul>
     </li>
   </ul>
@@ -1391,6 +1395,17 @@
     
 </h2>
 
+<h3 class="relative group">Barrier
+    <div id="barrier" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#barrier" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p>Metal没有Vulkan的细粒度屏障, 不追踪风险时需要通过<code>MTLFence</code>在编码器间添加屏障. <code>MTLDispatchTypeSerial</code>同步编码器内依赖, <code>MTLDispatchTypeConcurrent</code>则不保证, 需要调用<code>memoryBarrier</code>, 只支持粗粒度的给调用时所有纹理/缓冲/渲染附件添加屏障.</p>
+
 <h3 class="relative group">Stage
     <div id="stage" class="anchor"></div>
     
@@ -1400,7 +1415,7 @@
     </span>
     
 </h3>
-<p>Vulkan认为管线在GPU上是完全并行的, 阶段屏障提供细粒度执行顺序控制实现最大效率. 若上个管线后续阶段不修改当前管线的依赖, 当前管线不再阻塞; 当前管线前置阶段没有依赖, 可前进到有依赖关系的阶段再阻塞.</p>
+<p>Vulkan认为管线在GPU上是完全并行的, 阶段屏障提供细粒度执行顺序控制实现最大效率. 若当前管线的依赖不被上个管线的后续阶段修改, 管线不再阻塞; 管线前置阶段没有依赖, 可前进到有依赖关系的阶段再阻塞.</p>
 
 <h3 class="relative group">Access
     <div id="access" class="anchor"></div>
@@ -1706,6 +1721,17 @@ c-10,0,-16.667,5,-20,15z M188 15 H145 v585 v1200 v585 h43z"/></svg></span></span
 <p>Metal只支持虚拟纹理, 使用<code>MTLResourceStateCommandEncoder</code>执行映射, 因此页表同步发生在编码器的分配/释放. 分配内存需要设置堆为<code>MTLHeapTypeSparse</code>, 不支持别名.</p>
 <p>HK通过硬件DRM实现虚拟纹理与缓冲, 创建虚拟资源时将整段页表绑定到值为0的页面, 维护额外的稀疏页表. 由于AGX硬件页表16KB, Vulkan规范为64KB, HK将Z-Order连续的纹理页面绑定到Vulkan页面.</p>
 <p>对于虚拟纹理, 若支持Mipmap, Vulkan要求高Mip等级用连续内存绑定. AGX图像队列各层连续存储各自的Mip等级, 由于AGX页表为16KB, 小图可能与其它层共享64KB逻辑页面, 无法逐个绑定各层页表. 因此AGX返回<code>VK_SPARSE_IMAGE_FORMAT_SINGLE_MIPTAIL_BIT</code>, 偏移返回魔数, 用户将所有层的高Mip写到连续内存, HK将连续内存分散绑定到实际位置.</p>
+
+<h3 class="relative group">Residency Set
+    <div id="residency-set" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#residency-set" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p>Metal中需要通过<code>useResource</code>声明资源可被访问, 否则不保证虚拟地址映射到物理内存. 无绑定模型下难以声明所有资源, Metal3添加驻留集以支持一次声明多个资源的驻留情况, 允许向驻留集添加多个资源或内存堆.</p>
 
           
           
