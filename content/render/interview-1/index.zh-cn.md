@@ -186,3 +186,17 @@ HK推送常量位于`hk_root_descriptor_table`, 在命令缓冲中共享. 推送
 GCN架构中, VGPR为子组的每个线程单独分配, SGPR为子组共享. VGPR与SGPR使用不同的寄存器文件, 分别用VALU与SALU读取. 共享数据分配到SGPR可减少ALU和寄存器压力.
 
 AGX使用统一GPR, 分配单位2字节, 此外有变量寄存器存储共享标量. 由于没有硬件SALU, 只能在着色器前插入变量加载或预计算. 除运行时计算结果, 变量寄存器也存放推送常量, 描述符等数据.
+
+## Resource
+
+### Sparse Memory
+
+稀疏内存为超大尺寸虚拟纹理/缓冲提供硬件支持, Vulkan将硬件支持分为稀疏绑定/驻留, 稀疏绑定可将资源绑定到不同内存, 稀疏驻留在其基础上可部分绑定, 未绑定区域的访问良定义. 若支持稀疏驻留别名, 相同稀疏内存可绑定到不同资源.
+
+由于稀疏内存暴露虚拟页表, `vkQueueBindSparse`操作队列修改硬件页表, 用信号量同步, 需要队列支持`VK_QUEUE_SPARSE_BINDING_BIT`, 可实现异步绑定.
+
+Metal只支持虚拟纹理, 使用`MTLResourceStateCommandEncoder`执行映射, 因此页表同步发生在编码器的分配/释放. 分配内存需要设置堆为`MTLHeapTypeSparse`, 不支持别名.
+
+HK通过硬件DRM实现虚拟纹理与缓冲, 创建虚拟资源时将整段页表绑定到值为0的页面, 维护额外的稀疏页表. 由于AGX硬件页表16KB, Vulkan规范为64KB, HK将Z-Order连续的纹理页面绑定到Vulkan页面.
+
+对于虚拟纹理, 若支持Mipmap, Vulkan要求高Mip等级用连续内存绑定. AGX图像队列各层连续存储各自的Mip等级, 由于AGX页表为16KB, 小图可能与其它层共享64KB逻辑页面, 无法逐个绑定各层页表. 因此AGX返回`VK_SPARSE_IMAGE_FORMAT_SINGLE_MIPTAIL_BIT`, 偏移返回魔数, 用户将所有层的高Mip写到连续内存, HK将连续内存分散绑定到实际位置.
