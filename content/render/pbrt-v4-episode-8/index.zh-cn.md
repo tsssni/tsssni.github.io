@@ -329,19 +329,19 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-\text{DFT}_{N}=(I_{1} \otimes \text{DFT}_{r_0} \otimes I_{\frac{N}{r_0}})T_{\frac{N}{r_0}}^{N}(I_{r_0}\otimes\text{DFT}_{\frac{N}{r_0}})L_{r_0}^{N}
+\text{DFT}_{N}=(I_{1} \otimes \text{DFT}_{r_0} \otimes I_{\frac{N}{r_0}})T_{\frac{N}{r_0}}^{N}(I_{r_0}\otimes\text{DFT}_{\frac{N}{r_0}})L_{\frac{N}{r_0}}^{N}
 \end{aligned}
 \end{equation}
 $$
 
-令$R=r_1$, 继续分解$I_{r_0}\otimes\text{DFT}_{\frac{N}{r_0}}$, 已知$I_n\otimes(BC)=(B\otimes I_n)(C\otimes I_n)$, 结果如下.
+令$R=r_1$, 继续分解$I_{r_0}\otimes\text{DFT}_{\frac{N}{r_0}}$, 已知$I_n\otimes(BC)=(I_n \otimes B)(I_n \otimes C)$, 结果如下.
 
 $$
 \begin{equation}
 \begin{aligned}
 &I_{r_0}\otimes\text{DFT}_{\frac{N}{r_0}}\\
-&=I_{r_0}\otimes((\text{DFT}_{r_1} \otimes I_{\frac{N}{r_0r_1}})T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}(I_{r_1}\otimes\text{DFT}_{\frac{N}{r_0r_1}})L_{r_1}^{\frac{N}{r_0}}))\\
-&=(I_{r_0}\otimes\text{DFT}_{r_1} \otimes I_{\frac{N}{r_0r_1}})(I_{r_0}\otimes T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}})(I_{r_0r_1}\otimes\text{DFT}_{\frac{N}{r_0r_1}})(I_{r_0}\otimes L_{r_1}^{\frac{N}{r_0}})
+&=I_{r_0}\otimes((\text{DFT}_{r_1} \otimes I_{\frac{N}{r_0r_1}})T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}(I_{r_1}\otimes\text{DFT}_{\frac{N}{r_0r_1}})L_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}))\\
+&=(I_{r_0}\otimes\text{DFT}_{r_1} \otimes I_{\frac{N}{r_0r_1}})(I_{r_0}\otimes T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}})(I_{r_0r_1}\otimes\text{DFT}_{\frac{N}{r_0r_1}})(I_{r_0}\otimes L_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}})
 \end{aligned}
 \end{equation}
 $$
@@ -350,17 +350,23 @@ $$
 
 $$
 \begin{equation}
-\text{DFT}_{N}=(I_{1} \otimes \text{DFT}_{r_0} \otimes I_{\frac{N}{r_0}})T_{\frac{N}{r_0}}^{N}(I_{r_0}\otimes\text{DFT}_{r_1} \otimes I_{\frac{N}{r_0r_1}})(I_{r_0}\otimes T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}})(I_{r_0r_1}\otimes\text{DFT}_{\frac{N}{r_0r_1}})(I_{r_0}\otimes L_{r_1}^{\frac{N}{r_0}})L_{r_0}^{N}
+\begin{aligned}
+&\text{DFT}_{N}=\\
+&(I_{1} \otimes \text{DFT}_{r_0} \otimes I_{\frac{N}{r_0}})(I_1 \otimes T_{\frac{N}{r_0}}^{N})\\
+&(I_{r_0}\otimes\text{DFT}_{r_1} \otimes I_{\frac{N}{r_0r_1}})(I_{r_0}\otimes T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}})\\
+&(I_{r_0r_1}\otimes\text{DFT}_{\frac{N}{r_0r_1}})\\
+&(I_{r_0}\otimes L_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}})(I_1 \otimes L_{\frac{N}{r_0}}^{N})
+\end{aligned}
 \end{equation}
 $$
 
-不断迭代得到的结果如下, 特别的当$N=r^l$时$R_N$为基$r$反转操作, 因此Cooley-Tukey需要在计算前重新排列各项.
+迭代结果如下, 每轮切分数组为$\prod_{j=0}^i r_j$个元素, 每$r_i$个元素内部打包执行$\text{DFT}_{r_i}$. Cooley-Tukey需要在计算前重新排列数组, 当$N=r^l$时$R_N$为基$r$反转.
 
 $$
 \begin{equation}
 \begin{aligned}
 &\text{DFT}_{N}\\
-&=\prod_{i=0}^{s-1}(I_{\prod_{j=0}^{i-1}r_i}\otimes\text{DFT}_{r_i}\otimes I_{\frac{N}{\prod_{j=0}^i r_j}})(I_{\prod_{j=0}^{i-1}r_i}\otimes T_{\frac{N}{\prod_{j=0}^i r_j}}^{\frac{N}{\prod_{j=0}^{i-1} r_j}})\prod_{i=0}^{s-1}I_{\prod_{j=0}^{i-1}r_i}\otimes L_{r_i}^{\frac{N}{\prod_{j=0}^{i-1} r_j}}\\
+&=\prod_{i=0}^{s-1}(I_{\prod_{j=0}^{i-1}r_i}\otimes\text{DFT}_{r_i}\otimes I_{\frac{N}{\prod_{j=0}^i r_j}})(I_{\prod_{j=0}^{i-1}r_i}\otimes T_{\frac{N}{\prod_{j=0}^i r_j}}^{\frac{N}{\prod_{j=0}^{i-1} r_j}})\prod_{i=0}^{s-1}I_{\prod_{j=0}^{i-1}r_i}\otimes L_{\frac{N}{\prod_{j=0}^{i} r_j}}^{\frac{N}{\prod_{j=0}^{i-1} r_j}}\\
 &=\prod_{i=0}^{s-1}(I_{\prod_{j=0}^{i-1}r_i}\otimes\text{DFT}_{r_i}\otimes I_{\frac{N}{\prod_{j=0}^i r_j}})D_i R_N
 \end{aligned}
 \end{equation}
@@ -374,8 +380,8 @@ $$
 \begin{equation}
 \begin{aligned}
 &\text{DFT}_{N}\\
-&=(\text{DFT}_{r_0} \otimes I_{\frac{N}{r_0}})T_{\frac{N}{r_0}}^{N}(I_{r_0}\otimes\text{DFT}_{\frac{N}{r_0}})L_{r_0}^{N}\\
-&=(\text{DFT}_{r_0} \otimes I_{\frac{N}{r_0}})T_{\frac{N}{r_0}}^{N}(L_{r_0}^{N}\otimes I_1)(\text{DFT}_{\frac{N}{r_0}}\otimes I_{r_0})
+&=(\text{DFT}_{r_0} \otimes I_{\frac{N}{r_0}})T_{\frac{N}{r_0}}^{N}(I_{r_0}\otimes\text{DFT}_{\frac{N}{r_0}})L_{\frac{N}{r_0}}^{N}\\
+&=(\text{DFT}_{r_0} \otimes I_{\frac{N}{r_0}})T_{\frac{N}{r_0}}^{N}(L_{\frac{N}{r_0}}^{N}\otimes I_1)(\text{DFT}_{\frac{N}{r_0}}\otimes I_{r_0})
 \end{aligned}
 \end{equation}
 $$
@@ -386,17 +392,19 @@ $$
 \begin{equation}
 \begin{aligned}
 &\text{DFT}_{\frac{N}{r_0}}\otimes I_{r_0}\\
-&=((\text{DFT}_{r_1} \otimes I_{\frac{N}{r_0r_1}})T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}L_{r_1}^{\frac{N}{r_0}}(\text{DFT}_{\frac{N}{r_0r_1}}\otimes I_{r_1}))\otimes I_{r_0}\\
-&=(\text{DFT}_{r_1} \otimes I_{\frac{N}{r_1}})(T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}\otimes I_{r_0})(L_{r_1}^{\frac{N}{r_0}}\otimes I_{r_0})(\text{DFT}_{\frac{N}{r_0r_1}}\otimes I_{r_0r_1}))\\
+&=((\text{DFT}_{r_1} \otimes I_{\frac{N}{r_0r_1}})T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}L_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}(\text{DFT}_{\frac{N}{r_0r_1}}\otimes I_{r_1}))\otimes I_{r_0}\\
+&=(\text{DFT}_{r_1} \otimes I_{\frac{N}{r_1}})(T_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}\otimes I_{r_0})(L_{\frac{N}{r_0r_1}}^{\frac{N}{r_0}}\otimes I_{r_0})(\text{DFT}_{\frac{N}{r_0r_1}}\otimes I_{r_0r_1}))\\
 \end{aligned}
 \end{equation}
 $$
 
-多次迭代最终结果如下, 注意这里的$D_i$与Cooley-Tukey仅是符号相同. Stockham的排列发生在每次迭代时.
+迭代结果如下, 每轮切分数组为$\frac{N}{\prod_{j=0}^{i-1}r_j}$个元素, 以元素为单位将数组整体重排并添加旋转, 最后每$r_i$个元素打包执行$DFT_{r_i}$.
 
 $$
 \begin{equation}
-\text{DFT}_N=\prod_{i=0}^{s-1}(\text{DFT}_{r_i}\otimes I_{\frac{N}{r_i}})D_i(L_{r_i}^{\frac{N}{\prod_{j=0}^{i-1}r_j}}\otimes I_{\prod_{j=0}^{i-1}r_j})
+\begin{aligned}
+\text{DFT}_N&=\prod_{i=0}^{s-1}(\text{DFT}_{r_i}\otimes I_{\frac{N}{r_i}})(T_{\frac{N}{\prod_{j=0}^{i}r_j}}^{\frac{N}{\prod_{j=0}^{i-1}r_j}}\otimes I_{\prod_{j=0}^{i-1}r_j})(L_{\frac{N}{\prod_{j=0}^{i}r_j}}^{\frac{N}{\prod_{j=0}^{i-1}r_j}}\otimes I_{\prod_{j=0}^{i-1}r_j})
+\end{aligned}
 \end{equation}
 $$
 
