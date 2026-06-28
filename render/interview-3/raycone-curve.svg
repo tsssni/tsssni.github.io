@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 268" font-size="16" font-family="'IBM Plex Sans',sans-serif">
+  <title>Ray cone reflected off planar, convex, and concave surfaces</title>
+  <style>
+    .ink {stroke:#16404f;} .axis{stroke:#16404f;}
+    .normal{stroke:#f5a623;stroke-width:1.5;stroke-dasharray:5 4;}
+    .inw{fill:#9aa7ad;fill-opacity:0.30;stroke:#6b7780;stroke-width:1.4;}
+    .outw{fill:#2bb673;fill-opacity:0.18;stroke:#2bb673;stroke-width:1.8;}
+    .lbl{fill:#16404f;} .green{fill:#2bb673;} .grey{fill:#6b7780;}
+    @media (prefers-color-scheme: dark){.ink,.axis{stroke:#cdd6da;} .lbl{fill:#cdd6da;}}
+  </style>
+  <rect x="150" y="14" width="20" height="11" class="inw"/>
+  <text x="176" y="24" class="grey">incident cone</text>
+  <rect x="320" y="14" width="20" height="11" class="outw"/>
+  <text x="346" y="24" class="green">reflected cone</text>
+  <line x1="38.0" y1="175.0" x2="182.0" y2="175.0" class="ink" stroke-width="2.6"/>
+  <line x1="110.0" y1="175.0" x2="110.0" y2="97.0" class="normal"/>
+  <polygon points="110.0,175.0 80.0,88.0 49.6,105.6" class="inw"/>
+  <polygon points="110.0,175.0 170.4,105.6 140.0,88.0" class="outw"/>
+  <circle cx="110.0" cy="175.0" r="3" class="lbl"/>
+  <text x="110.0" y="209.0" text-anchor="middle" class="lbl">planar</text>
+  <text x="110.0" y="229.0" text-anchor="middle" class="lbl" font-size="14">&#946; = 0</text>
+  <path d="M 260.0 199.8 A 85.0 85.0 0 0 1 380.0 199.8" class="ink" fill="none" stroke-width="2.6"/>
+  <line x1="320.0" y1="175.0" x2="320.0" y2="97.0" class="normal"/>
+  <polygon points="320.0,175.0 290.0,88.0 259.6,105.6" class="inw"/>
+  <polygon points="320.0,175.0 390.5,115.9 336.0,84.4" class="outw"/>
+  <circle cx="320.0" cy="175.0" r="3" class="lbl"/>
+  <text x="320.0" y="209.0" text-anchor="middle" class="lbl">convex</text>
+  <text x="320.0" y="229.0" text-anchor="middle" class="lbl" font-size="14">&#946; &gt; 0</text>
+  <path d="M 470.0 150.2 A 85.0 85.0 0 0 0 590.0 150.2" class="ink" fill="none" stroke-width="2.6"/>
+  <line x1="530.0" y1="175.0" x2="530.0" y2="97.0" class="normal"/>
+  <polygon points="530.0,175.0 500.0,88.0 469.6,105.6" class="inw"/>
+  <polygon points="530.0,175.0 581.4,98.7 570.3,92.3" class="outw"/>
+  <circle cx="530.0" cy="175.0" r="3" class="lbl"/>
+  <text x="530.0" y="209.0" text-anchor="middle" class="lbl">concave</text>
+  <text x="530.0" y="229.0" text-anchor="middle" class="lbl" font-size="14">&#946; &lt; 0</text>
+  <text x="320" y="258" text-anchor="middle" class="lbl" font-size="14">convex widens the cone, concave narrows it</text>
+</svg>
