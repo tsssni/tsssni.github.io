@@ -1,2 +1,7 @@
 {{ $svg := resources.Get "favicon.svg" | resources.Fingerprint }}
 <link rel="icon" type="image/svg+xml" href="{{ $svg.RelPermalink }}" integrity="{{ $svg.Data.Integrity }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32x32.png" | relURL }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ "favicon-16x16.png" | relURL }}">
+<link rel="shortcut icon" href="{{ "favicon.ico" | relURL }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | relURL }}">
+<link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
