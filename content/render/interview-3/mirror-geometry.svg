@@ -1,62 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-size="17" font-family="'IBM Plex Sans',sans-serif">
-  <title>Gaussian concave mirror imaging</title>
+  <title>Concave mirror: two rays from an off-axis object converge to the image</title>
   <style>
-    .ink   { stroke:#16404f; }
-    .inkf  { fill:#16404f; }
-    .axis  { stroke:#16404f; stroke-width:1.4; }
-    .guide { stroke:#9aa7ad; stroke-width:1.2; stroke-dasharray:4 4; }
-    .normal{ stroke:#f5a623; stroke-width:1.8; stroke-dasharray:6 4; }
-    .rin   { stroke:#4c8dff; stroke-width:2.2; }
-    .rout  { stroke:#2bb673; stroke-width:2.2; }
-    .lbl   { fill:#16404f; font-family:'IBM Plex Sans',sans-serif; }
-    .blue  { fill:#4c8dff; font-family:'IBM Plex Sans',sans-serif; }
-    .green { fill:#2bb673; font-family:'IBM Plex Sans',sans-serif; }
-    .amber { fill:#f5a623; font-family:'IBM Plex Sans',sans-serif; }
-    .dot   { fill:#16404f; }
+    .ink { stroke:#16404f; }
+    .axis { stroke:#16404f; stroke-width:1.4; }
+    .guide { stroke:#9aa7ad; stroke-width:1.1; stroke-dasharray:4 4; }
+    .rin { stroke:#4c8dff; stroke-width:2.0; }
+    .rout { stroke:#2bb673; stroke-width:2.0; }
+    .obj { stroke:#16404f; stroke-width:2.6; }
+    .objf { fill:#16404f; }
+    .img { stroke:#8a5cf6; stroke-width:2.6; }
+    .lbl { fill:#16404f; }
+    .blue { fill:#4c8dff; } .green { fill:#2bb673; } .amber { fill:#f5a623; } .violet { fill:#8a5cf6; }
+    .dot { fill:#16404f; }
     @media (prefers-color-scheme: dark) {
-      .ink, .axis { stroke:#cdd6da; }
-      .inkf, .lbl { fill:#cdd6da; }
-      .dot { fill:#cdd6da; }
+      .ink, .axis, .obj { stroke:#cdd6da; } .lbl, .dot, .objf { fill:#cdd6da; }
     }
   </style>
   <defs>
-    <marker id="ar-in" markerWidth="5" markerHeight="5" refX="4.4" refY="2.5" orient="auto">
-      <path d="M0,0 L5,2.5 L0,5 z" fill="#4c8dff"/>
-    </marker>
-    <marker id="ar-out" markerWidth="5" markerHeight="5" refX="4.4" refY="2.5" orient="auto">
-      <path d="M0,0 L5,2.5 L0,5 z" fill="#2bb673"/>
-    </marker>
+    <marker id="ai" markerWidth="5" markerHeight="5" refX="4.4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#4c8dff"/></marker>
+    <marker id="ao" markerWidth="5" markerHeight="5" refX="4.4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#2bb673"/></marker>
+    <marker id="aobj" markerWidth="6" markerHeight="6" refX="5.2" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" class="objf"/></marker>
+    <marker id="aimg" markerWidth="6" markerHeight="6" refX="5.2" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#8a5cf6"/></marker>
   </defs>
-  <path d="M 520.34 114.03 A 348.00 348.00 0 0 1 520.34 385.97" class="ink" fill="none" stroke-width="2.6"/>
-  <line x1="43.40" y1="250.00" x2="588.60" y2="250.00" class="axis" />
-  <text x="604.60" y="255.00" text-anchor="start" class="lbl" font-style="italic" >axis</text>
-  <line x1="84.00" y1="250.00" x2="531.04" y2="142.70" class="rin" marker-end="url(#ar-in)"/>
-  <line x1="531.04" y1="142.70" x2="269.60" y2="250.00" class="rout" marker-end="url(#ar-out)"/>
-  <line x1="531.04" y1="142.70" x2="200.00" y2="250.00" class="normal" />
-  <line x1="531.04" y1="142.70" x2="531.04" y2="250.00" class="guide" />
-  <text x="521.04" y="201.35" text-anchor="end" class="lbl" font-style="italic" >h</text>
-  <path d="M 134.00 250.00 A 50 50 0 0 0 132.62 238.33" class="ink" fill="none" stroke-width="1.3"/>
-  <text x="148.00" y="241.00" text-anchor="start" class="lbl" >&#945;</text>
-  <path d="M 242.00 250.00 A 42 42 0 0 0 239.95 237.05" class="ink" fill="none" stroke-width="1.3"/>
-  <text x="230.00" y="234.00" text-anchor="start" class="lbl" >&#946;</text>
-  <path d="M 301.60 250.00 A 32 32 0 0 0 299.20 237.85" class="ink" fill="none" stroke-width="1.3"/>
-  <text x="307.60" y="239.00" text-anchor="start" class="lbl" >&#947;</text>
-  <circle cx="84.00" cy="250.00" r="3.4" class="dot"/>
-  <text x="84.00" y="276.00" text-anchor="middle" class="lbl" font-style="italic" >O</text>
-  <circle cx="269.60" cy="250.00" r="3.4" class="dot"/>
-  <text x="269.60" y="276.00" text-anchor="middle" class="lbl" font-style="italic" >I</text>
-  <circle cx="200.00" cy="250.00" r="3.4" class="dot"/>
-  <text x="200.00" y="276.00" text-anchor="middle" class="lbl" font-style="italic" >C</text>
-  <circle cx="374.00" cy="250.00" r="3.4" class="dot"/>
-  <text x="374.00" y="276.00" text-anchor="middle" class="lbl" font-style="italic" >F</text>
-  <circle cx="548.00" cy="250.00" r="3.4" class="dot"/>
-  <text x="562.00" y="274.00" text-anchor="middle" class="lbl" font-style="italic" >P</text>
-  <circle cx="531.04" cy="142.70" r="3.4" class="dot"/>
-  <text x="543.04" y="136.70" text-anchor="start" class="lbl" font-style="italic" >M</text>
-  <line x1="34.00" y1="48.00" x2="62.00" y2="48.00" class="rin" marker-end="url(#ar-in)"/>
-  <text x="70.00" y="53.00" text-anchor="start" class="blue" >incident  O&#8594;M</text>
-  <line x1="34.00" y1="74.00" x2="62.00" y2="74.00" class="rout" marker-end="url(#ar-out)"/>
-  <text x="70.00" y="79.00" text-anchor="start" class="green" >reflected  M&#8594;I</text>
-  <line x1="34.00" y1="100.00" x2="62.00" y2="100.00" class="normal" />
-  <text x="70.00" y="105.00" text-anchor="start" class="amber" >normal  M&#8594;C</text>
+  <line x1="40" y1="230.0" x2="600" y2="230.0" class="axis"/>
+  <text x="612" y="235" class="lbl" font-style="italic">axis</text>
+  <path d="M 510.37 100.00 A 300.0 300.0 0 0 1 510.37 360.00" class="ink" fill="none" stroke-width="3"/>
+  <text x="466.37" y="88.00" class="lbl">mirror  c = 1/R</text>
+  <line x1="80.00" y1="230.0" x2="80.00" y2="170.00" class="obj" marker-end="url(#aobj)"/>
+  <text x="70.00" y="172.00" text-anchor="end" class="lbl" font-style="italic">O</text>
+  <line x1="317.42" y1="230.0" x2="317.42" y2="259.03" class="img" marker-end="url(#aimg)"/>
+  <text x="327.42" y="261.03" text-anchor="start" class="violet">image</text>
+  <line x1="80.00" y1="170.00" x2="533.94" y2="170.00" class="rin" marker-end="url(#ai)"/>
+  <line x1="80.00" y1="170.00" x2="540.00" y2="230.00" class="rin" marker-end="url(#ai)"/>
+  <line x1="533.94" y1="170.00" x2="317.42" y2="259.03" class="rout" marker-end="url(#ao)"/>
+  <line x1="540.00" y1="230.00" x2="183.55" y2="276.49" class="rout" marker-end="url(#ao)"/>
+  <g transform="translate(183.55,276.49) rotate(-7.43)">
+    <rect x="-23" y="-7" width="14" height="14" rx="1.5" class="ink" fill="none" stroke-width="1.6"/>
+    <polygon points="-9,-5 -9,5 0,7 0,-7" class="ink" fill="none" stroke-width="1.6"/>
+    <rect x="-19" y="-11" width="6" height="4" class="ink" fill="none" stroke-width="1.4"/>
+  </g>
+  <text x="183.55" y="302.49" text-anchor="middle" class="lbl">camera</text>
+  <circle cx="240.00" cy="230.00" r="3.2" class="dot"/>
+  <text x="240.00" y="252.00" text-anchor="middle" class="amber" font-style="italic">C</text>
+  <circle cx="390.00" cy="230.00" r="3.2" class="dot"/>
+  <text x="390.00" y="252.00" text-anchor="middle" class="lbl" font-style="italic">F</text>
+  <circle cx="540.00" cy="230.00" r="3.2" class="dot"/>
+  <text x="548.00" y="224.00" text-anchor="start" class="lbl" font-style="italic">P</text>
+  <line x1="34" y1="34" x2="62" y2="34" class="rin" marker-end="url(#ai)"/><text x="70" y="39" class="blue">incident</text>
+  <line x1="34" y1="60" x2="62" y2="60" class="rout" marker-end="url(#ao)"/><text x="70" y="65" class="green">reflected (converge at image)</text>
 </svg>
