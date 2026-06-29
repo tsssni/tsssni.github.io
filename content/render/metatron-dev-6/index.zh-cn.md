@@ -74,7 +74,7 @@ namespace mtt {
 
 ## SERDE
 
-Glaze库通过调用编译器的internal函数实现反射功能, 对于aggregate的反射无需手动注册, 对部分容器也有支持, 在c++26的静态反射实装前是很好用的替代品.
+Glaze库通过调用编译器的internal函数实现反射功能, 对于aggregate的反射无需手动注册, 对部分容器也有支持, 在C++26的静态反射实装前是很好用的替代品.
 
 对于`ecs::Entity`, 我们通过全局的`ecs::Hierarchy::instance`调用`ecs::to_path`与`ecs::to_entity`即可. 对于metatron中最基础的`math::Matrix`类型, 注册为反射内部实际存储数据的`std::array<Element, first_dim>`, Glaze会处理`Element`的递归. `math::Quaternion`的反射同理. 除这三个类型外别的都可以交给Glaze处理.
 
@@ -102,7 +102,7 @@ struct to<JSON, mtt::math::Matrix<T, first_dim, rest_dims...>> {
 };
 ```
 
-对于`enum`, Glaze需要手动注册才能反射出各项名称, 如果后续添加c++26支持的话理论上是不需要的, 或者说实现类似[magic_enum](https://github.com/Neargye/magic_enum)的功能, 两种方法都会方便很多.
+对于`enum`, Glaze需要手动注册才能反射出各项名称, 如果后续添加C++26支持的话理论上是不需要的, 或者说实现类似[magic_enum](https://github.com/Neargye/magic_enum)的功能, 两种方法都会方便很多.
 
 ```c++
 template<>

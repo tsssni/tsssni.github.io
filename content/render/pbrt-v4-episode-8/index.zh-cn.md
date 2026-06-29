@@ -265,6 +265,45 @@ f[n]
 \end{equation}
 $$
 
+DFT结果逐点相乘等于时域循环卷积的DFT.
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathcal{F}\lbrace f \otimes g \rbrace[k]
+&= \sum_{n=0}^{N-1} \left( \sum_{m=0}^{N-1} f[m] g[(n-m) \bmod N] \right) e^{-i \frac{2\pi}{N}nk}\\
+&= \sum_{m=0}^{N-1} f[m] \sum_{n=0}^{N-1} g[(n-m) \bmod N] e^{-i \frac{2\pi}{N}nk}\\
+&= \sum_{m=0}^{N-1} f[m] e^{-i \frac{2\pi}{N}mk} \sum_{p=0}^{N-1} g[p] e^{-i \frac{2\pi}{N}pk}\\
+&= F[k] G[k]
+\end{aligned}
+\end{equation}
+$$
+
+由于指数可分离, 多维DFT可分离为逐轴的1D DFT.
+
+$$
+\begin{equation}
+\begin{aligned}
+F[k_x, k_y]
+&= \sum_{n_x=0}^{N_x-1} \sum_{n_y=0}^{N_y-1} f[n_x, n_y]\, e^{-i 2\pi \left(\frac{k_x n_x}{N_x} + \frac{k_y n_y}{N_y}\right)}\\
+&= \sum_{n_x=0}^{N_x-1} e^{-i \frac{2\pi}{N_x} k_x n_x} \sum_{n_y=0}^{N_y-1} f[n_x, n_y]\, e^{-i \frac{2\pi}{N_y} k_y n_y}
+\end{aligned}
+\end{equation}
+$$
+
+$f$为实数时, 对$F[k_x, k_y]$取共轭, 由$e^{i 2\pi n}=1$将$-k$化为$N-k$, 可得多维DFT共轭对称.
+
+$$
+\begin{equation}
+\begin{aligned}
+F^*[k_x, k_y]
+&= \sum_{n_x=0}^{N_x-1} \sum_{n_y=0}^{N_y-1} f[n_x, n_y]\, e^{i 2\pi \left(\frac{k_x n_x}{N_x} + \frac{k_y n_y}{N_y}\right)}\\
+&= \sum_{n_x=0}^{N_x-1} \sum_{n_y=0}^{N_y-1} f[n_x, n_y]\, e^{-i 2\pi \left(\frac{(N_x - k_x) n_x}{N_x} + \frac{(N_y - k_y) n_y}{N_y}\right)}\\
+&= F[N_x - k_x, N_y - k_y]
+\end{aligned}
+\end{equation}
+$$
+
 若有多个实信号需执行DFT, 可将其作为复数的实部与虚部, 根据三角函数处理FFT结果后可分离两项, 形式如下, 其中$F^*$代表共轭复数. 这个过程是可逆的, 若IDFT时已知DFT输入为实数, 将IDFT结果的实部与虚部分离即可.
 
 $$
