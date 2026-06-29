@@ -10,13 +10,13 @@ tags: ["graphics", "rendering", "metatron"]
 
 ## 工具链
 
-原本计划使用c++20 modules, 因为懒得分离定义和实现. linux上只有clang对模块有正式支持, [但当clang的exe为符号链接时模块无法找到系统头文件](https://clang.llvm.org/docs/StandardCPlusPlusModules.html#possible-issues-failed-to-find-system-headers), 而NixOS更是封装了一层bash. 官方推荐手动设置-I/path/to/system/headers, 但最后clang会引用到gcc的头文件, 导致找不到定义. 即使不用模块, 现在nixos-24.11的clang也有封装问题, 同样找不到系统头文件. 之后试过用c++23 `import std;`, 但cmake即使打开实验特性也会报`only support libc++`.
+原本计划使用C++20 modules, 因为懒得分离定义和实现. linux上只有clang对模块有正式支持, [但当clang的exe为符号链接时模块无法找到系统头文件](https://clang.llvm.org/docs/StandardCPlusPlusModules.html#possible-issues-failed-to-find-system-headers), 而NixOS更是封装了一层bash. 官方推荐手动设置-I/path/to/system/headers, 但最后clang会引用到gcc的头文件, 导致找不到定义. 即使不用模块, 现在nixos-24.11的clang也有封装问题, 同样找不到系统头文件. 之后试过用c++23 `import std;`, 但cmake即使打开实验特性也会报`only support libc++`.
 
-rust也是个选择, 但rust的`trait`和`impl`其实也一定程度分离了定义和实现. 加上我对c++还是有好感的, 也希望项目里能练习一些新特性, 最后还是fallback到更稳妥的gcc+headers
+rust也是个选择, 但rust的`trait`和`impl`其实也一定程度分离了定义和实现. 加上我对C++还是有好感的, 也希望项目里能练习一些新特性, 最后还是fallback到更稳妥的gcc+headers
 
 ## 编辑器
 
-使用自己配置的nixvim, 测试模块时发现clangd默认不支持c++20语法特性, 需要通过`.clangd`文件设置.
+使用自己配置的nixvim, 测试模块时发现clangd默认不支持C++20语法特性, 需要通过`.clangd`文件设置.
 
 ```yaml
 CompileFlags:

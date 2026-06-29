@@ -117,7 +117,7 @@ struct MemDraw {
 };
 ```
 
-先解读一下这里的部分c++语法.
+先解读一下这里的部分C++语法.
 
 - **decltype(auto)**: 用于保留返回值的ref type与cv qualifier.
 - **noexcept(noexcept(...))**:
@@ -182,7 +182,7 @@ struct conv_impl {
 };
 ```
 
-`accessor`为从macro生成的dispatcher中根据限定符获取的accessor, `instantiated_accessor_t`会调用macro生成的dispatcher中的第二个`accessor`类, 它会继承所有重载. 注意到上文的dispatcher中`using`了多个同名方法, 在c++中引入不同重载到命名空间中是合法的, 不会造成歧义.
+`accessor`为从macro生成的dispatcher中根据限定符获取的accessor, `instantiated_accessor_t`会调用macro生成的dispatcher中的第二个`accessor`类, 它会继承所有重载. 注意到上文的dispatcher中`using`了多个同名方法, 在C++中引入不同重载到命名空间中是合法的, 不会造成歧义.
 
 ```c++
 template <class SFINAE, class T, class F, bool IsDirect, class... Args>
@@ -447,7 +447,7 @@ int main() {
 
 ## conclusion
 
-与c++虚函数相比proxy可总结出以下优势.
+与C++虚函数相比proxy可总结出以下优势.
 
 - 鸭子类型, 无需继承或宏
 - 虚表位于多态对象, 保持内存布局

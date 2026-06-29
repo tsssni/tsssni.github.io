@@ -187,7 +187,7 @@ SampledSpectrum BxDF::rho(pstd::span<const Point2f> u1, pstd::span<const Float> 
 
 ### BSDF中的Delta分布
 
-Delta分布主要用于完美镜面反射, 但是对于`Sample_f`与`PDF`方法, 返回Delta函数对应的无穷大密度在c++中是无法得到正确的渲染结果的. 对于`Sample_f`方法, 将Delta函数从PDF与BSDF分离, 可以发现Delta函数会被抵消, 由于PDF与Delta函数一致, 因此PDF设置为1即可. 对于`PDF`方法, 它的返回值为0, 因为恰好位于Delta函数对应的反射方向的概率过小.
+Delta分布主要用于完美镜面反射, 但是对于`Sample_f`与`PDF`方法, 返回Delta函数对应的无穷大密度在C++中是无法得到正确的渲染结果的. 对于`Sample_f`方法, 将Delta函数从PDF与BSDF分离, 可以发现Delta函数会被抵消, 由于PDF与Delta函数一致, 因此PDF设置为1即可. 对于`PDF`方法, 它的返回值为0, 因为恰好位于Delta函数对应的反射方向的概率过小.
 
 $$
 \begin{equation}
