@@ -1389,7 +1389,7 @@ int main() {
     // ...
 };
 </code></pre>
-<p>先解读一下这里的部分c++语法.</p>
+<p>先解读一下这里的部分C++语法.</p>
 <ul>
 <li><strong>decltype(auto)</strong>: 用于保留返回值的ref type与cv qualifier.</li>
 <li><strong>noexcept(noexcept(&hellip;))</strong>:
@@ -1465,7 +1465,7 @@ struct conv_impl {
       instantiated_accessor_t&lt;D, F, IsDirect, substituted_overload_t&lt;Os, F&gt;...&gt;;
 };
 </code></pre>
-<p><code>accessor</code>为从macro生成的dispatcher中根据限定符获取的accessor, <code>instantiated_accessor_t</code>会调用macro生成的dispatcher中的第二个<code>accessor</code>类, 它会继承所有重载. 注意到上文的dispatcher中<code>using</code>了多个同名方法, 在c++中引入不同重载到命名空间中是合法的, 不会造成歧义.</p>
+<p><code>accessor</code>为从macro生成的dispatcher中根据限定符获取的accessor, <code>instantiated_accessor_t</code>会调用macro生成的dispatcher中的第二个<code>accessor</code>类, 它会继承所有重载. 注意到上文的dispatcher中<code>using</code>了多个同名方法, 在C++中引入不同重载到命名空间中是合法的, 不会造成歧义.</p>
 <pre><code class="language-c++">template &lt;class SFINAE, class T, class F, bool IsDirect, class... Args&gt;
 struct accessor_instantiation_traits : std::type_identity&lt;void&gt; {};
 template &lt;class T, class F, bool IsDirect, class... Args&gt;
@@ -1732,7 +1732,7 @@ int main() {
     </span>
     
 </h2>
-<p>与c++虚函数相比proxy可总结出以下优势.</p>
+<p>与C++虚函数相比proxy可总结出以下优势.</p>
 <ul>
 <li>鸭子类型, 无需继承或宏</li>
 <li>虚表位于多态对象, 保持内存布局</li>

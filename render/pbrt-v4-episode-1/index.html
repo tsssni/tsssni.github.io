@@ -1496,7 +1496,7 @@ RGB是可以三种波长一次计算的, 通用光谱渲染应该是要各个波
     </span>
     
 </h3>
-<p>pbrt使用<code>std::pmr::polymorphic_allocator</code>来分配对象, 这是c++17提供的内存管理器接口, 用于实现多态的内存管理器.
+<p>pbrt使用<code>std::pmr::polymorphic_allocator</code>来分配对象, 这是C++17提供的内存管理器接口, 用于实现多态的内存管理器.
 相比于<code>new</code>&amp;<code>delete</code>, 通过函数调用显示分配内存方便pbrt收集内存分配情况并提高小对象分配效率, 同时也便于分配GPU可见的内存.</p>
 
 <h3 class="relative group">动态分派

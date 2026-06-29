@@ -1325,7 +1325,7 @@ namespace mtt {
     </span>
     
 </h2>
-<p>Glaze库通过调用编译器的internal函数实现反射功能, 对于aggregate的反射无需手动注册, 对部分容器也有支持, 在c++26的静态反射实装前是很好用的替代品.</p>
+<p>Glaze库通过调用编译器的internal函数实现反射功能, 对于aggregate的反射无需手动注册, 对部分容器也有支持, 在C++26的静态反射实装前是很好用的替代品.</p>
 <p>对于<code>ecs::Entity</code>, 我们通过全局的<code>ecs::Hierarchy::instance</code>调用<code>ecs::to_path</code>与<code>ecs::to_entity</code>即可. 对于metatron中最基础的<code>math::Matrix</code>类型, 注册为反射内部实际存储数据的<code>std::array&lt;Element, first_dim&gt;</code>, Glaze会处理<code>Element</code>的递归. <code>math::Quaternion</code>的反射同理. 除这三个类型外别的都可以交给Glaze处理.</p>
 <pre><code class="language-c++">template&lt;typename T, mtt::usize first_dim, mtt::usize... rest_dims&gt;
 struct from&lt;JSON, mtt::math::Matrix&lt;T, first_dim, rest_dims...&gt;&gt; {
@@ -1349,7 +1349,7 @@ struct to&lt;JSON, mtt::math::Matrix&lt;T, first_dim, rest_dims...&gt;&gt; {
     }
 };
 </code></pre>
-<p>对于<code>enum</code>, Glaze需要手动注册才能反射出各项名称, 如果后续添加c++26支持的话理论上是不需要的, 或者说实现类似<a href="https://github.com/Neargye/magic_enum"  target="_blank" rel="noreferrer">magic_enum</a>的功能, 两种方法都会方便很多.</p>
+<p>对于<code>enum</code>, Glaze需要手动注册才能反射出各项名称, 如果后续添加C++26支持的话理论上是不需要的, 或者说实现类似<a href="https://github.com/Neargye/magic_enum"  target="_blank" rel="noreferrer">magic_enum</a>的功能, 两种方法都会方便很多.</p>
 <pre><code class="language-c++">template&lt;&gt;
 struct glz::meta&lt;mtt::color::Color_Space::Spectrum_Type&gt; {
 	using enum mtt::color::Color_Space::Spectrum_Type;
