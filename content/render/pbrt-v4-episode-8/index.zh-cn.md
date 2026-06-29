@@ -103,7 +103,7 @@ f(x) = \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} f(y) e^{-i 2 \pi \omega y
 \end{equation}
 $$
 
-从中可以提取出Fourier变换, 对于实数域其结果为偶函数.
+从中可以提取出Fourier变换, 对于实数域其结果共轭对称.
 
 $$
 \begin{equation}
@@ -242,7 +242,7 @@ F(\frac{k}{NT}) = \sum_{j = -\infty}^{\infty} \sum_{n = 0}^{N - 1} f(nT) e^{-i \
 \end{equation}
 $$
 
-抽取出其中有效的部分即为离散Fourier变换(DFT). 从线性代数的视角看, DFT变换为$N \times N$方阵$M_{ij}=e^{-i\frac{2\pi}{N}ij}$, 因此可逆且有唯一解.
+抽取出其中有效的部分即为离散Fourier变换(DFT). 从线性代数的视角看, DFT变换为$N \times N$方阵$M_{ij}=e^{-i\frac{2\pi}{N}ij}$, 因此可逆且有唯一解. 若信号为实数, 除共轭对称的性质外, DFT结果的$n = 0$直流分量和$n = \frac{N}{2}$ Nyquist分量都为实数.
 
 $$
 \begin{equation}
