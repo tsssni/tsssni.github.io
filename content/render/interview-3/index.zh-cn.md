@@ -221,3 +221,39 @@ A(p)_\phi&=\frac{1}{4}\sum_{i\in\{1,2\}}\Big(\cos\gamma+2h_i\sin\gamma-\cos(2h_i
 \end{aligned}
 \end{equation}
 $$
+
+## Depth Of Field
+
+薄透镜成像公式给出物距$d_o$与像距$d_i$的关系:
+
+$$
+\begin{equation}
+\frac{1}{d_o} + \frac{1}{d_i} = \frac{1}{F}.
+\end{equation}
+$$
+
+令对焦平面为$P$, 像距为$v = \dfrac{FP}{P-F}$. 物点偏离对焦面时像点不聚焦于传感器, 光圈形成锥体在传感器上截出弥散圆. 令光圈直径$A = F/N$, 物距$d$处像距$v_d = \dfrac{Fd}{d-F}$, 由相似三角形, 传感器上弥散圆直径为$c = A\dfrac{v_d - v}{v_d}$. 代入化简:
+
+$$
+\begin{equation}
+c = \frac{A F}{P - F}(1 - \frac{P}{d}).
+\end{equation}
+$$
+
+近景与远景物体分别成像于传感器之后与之前并形成弥散圆, 落在对焦面上的物点才汇聚.
+
+![dof-coc](dof-coc.svg)
+
+$d \to \infty$时$1 - P/d \to 1$, 得到最大远景弥散圆.
+
+$$
+\begin{equation}
+c_\infty = \frac{A F}{P - F}
+\end{equation}
+$$
+
+由于光路传播过程的遮挡, 弥散圆存在深度遮蔽; 同样的, 即使针孔相机中被遮挡的物体, 也有部分弥散圆到达成像平面.
+
+![dof-occlusion](dof-occlusion.svg)
+
+较大的远景弥散圆对应较远的深度, 实时景深可以由远到近的采样来估计遮蔽以平滑远近交界处的景深, 同时近景像素使用相邻像素补充被遮蔽的远景产生的弥散圆.
