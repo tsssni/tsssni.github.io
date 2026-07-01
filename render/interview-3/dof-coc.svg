@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 316" font-size="16" font-family="'IBM Plex Sans',sans-serif">
+  <title>Objects in front of and behind the focus plane both form a circle of confusion</title>
+  <style>
+    .axis{stroke:#16404f;stroke-width:1;stroke-dasharray:4 4;}
+    .lens{stroke:#16404f;stroke-width:2.4;fill:none;}
+    .ink{stroke:#16404f;} .near{stroke:#f5a623;stroke-width:1.7;fill:none;}
+    .far{stroke:#2bb673;stroke-width:1.7;fill:none;}
+    .refl{stroke:#6b7780;stroke-width:1;stroke-dasharray:5 4;fill:none;}
+    .nearl{stroke:#f5a623;stroke-width:1.7;stroke-dasharray:5 4;fill:none;}
+    .sensor{stroke:#16404f;stroke-width:2.8;}
+    .coc{stroke:#16404f;stroke-width:1.2;}
+    .dim{stroke:#6b7780;stroke-width:1;}
+    .lbl{fill:#16404f;} .green{fill:#2bb673;} .amber{fill:#f5a623;} .grey{fill:#6b7780;}
+    @media (prefers-color-scheme: dark){.axis,.lens,.sensor,.coc{stroke:#cdd6da;} .lbl{fill:#cdd6da;}}
+  </style>
+
+  <line x1="16" y1="36" x2="36" y2="36" class="far"/>
+  <text x="42" y="41" class="green" font-size="14">far object (d &gt; P)</text>
+  <line x1="210" y1="36" x2="230" y2="36" class="near"/>
+  <text x="236" y="41" class="amber" font-size="14">near object (d &lt; P)</text>
+  <line x1="410" y1="36" x2="430" y2="36" class="refl"/>
+  <text x="436" y="41" class="grey" font-size="14">focus (d = P)</text>
+
+  <line x1="20" y1="170" x2="648" y2="170" class="axis"/>
+  <ellipse cx="330" cy="170" rx="8" ry="82" class="lens"/>
+
+  <line x1="150" y1="96" x2="150" y2="248" class="refl"/>
+  <text x="150" y="266" text-anchor="middle" class="grey" font-size="14">focus plane P</text>
+
+  <circle cx="60" cy="170" r="3.5" class="green"/>
+  <circle cx="230" cy="170" r="3.5" class="amber"/>
+  <circle cx="150" cy="170" r="3" class="grey"/>
+
+  <path d="M150,170 L330,90 M150,170 L330,250 M330,90 L470,170 M330,250 L470,170" class="refl"/>
+
+  <path d="M60,170 L330,90 M60,170 L330,250 M330,90 L470,202 M330,250 L470,138" class="far"/>
+  <circle cx="430" cy="170" r="3.5" class="green"/>
+  <text x="430" y="230" text-anchor="middle" class="green" font-size="13">image</text>
+  <text x="430" y="245" text-anchor="middle" class="green" font-size="13">before sensor</text>
+
+  <path d="M230,170 L330,90 M230,170 L330,250 M330,90 L470,138 M330,250 L470,202" class="near"/>
+  <path d="M470,138 L563,170 M470,202 L563,170" class="nearl"/>
+  <circle cx="563" cy="170" r="3.5" class="amber"/>
+  <text x="563" y="135" text-anchor="middle" class="amber" font-size="13">image</text>
+  <text x="563" y="150" text-anchor="middle" class="amber" font-size="13">behind sensor</text>
+
+  <line x1="470" y1="112" x2="470" y2="228" class="sensor"/>
+  <text x="478" y="120" class="lbl" font-size="14">sensor</text>
+
+  <line x1="470" y1="138" x2="494" y2="138" class="coc"/>
+  <line x1="470" y1="202" x2="494" y2="202" class="coc"/>
+  <line x1="492" y1="138" x2="492" y2="202" class="coc"/>
+  <text x="502" y="175" class="lbl">c</text>
+</svg>
