@@ -116,21 +116,66 @@ w_0 = 2t\tan\frac{\alpha}{2} \approx \alpha t.
 \end{equation}
 $$
 
-在曲面上反射时, 曲率会改变cone的张角. RT Gems用标量$\beta$建模: 平面 $\beta=0$ 张角不变, 凸面 $\beta>0$ 张角变大, 凹面 $\beta<0$ 张角变小.
+在曲面上反射时, 曲率会改变cone的张角. RT Gems用标量$\beta$建模: 平面 $\beta=0$ 张角不变, 凸面张角增大, 凹面 张角减小, 曲率较大的凹面导致张角为负, 在镜面上方汇聚.
 
 ![raycone-curve](raycone-curve.svg)
 
-$\beta$由G-Buffer法线差分估计, 法线夹角增加$\phi/2$, 反射夹角增加$\phi$, 得到$\beta = 2\phi$.\
-$s=\mathrm{sign}\left(\dfrac{\partial P}{\partial x}\cdot\dfrac{\partial \mathbf{n}}{\partial x}+\dfrac{\partial P}{\partial y}\cdot\dfrac{\partial \mathbf{n}}{\partial y}\right)$, 用于区分凸($+$)/凹($-$).
+反射算子$R(\mathbf{n})=I-2\mathbf{n}\mathbf{n}^\top$给出$\mathbf{d}_r=\mathbf{d}-2(\mathbf{d}\cdot\mathbf{n})\mathbf{n}$, 每条光线的天顶角关系为:
 
 $$
 \begin{equation}
-\beta = 2\phi \approx 2s\left\|\frac{\partial \mathbf{n}}{\partial x}+\frac{\partial \mathbf{n}}{\partial y}\right\|,
+\theta_r = 2\theta_n - \theta_d,
+\end{equation}
+$$
+
+求相邻光线微分, $\mathrm{d}\theta_d$为入射锥张角, $\mathrm{d}\theta_r$为出射锥体张角, $2\mathrm{d}\theta_n$为曲率贡献. 例如平面镜$\mathrm{d}\theta_n=0$, $\mathrm{d}\theta_r=-\mathrm{d}\theta_d$
+
+$$
+\begin{equation}
+\mathrm{d}\theta_r = 2\,\mathrm{d}\theta_n - \mathrm{d}\theta_d.
+\end{equation}
+$$
+
+记法线变化角$\phi=\mathrm{d}\theta_n$:
+
+$$
+\begin{equation}
+\beta = 2\,\mathrm{d}\theta_n = 2\phi.
+\end{equation}
+$$
+
+单位法线满足$\mathbf{n}\cdot\mathbf{n}=1$, 像素坐标微分为$\mathbf{n}\cdot\frac{\partial\mathbf{n}}{\partial x}=0$, 即$\frac{\partial\mathbf{n}}{\partial x}\perp\mathbf{n}$. 移动一个像素得一阶近似新法线$\mathbf{n}+\frac{\partial\mathbf{n}}{\partial x}$, 可基于二者形成的直角三角形计算曲率贡献.
+
+$$
+\begin{equation}
+\phi_x=\arctan\left\|\frac{\partial \mathbf{n}}{\partial x}\right\|,\qquad
+\phi_y=\arctan\left\|\frac{\partial \mathbf{n}}{\partial y}\right\|.
+\end{equation}
+$$
+
+凸面上位置与法线沿同向变化, 反之为凹面, 可基于符号区分.
+
+$$
+\begin{equation}
+s=\mathrm{sign}\left(\frac{\partial P}{\partial x}\cdot\frac{\partial \mathbf{n}}{\partial x}+\frac{\partial P}{\partial y}\cdot\frac{\partial \mathbf{n}}{\partial y}\right)
+\end{equation}
+$$
+
+代入$\beta=2\phi$得:
+
+$$
+\begin{equation}
+\begin{aligned}
+\beta
+&= 2s\phi = 2s\sqrt{\phi_x^2+\phi_y^2}\\
+&= 2s\sqrt{\arctan^2\left\|\frac{\partial \mathbf{n}}{\partial x}\right\|+\arctan^2\left\|\frac{\partial \mathbf{n}}{\partial y}\right\|}\\
+&\approx 2s\sqrt{\left\|\frac{\partial \mathbf{n}}{\partial x}\right\|^2+\left\|\frac{\partial \mathbf{n}}{\partial y}\right\|^2}.
+\end{aligned}
 \end{equation}
 $$
 
 
-法线微分$\frac{\partial\mathbf{n}}{\partial x}$不必依赖G-Buffer, 可用光线微分计算. 设相机单位基为$\mathbf{x}$(右)、$\mathbf{y}$(上)、$\mathbf{z}$(前), 令$a$为宽高比, $f = \tan\frac{\mathrm{fov}}{2}$, $c_{x,y}$为NDC坐标, 非归一化方向$\mathbf{D}=c_x\,af\,\mathbf{x}+c_y\,f\,\mathbf{y}+\mathbf{z}$. 令分辨率为$w \times h$, 对像素坐标求微分:
+$\frac{\partial\mathbf{n}}{\partial x}$不依赖G-Buffer, 可用光线微分计算. 相机单位基为$\mathbf{x}$(右)、$\mathbf{y}$(上)、$\mathbf{z}$(前), 令$a$为宽高比, $f = \tan\frac{\mathrm{fov}}{2}$, $c_{x,y}$为NDC坐标, 非归一化方向$\mathbf{D}=c_x\,af\,\mathbf{x}+c_y\,f\,\mathbf{y}+\mathbf{z}$. 令分辨率为$w \times h$, 对像素坐标求微分:
 
 $$
 \begin{equation}
@@ -179,22 +224,6 @@ $$
 $$
 \begin{equation}
 \frac{\partial\mathbf{n}}{\partial x}=\frac{\partial b_0}{\partial x}(\mathbf{n}_1-\mathbf{n}_0)+\frac{\partial b_1}{\partial x}(\mathbf{n}_2-\mathbf{n}_0),
-\end{equation}
-$$
-
-反射后张角累加$\beta$, 宽度随距离累加, 路径第$i$个命中点宽度为:
-
-$$
-\begin{equation}
-\gamma_i = \gamma_{i-1} + \beta_{i-1},\qquad w_i = w_{i-1} + \gamma_i t_i,
-\end{equation}
-$$
-
-光锥近似成沿$\mathbf{d}$, 半径$\frac{w_i}{2}$的圆柱, 与法线为$\mathbf{n}$的三角形相交, 施密特正交化得椭圆轴$\mathbf{h}_1$, $\mathbf{h}_2$. 相似三角形把轴伸到圆柱面($k=1,2$), 在命中点$P$沿轴取$P+\mathbf{a}_1$、$P+\mathbf{a}_2$, 用重心坐标插值纹理坐标, 减去中心纹理坐标得梯度.
-
-$$
-\begin{equation}
-\mathbf{a}_k = \frac{w_i/2}{\lVert \mathbf{h}_k-(\mathbf{d}\cdot\mathbf{h}_k)\mathbf{d}\rVert}\,\mathbf{h}_k.
 \end{equation}
 $$
 
