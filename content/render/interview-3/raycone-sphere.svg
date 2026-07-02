@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 384" font-size="16" font-family="'IBM Plex Sans',sans-serif">
+  <title>Oblique cone–sphere intersection: chord |w'| = w / (−n·d), arc Δs from curvature k</title>
+  <style>
+    .surf  { stroke:#16404f; stroke-width:3; fill:none; }
+    .rad   { stroke:#16404f; stroke-width:1; fill:none; }
+    .ink   { stroke:#16404f; fill:none; }
+    .guide { stroke:#9aa7ad; stroke-width:1.1; stroke-dasharray:5 4; fill:none; }
+    .ray   { stroke:#4c8dff; stroke-width:2.2; fill:none; }
+    .normal{ stroke:#f5a623; stroke-width:2; fill:none; }
+    .lbl { fill:#16404f; } .blue { fill:#4c8dff; } .amber { fill:#f5a623; } .dot { fill:#16404f; }
+    @media (prefers-color-scheme: dark){
+      .surf,.rad,.ink { stroke:#cdd6da; } .lbl,.dot { fill:#cdd6da; }
+    }
+  </style>
+  <defs>
+    <marker id="ar-ray" markerWidth="6" markerHeight="6" refX="4.6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 z" fill="#4c8dff"/>
+    </marker>
+    <marker id="ar-nrm" markerWidth="6" markerHeight="6" refX="4.6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 z" fill="#f5a623"/>
+    </marker>
+    <marker id="ar-dim" markerWidth="7" markerHeight="7" refX="5.2" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#16404f"/>
+    </marker>
+  </defs>
+
+  <!-- radius / normal at the footprint center (also the 1/k radius) -->
+  <line x1="230" y1="350" x2="230" y2="100" class="rad"/>
+  <!-- radii to the two hit points -->
+  <line x1="230" y1="350" x2="158.2" y2="152.7" class="rad"/>
+  <line x1="230" y1="350" x2="301.8" y2="152.7" class="rad"/>
+
+  <!-- radius-1/k circular surface -->
+  <path d="M 125 168.1 A 210 210 0 0 1 335 168.1" class="surf"/>
+
+  <!-- oblique cone edge rays (parallel, local footprint) hitting the surface -->
+  <line x1="72.1"  y1="29.8" x2="158.2" y2="152.7" class="ray" marker-end="url(#ar-ray)"/>
+  <line x1="215.7" y1="29.8" x2="301.8" y2="152.7" class="ray" marker-end="url(#ar-ray)"/>
+  <!-- chief ray (dashed) for the incidence angle -->
+  <line x1="198.4" y1="94.9" x2="230" y2="140" class="guide"/>
+
+  <!-- cone width w, perpendicular to the rays -->
+  <line x1="120.9" y1="99.5" x2="217.2" y2="32.0" class="ink" stroke-width="1.2"
+        marker-start="url(#ar-dim)" marker-end="url(#ar-dim)"/>
+
+  <!-- footprint chord |w'| along the surface -->
+  <line x1="158.2" y1="152.7" x2="301.8" y2="152.7" class="guide"/>
+
+  <!-- outward normals n, n' -->
+  <line x1="158.2" y1="152.7" x2="142.5" y2="109.5" class="normal" marker-end="url(#ar-nrm)"/>
+  <line x1="301.8" y1="152.7" x2="317.5" y2="109.5" class="normal" marker-end="url(#ar-nrm)"/>
+
+  <!-- incidence angle theta at the footprint center -->
+  <path d="M 230 108 A 32 32 0 0 0 211.6 113.8" class="ink" stroke-width="1.3"/>
+  <!-- half normal-spread angle at the center -->
+  <path d="M 230 300 A 50 50 0 0 1 247.1 303.0" class="ink" stroke-width="1.3"/>
+
+  <!-- points -->
+  <circle cx="158.2" cy="152.7" r="3.2" class="dot"/>
+  <circle cx="301.8" cy="152.7" r="3.2" class="dot"/>
+  <circle cx="230" cy="350" r="3.4" class="dot"/>
+
+  <!-- labels -->
+  <text x="250" y="72"  text-anchor="start" class="blue" font-style="italic">d</text>
+  <text x="150" y="56"  text-anchor="end"   class="lbl" font-style="italic">w</text>
+  <text x="209" y="126" text-anchor="middle" class="lbl" font-style="italic">&#952;</text>
+  <text x="130" y="108" text-anchor="end"   class="amber" font-style="italic">n</text>
+  <text x="326" y="108" text-anchor="start" class="amber" font-style="italic">n&#8242;</text>
+  <text x="230" y="186" text-anchor="middle" class="lbl" font-style="italic">|w&#8242;|</text>
+  <text x="250" y="139" text-anchor="start" class="lbl" font-style="italic">&#916;s</text>
+  <text x="240" y="250" text-anchor="start" class="lbl" font-style="italic">1/k</text>
+  <text x="252" y="316" text-anchor="start" class="lbl" font-size="13" font-style="italic">&#916;&#966;/2 = k&#916;s/2</text>
+  <text x="230" y="370" text-anchor="middle" class="lbl" font-style="italic">C</text>
+</svg>

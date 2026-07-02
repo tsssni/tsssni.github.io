@@ -227,6 +227,55 @@ $$
 \end{equation}
 $$
 
+![raycone-sphere](raycone-sphere.svg)
+
+多次弹射缺少屏幕空间法线微分, 近似图元为圆, 使用边曲率定义$k = \frac{\Delta\phi}{\Delta s} = \frac{1}{r}$估计$\Delta \phi$.
+
+$$
+\begin{equation}
+\Delta \phi = r\Delta s = 2r\arcsin\frac{|w'|}{2r} = \frac{2}{k}\arcsin\frac{k|w|}{-2\mathbf{n}\cdot\mathbf{d}}
+\end{equation}
+$$
+
+小张角下$\arcsin x \approx x$, $\Delta s \approx |w'|$, 张角变化简化为:
+
+$$
+\begin{equation}
+\beta_c = -2k\frac{|w|}{\mathbf{n}\cdot\mathbf{d}}.
+\end{equation}
+$$
+
+三角形曲率不易精确求得, 退而用逐边近似. 边$P_0P_1$的曲率(Reed)为
+
+$$
+\begin{equation}
+k_{01} = \frac{1}{r} = \frac{(\mathbf{n}_1-\mathbf{n}_0)\cdot(P_1-P_0)}{(P_1-P_0)\cdot(P_1-P_0)},
+\end{equation}
+$$
+
+多次弹射对精度要求低, 取三边平均即可:
+
+$$
+\begin{equation}
+k = \frac{k_{01}+k_{12}+k_{20}}{3}.
+\end{equation}
+$$
+
+除几何曲率外, 材质粗糙度$\alpha$也会展宽cone. 实践中主光线$\beta = \frac{\sigma}{4}$, 次级光线$\beta = \sigma$.
+
+$$
+\begin{equation}
+\sigma^2 = \frac{1}{2}\frac{\alpha^2}{1-\alpha^2},
+\end{equation}
+$$
+
+光锥近似成沿$\mathbf{d}$, 半径$\frac{w_i}{2}$的圆柱, 与法线为$\mathbf{n}$的三角形相交, 施密特正交化得椭圆轴$\mathbf{h}_1$, $\mathbf{h}_2$. 相似三角形把轴伸到圆柱面($k=1,2$), 在命中点$P$沿轴取$P+\mathbf{a}_1$、$P+\mathbf{a}_2$, 用重心坐标插值纹理坐标, 减去中心纹理坐标得梯度.
+
+$$
+\begin{equation}
+\mathbf{a}_k = \frac{w_i/2}{\lVert \mathbf{h}_k-(\mathbf{d}\cdot\mathbf{h}_k)\mathbf{d}\rVert}\,\mathbf{h}_k.
+\end{equation}
+$$
 ## Ambient Occlusion
 
 屏幕空间像素共线则代表对应的光线共面, 因此可求基于中心像素光线的半球切面积分. 环境光遮蔽是基于法线的, 转为基于视线. 法线拆分为投影到/垂直于切面的分量, 切面上立体角和法线点积相当于只点积投影分量, 因此$\gamma=\mathbf{v}\cdot\mathbf{n}_p$.
