@@ -293,7 +293,7 @@ p(\theta|r)&=\frac{p(r,\theta)}{p(r)}=\frac{1}{2\pi}
 \end{equation}
 $$
 
-根据重要性抽样得到的结果如下, 此时根据Jacobian可得$drd\theta=\frac{\pi}{\sqrt{x}}dxdy$, 均匀采样结果映射为圆盘采样结果时所占的面积并不均匀, 越靠近圆盘边缘所占面积越狭窄.
+根据重要性抽样得到的结果如下, 此时根据Jacobian可得$\mathrm{d}r\mathrm{d}\theta=\frac{\pi}{\sqrt{x}}\mathrm{d}x\mathrm{d}y$, 均匀采样结果映射为圆盘采样结果时所占的面积并不均匀, 越靠近圆盘边缘所占面积越狭窄.
 
 $$
 \begin{equation}
@@ -521,11 +521,11 @@ BRDF都是对称的, 即入射与反射方向可以交换, 但BTDF不是, 因为
 
 $$
 \begin{equation}
-d^2\phi_o = d^2\phi_i
+\mathrm{d}^2\phi_o = \mathrm{d}^2\phi_i
 \end{equation}
 $$
 
-依据$L=\frac{d^2\phi}{\mathrm{d}\omega \mathrm{d}A^{\perp}}$可以得到折射前后辐亮度的关系.
+依据$L=\frac{\mathrm{d}^2\phi}{\mathrm{d}\omega \mathrm{d}A^{\perp}}$可以得到折射前后辐亮度的关系.
 
 $$
 \begin{equation}
@@ -578,7 +578,7 @@ $$
 
 $$
 \begin{equation}
-\int_{\mathrm{d}A_\mu}(\omega_m(p) \cdot \mathbf{n}) dp = \int_{\mathrm{d}A} dp
+\int_{\mathrm{d}A_\mu}(\omega_m(p) \cdot \mathbf{n}) \mathrm{d}p = \int_{\mathrm{d}A} \mathrm{d}p
 \end{equation}
 $$
 
@@ -683,17 +683,17 @@ $$
 \begin{aligned}
 \Lambda(\omega)
 &=\frac{1}{\cot\theta}\int_{-\infty}^{\infty}\int_{\cot\theta}^{\infty}\frac{1}{\pi\alpha^2(1+\frac{x_{\tilde{m}^2}}{\alpha^2} + \frac{y_{\tilde{m}^2}}{\alpha^2})^2} (x_{\tilde{m}} - \cot\theta)\mathrm{d}x_{\tilde{m}}\mathrm{d}y_{\tilde{m}}\\
-&=\frac{1}{\cot\theta}\int_{-\infty}^{\infty}\int_{\frac{\cot\theta}{\alpha}}^{\infty}\frac{\alpha}{\pi(1+(\frac{x_{\tilde{m}}}{\alpha})^2 + (\frac{y_{\tilde{m}}}{\alpha})^2)^2} (\frac{x_{\tilde{m}}}{\alpha} - \frac{\cot\theta}{\alpha})d\frac{x_{\tilde{m}}}{\alpha}d\frac{y_{\tilde{m}}}{\alpha}\\
-&=\frac{1}{\pi x_0}\int_{-\infty}^{\infty}\int_{x_0}^{\infty}\frac{1}{(1+x^2+y^2)^2}(x-x_0)dxdy\\
-&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\infty}^{\infty}\frac{1}{(1+(\frac{y}{\sqrt{1+x^2}})^2)^2}d\frac{y}{\sqrt{1+x^2}}\\
+&=\frac{1}{\cot\theta}\int_{-\infty}^{\infty}\int_{\frac{\cot\theta}{\alpha}}^{\infty}\frac{\alpha}{\pi(1+(\frac{x_{\tilde{m}}}{\alpha})^2 + (\frac{y_{\tilde{m}}}{\alpha})^2)^2} (\frac{x_{\tilde{m}}}{\alpha} - \frac{\cot\theta}{\alpha})\mathrm{d}\frac{x_{\tilde{m}}}{\alpha}\mathrm{d}\frac{y_{\tilde{m}}}{\alpha}\\
+&=\frac{1}{\pi x_0}\int_{-\infty}^{\infty}\int_{x_0}^{\infty}\frac{1}{(1+x^2+y^2)^2}(x-x_0)\mathrm{d}x\mathrm{d}y\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\infty}^{\infty}\frac{1}{(1+(\frac{y}{\sqrt{1+x^2}})^2)^2}\mathrm{d}\frac{y}{\sqrt{1+x^2}}\\
 &=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\infty}^{\infty}\frac{1}{(1+y^2)^2}\mathrm{d}y\\
-&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\infty}^{\infty}\frac{1}{(1+\tan^2\theta)^2}d\tan\theta\\
+&=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\infty}^{\infty}\frac{1}{(1+\tan^2\theta)^2}\mathrm{d}\tan\theta\\
 &=\frac{1}{\pi x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\int_{-\frac{\pi}{2}}^{\frac{\pi}{2}}\frac{\cos2\theta+1}{2}\mathrm{d}\theta\\
 &=\frac{1}{2x_0}\int_{x_0}^{\infty}(x-x_0)(1+x^2)^{-\frac{3}{2}}\mathrm{d}x\\
 &=\frac{1}{2 x_0}\int_{x_0}^{\infty}(x-x_0)(-\frac{1}{x})d(1+x^2)^{-\frac{1}{2}}\\
 &=\frac{1}{2 x_0}\int_{(1+x_0^2)^{-\frac{1}{2}}}^{0}\frac{x_0}{\sqrt{\frac{1}{x^2}-1}}-1\mathrm{d}x\\
 &=\frac{1}{2}\int_{0}^{(1+x_0^2)^{-\frac{1}{2}}}\frac{1}{x_0}-\frac{x}{\sqrt{1-x^2}}\mathrm{d}x\\
-&=\frac{1}{2}(\frac{(1+x_0^2)^{-\frac{1}{2}}}{x_0}+\int_{0}^{(1+x_0^2)^{-\frac{1}{2}}}d\sqrt{1-x^2})\\
+&=\frac{1}{2}(\frac{(1+x_0^2)^{-\frac{1}{2}}}{x_0}+\int_{0}^{(1+x_0^2)^{-\frac{1}{2}}}\mathrm{d}\sqrt{1-x^2})\\
 &=\frac{1}{2}(\frac{(1+x_0)^{-\frac{1}{2}}}{x_0}+x_0(1+x_0)^{-\frac{1}{2}}-1)\\
 &=\frac{\sqrt{1+\frac{1}{x_0^2}}-1}{2}\\
 &=\frac{\sqrt{1+\alpha^2 \tan^2\theta}-1}{2}
@@ -738,7 +738,7 @@ S(0)=s(\mu_v-\mu(0))=
 \end{equation}
 $$
 
-令表面高度为$h(x)$, 条件$\alpha$为$h(x)<h(0)+\mu_v x$, 条件$\beta$为$h(x+\mathrm{d}x)>h(0)+\mu_v\cdot(x+\mathrm{d}x)$, $P_3(h,\mu|x)$为$x$处斜率与高度的联合分布, 若在$[x,x+\mathrm{d}x]$处被遮挡需要满足$\mu(x)>\mu_v$, 同时在Smith遮蔽函数下高度与斜率是不相关的, 此时可以定义$g(x)$. $P(\alpha,\beta)$中对微分高度变化的积分使用微分面积计算.
+令表面高度为$h(x)$, 条件$\alpha$为$h(x)<h(0)+\mu_v x$, 条件$\beta$为$h(x+\mathrm{d}x)>h(0)+\mu_v\cdot(x+\mathrm{d}x)$, $P_3(h,\mu|x)$为$x$处斜率与高度的联合分布, 若在$[x,x+\mathrm{d}x]$处被遮挡需要满足$\mu(x)>\mu_v$, 同时在Smith遮蔽函数下高度与斜率是不相关的, 此时可以定义$g(x)$. $P(\alpha,\beta)$中对微分高度变化的积分使用微分面积计算, 基于Smith假设可以拆分联合分布.
 
 $$
 \begin{equation}
@@ -746,9 +746,9 @@ $$
 g(x)
 &=\frac{1}{\mathrm{d}x}P(\beta|\alpha)\\
 &=\frac{1}{\mathrm{d}x}\frac{P(\alpha,\beta)}{P(\alpha)}\\
-&=\frac{1}{\mathrm{d}x}\frac{\int_{\mu_v}^\infty\int_{h(0)+\mu_v(x+\mathrm{d}x)-\mu \mathrm{d}x}^{h(0)+\mu_vx}P_3(h,\mu|x)dh \mathrm{d}\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\
-&=\frac{1}{\mathrm{d}x}\frac{\int_{\mu_v}^\infty(\mu-\mu_v)dxP_3(h(0)+\mu_vx,\mu|x)\mathrm{d}\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)dhd\mu}\\
-&=\frac{\int_{\mu_v}^\infty(\mu-\mu_v)P_h(h(0)+\mu_vx)P^{2-}(\mu)\mathrm{d}\mu}{\int_{-\infty}^{h(0)+\mu_vx}P_h(h)dh}\\
+&=\frac{1}{\mathrm{d}x}\frac{\int_{\mu_v}^\infty\int_{h(0)+\mu_v(x+\mathrm{d}x)-\mu \mathrm{d}x}^{h(0)+\mu_vx}P_3(h,\mu|x)\mathrm{d}h \mathrm{d}\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)\mathrm{d}h\mathrm{d}\mu}\\
+&=\frac{1}{\mathrm{d}x}\frac{\int_{\mu_v}^\infty(\mu-\mu_v)\mathrm{d}xP_3(h(0)+\mu_vx,\mu|x)\mathrm{d}\mu}{\int_{-\infty}^{\infty}\int_{-\infty}^{h(0)+\mu_vx}P_3(h,\mu|x)\mathrm{d}h\mathrm{d}\mu}\\
+&=\frac{\int_{\mu_v}^\infty(\mu-\mu_v)P_h(h(0)+\mu_vx)P^{2-}(\mu)\mathrm{d}\mu}{\int_{-\infty}^{h(0)+\mu_vx}P_h(h)\mathrm{d}h}\\
 &=\Lambda(\mu_v)\frac{\mu_vP_h(h(0)+\mu_vx)}{f(h(0)+\mu_vx)}
 \end{aligned}
 \end{equation}
@@ -775,8 +775,8 @@ $$
 \begin{equation}
 \begin{aligned}
 G_1(\omega)
-&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} P_h(h) dh\\
-&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} df(h)\\
+&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} P_h(h) \mathrm{d}h\\
+&= \int_{-\infty}^{\infty} f(h)^{\Lambda(\omega)} \mathrm{d}f(h)\\
 &= \left[\frac{f(h)^{1+\Lambda(\omega)}}{1+\Lambda(\omega)}\right]_{-\infty}^{\infty}\\
 &= \frac{1}{1+\Lambda(\omega)}
 \end{aligned}
@@ -789,8 +789,8 @@ $$
 \begin{equation}
 \begin{aligned}
 G(\omega_o,\omega_i)
-&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)}P_h(h)dh + \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_i)}P_h(h)dh\\
-&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)+\Lambda(\omega_i)}P_h(h)dh\\
+&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)}P_h(h)\mathrm{d}h\ \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_i)}P_h(h)\mathrm{d}h\\
+&= \int_{-\infty}^{\infty}f(h)^{\Lambda(\omega_o)+\Lambda(\omega_i)}P_h(h)\mathrm{d}h\\
 &= \frac{1}{1+\Lambda(\omega_o)+\Lambda(\omega_i)}
 \end{aligned}
 \end{equation}
@@ -877,9 +877,9 @@ $$
 \begin{aligned}
 P(\theta)
 &=\int_0^{\theta}p(\theta_0)\mathrm{d}\theta_0\\
-&=\int_0^{\theta}\frac{-2\alpha^2\cos\theta_0}{((\alpha^2-1)\cos^2\theta_0+1)^2}d\cos\theta_0\\
+&=\int_0^{\theta}\frac{-2\alpha^2\cos\theta_0}{((\alpha^2-1)\cos^2\theta_0+1)^2}\mathrm{d}\cos\theta_0\\
 &=\int_1^{\cos\theta}\frac{-2\alpha^2x}{((\alpha^2-1)x^2+1)^2}\mathrm{d}x\\
-&=\int_1^{\cos\theta}\frac{\alpha^2}{(\alpha^2-1)}d\frac{1}{(\alpha^2-1)x^2+1}\\
+&=\int_1^{\cos\theta}\frac{\alpha^2}{(\alpha^2-1)}\mathrm{d}\frac{1}{(\alpha^2-1)x^2+1}\\
 &=\frac{\alpha^2}{(\alpha^2-1)}(\frac{1}{(\alpha^2-1)\cos^2\theta+1}-\frac{1}{\alpha^2})\\
 &=\frac{1-\cos^2\theta}{((\alpha^2-1)\cos^2\theta+1)}\\
 P(\phi)
@@ -942,7 +942,7 @@ $$
 \begin{equation}
 \begin{aligned}
 L_o(p,\omega_o)
-&=\int_\Omega f_r(p,\omega_o,\omega_i)L_i(p,\omega_i)\cos\theta_id\omega_i\\
+&=\int_\Omega f_r(p,\omega_o,\omega_i)L_i(p,\omega_i)\cos\theta_i\mathrm{d}\omega_i\\
 &\approx \frac{f_r(p,\omega_o,\omega_i)L_i(p,\omega_i)\cos\theta_i}{p(\omega_i)}\\
 &=F(\omega_o\cdot\omega_m)G(\omega_i,\omega_o)L_i(p,\omega_i)
 \end{aligned}
@@ -1023,7 +1023,7 @@ $$
 
 ### 光滑塑料
 
-假设涂层为光滑表面, 对于只在内部漫反射一次的情况, 由于表面光滑, 漫反射的出射方向是确定的, 使用Dirac delta函数表示, 使用微分Snell定律计算Jacobian, 此时结果如下, 其中$\theta_{it}$与$\theta_{ot}$为折射后与法线的夹角.
+假设涂层光滑, $TRT$时漫反射出射方向确定即Dirac delta函数, 微分Snell定律得Jacobian, 此时结果如下, 其中$\theta_{it}$与$\theta_{ot}$为折射后与法线的夹角.
 
 $$
 \begin{equation}
@@ -1050,7 +1050,7 @@ f_r(p, \omega_o, \omega_i)
 \end{equation}
 $$
 
-对于漫反射+镜面反射+漫反射的情况, 令$\omega$为漫反射的出射方向, 由于表面光滑在镜面反射阶段的余弦项为$\omega\cdot\mathbf{n}$, 积分结果如下.
+$TRRRT$添加了额外的镜面反射与漫反射, 令$\omega$为首次漫反射出射方向, 镜面反射余弦项为$\omega\cdot\mathbf{n}$, 积分结果如下.
 
 $$
 \begin{equation}
@@ -1059,7 +1059,7 @@ f_r(p, \omega_o, \omega_i)
 &= F_t \frac{R}{\pi} \int_\omega \frac{R}{\pi} F(\omega \cdot \mathbf{n}) \cos\theta \mathrm{d}\omega\\
 &= F_t \frac{R}{\pi} \int_0^{2\pi} \int_0^{\frac{\pi}{2}} \frac{R}{\pi} F(\cos\theta) \sin\theta \cos\theta \mathrm{d}\theta \mathrm{d}\phi\\
 &= F_t \frac{2R^2}{\pi} \int_0^{\frac{\pi}{2}} F(\cos\theta) \sin\theta \cos\theta \mathrm{d}\theta\\
-&= F_t \frac{2R^2}{\pi} \int_0^{\frac{\pi}{2}} -\frac{F(\cos\theta)}{2} d\cos^2\theta\\
+&= F_t \frac{2R^2}{\pi} \int_0^{\frac{\pi}{2}} -\frac{F(\cos\theta)}{2} \mathrm{d}\cos^2\theta\\
 &= F_t \frac{R^2}{\pi} \int_0^1 F(\sqrt{x}) \mathrm{d}x\\
 &= F_t \frac{F_r R^2}{\pi}
 \end{aligned}
@@ -1080,7 +1080,7 @@ $$
 
 ### 粗糙塑料
 
-对与带有微表面的涂层, 我们仍然首先证明单次漫反射, 由于BSDF可逆和积分顺序可交换, 最终结果如下.
+带有微表面的涂层首先证明$TRT$, 由于BSDF可逆和积分顺序可交换, 最终结果如下.
 
 $$
 \begin{equation}
@@ -1095,7 +1095,7 @@ L_o
 \end{equation}
 $$
 
-整理为BSDF可得如下结果, 后续过程不再证明, 与光滑情况下结果类似. 透射率与反射率可做预计算, 比如[mitsuba3](https://github.com/mitsuba-renderer/mitsuba3/blob/master/src/bsdfs/roughplastic.cpp#L315)的实现. 若材质处理计算量大, 可用Fresnel替换, 比如[tungsten](https://github.com/tunabrain/tungsten/blob/master/src/core/bsdfs/RoughPlasticBsdf.cpp#L115)的实现.
+BSDF如下, 省略后续递推. 透射率与反射率可预计算, 如[mitsuba3](https://github.com/mitsuba-renderer/mitsuba3/blob/master/src/bsdfs/roughplastic.cpp#L315). 若材质计算量大, 可用Fresnel替换, 如[tungsten](https://github.com/tunabrain/tungsten/blob/master/src/core/bsdfs/RoughPlasticBsdf.cpp#L115).
 
 $$
 \begin{equation}
