@@ -335,3 +335,47 @@ $$
 ![dof-occlusion](dof-occlusion.svg)
 
 较大的远景弥散圆对应较远的深度, 实时景深可以由远到近的采样来估计遮蔽以平滑远近交界处的景深, 同时近景像素使用相邻像素补充被遮蔽的远景产生的弥散圆.
+
+## Auto Exposure
+
+$N=$ f-stop, $t=$ 快门时间, $S=$ 感光度, $L=$ 场景亮度, $K=$ 校准常数. ISO 2720测光方程如下, 相机自动曝光获取$L$后调整$N$, $S$, $t$来满足测光方程.
+
+$$
+\begin{equation}
+\frac{N^2}{t} = \frac{L \cdot S}{K}.
+\end{equation}
+$$
+
+根据相机设置得到曝光值$EV$, $EV$每$+1$进光量减半.
+
+$$
+\begin{equation}
+EV = \log_2\frac{N^2}{t},
+\end{equation}
+$$
+
+$EV$未锁定感光度, 归一到ISO 100得$EV_{100}$, 成为只描述场景亮度的绝对量.
+
+$$
+\begin{equation}
+EV_{100} = \log_2\frac{N^2}{t}\frac{100}{S} = \log_2\frac{L \cdot 100}{K}.
+\end{equation}
+$$
+
+由ISO 2720饱和度公式求$EV_{100}$某个值下传感器可容纳的最大亮度$L_{max}$.
+
+$$
+\begin{equation}
+L_{max} = \frac{78}{S \cdot q} \cdot 2^{EV_{100}} = \frac{78}{100 \cdot 0.65} \cdot 2^{EV_{100}} = 1.2 \cdot 2^{EV_{100}}.
+\end{equation}
+$$
+
+取倒数归一化场景亮度, 得到自动曝光结果.
+
+$$
+\begin{equation}
+exposure = \frac{1}{L_{max}} = \frac{1}{1.2 \cdot 2^{EV_{100}}}.
+\end{equation}
+$$
+
+实时自动曝光可以将亮度分桶以裁掉极端值. 局部曝光通过读取亮度下采样Mipmap实现, 每个等级的像素只统计局部亮度, 等级越高统计范围越大.
