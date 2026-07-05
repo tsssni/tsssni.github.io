@@ -7,7 +7,17 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>© 2026 </copyright>
-    <lastBuildDate>Mon, 15 Jun 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/global-illumination/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 05 Jul 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/global-illumination/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Interview III: Q&amp;A</title>
+      <link>https://tsssni.github.io/render/interview-4/</link>
+      <pubDate>Sun, 05 Jul 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/interview-4/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/interview-4/featured.jpg" />
+    </item>
     
     <item>
       <title>Interview III: 项目分析</title>
