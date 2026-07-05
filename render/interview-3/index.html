@@ -376,7 +376,7 @@
     "keywords": ["rendering","graphics","global illumination"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "6627"
+    "wordCount": "7095"
   }]
   </script>
 
@@ -1072,7 +1072,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-15T00:00:00&#43;00:00">2026 June 15</time><span class="px-2 text-primary-500">&middot;</span><span>6627 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">14 分钟</span>
+      <time datetime="2026-06-15T00:00:00&#43;00:00">2026 June 15</time><span class="px-2 text-primary-500">&middot;</span><span>7095 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">15 分钟</span>
     
 
     
@@ -1227,6 +1227,7 @@
     <li><a href="#ambient-occlusion">Ambient Occlusion</a></li>
     <li><a href="#depth-of-field">Depth Of Field</a></li>
     <li><a href="#auto-exposure">Auto Exposure</a></li>
+    <li><a href="#probe">Probe</a></li>
   </ul>
 </nav>
   </div>
@@ -1245,6 +1246,7 @@
     <li><a href="#ambient-occlusion">Ambient Occlusion</a></li>
     <li><a href="#depth-of-field">Depth Of Field</a></li>
     <li><a href="#auto-exposure">Auto Exposure</a></li>
+    <li><a href="#probe">Probe</a></li>
   </ul>
 </nav>
   </div>
@@ -1678,6 +1680,22 @@ L_{max} = \frac{78}{S \cdot q} \cdot 2^{EV_{100}} = \frac{78}{100 \cdot 0.65} \c
 exposure = \frac{1}{L_{max}} = \frac{1}{1.2 \cdot 2^{EV_{100}}}.
 \end{equation}
 </annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.1574em;vertical-align:-0.8287em;"></span><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3287em;"><span style="top:-3.3287em;"><span class="pstrut" style="height:3.3214em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">p</span><span class="mord mathnormal">os</span><span class="mord mathnormal">u</span><span class="mord mathnormal">re</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ma</span><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1.2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7673em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">E</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3173em;"><span style="top:-2.357em;margin-left:-0.2222em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">100</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord">.</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8287em;"><span></span></span></span></span></span></span></span><span class="tag"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3287em;"><span style="top:-3.3287em;"><span class="pstrut" style="height:3.3214em;"></span><span class="eqn-num"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8287em;"><span></span></span></span></span></span></span></span></span><p>实时自动曝光可以将亮度分桶以裁掉极端值. 局部曝光通过读取亮度下采样Mipmap实现, 每个等级的像素只统计局部亮度, 等级越高统计范围越大.</p>
+
+<h2 class="relative group">Probe
+    <div id="probe" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#probe" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p>以立方体为单元生成探针, 探针摆放在8个顶点. 可设置烘焙LOD, LOD+1则边长翻倍. 根据最粗LOD的立方体划分场景区块.</p>
+<p>每个区块执行X/Y/Z三轴投影保守光栅化, 若只做单轴投影, 与投影方向近乎平行的三角形投影面积趋近零,光栅化片元无法覆盖穿过的所有体素.</p>
+<p>完成光栅化后基于Jump Flooding生成距离场并摆放探针, 同时使用物理系统光线进行阴影测试, 获取探针的虚拟偏移.</p>
+<p>探针将场景光栅化到立方图G-Buffer(基础色, 法线, 世界位置), 用于后续采样面素. 烘焙时将探针分批, 同一批次绘制到一张图集上, 使得多个探针的绘制共享顶点着色器结果.</p>
+<p>面素采样时在工作组内求解天空可见性球谐系数, 使用整数位置, 法线主方向和采样光线是否命中得到64位Morton码, 相同时执行面素去重, 高位相同则合并为砖块. 砖块计算平均位置和法线, 用于计算探针使用砖块时的权重.</p>
+<p>运行时使用环形寻址流式加载探针, 根据各类优先级策略选择当前帧更新的探针. 为避免砖块由于相机运动被频繁的换入换出, 砖块记录引用计数, 归0后记录LRU, 多次流式加载后仍然未被使用再执行释放.</p>
 
           
           
