@@ -376,7 +376,7 @@
     "keywords": ["rendering","graphics","global illumination"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "8352"
+    "wordCount": "8386"
   }]
   </script>
 
@@ -1072,7 +1072,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-15T00:00:00&#43;00:00">2026 June 15</time><span class="px-2 text-primary-500">&middot;</span><span>8352 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">17 分钟</span>
+      <time datetime="2026-06-15T00:00:00&#43;00:00">2026 June 15</time><span class="px-2 text-primary-500">&middot;</span><span>8386 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">17 分钟</span>
     
 
     
@@ -1231,6 +1231,7 @@
     <li><a href="#restir-gi">ReSTIR GI</a></li>
     <li><a href="#sssr">SSSR</a></li>
     <li><a href="#super-resolution">Super Resolution</a></li>
+    <li><a href="#light-grid">Light Grid</a></li>
   </ul>
 </nav>
   </div>
@@ -1253,6 +1254,7 @@
     <li><a href="#restir-gi">ReSTIR GI</a></li>
     <li><a href="#sssr">SSSR</a></li>
     <li><a href="#super-resolution">Super Resolution</a></li>
+    <li><a href="#light-grid">Light Grid</a></li>
   </ul>
 </nav>
   </div>
@@ -1751,6 +1753,26 @@ exposure = \frac{1}{L_{max}} = \frac{1}{1.2 \cdot 2^{EV_{100}}}.
 <p>此时不再需要FSR的像素锁和不稳定度检测机制, 保留着色变化检测. 为了动态阴影等着色结果大幅变化的区域保持稳定, 需要采样历史帧的着色变化率, 之后逐帧衰减.</p>
 <p>FSR只在当前帧的空间滤波使用Lanczos, 历史帧和当前帧之间做启发式的累积, 导致收敛较慢. 去除像素锁后, 最终累积结果的alpha通道可以用来存储历史帧累积的Lanczos滤波器权重, 实现更快的收敛.</p>
 <p>补帧同样可以利用3D运动矢量, 所有静态像素都会不断重投影, 维护背景静态缓冲, 补帧时投影到生成帧以实现更合理的补洞.</p>
+
+<h2 class="relative group">Light Grid
+    <div id="light-grid" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#light-grid" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p><a href="https://bartwronski.com/2017/04/13/cull-that-cone/"  target="_blank" rel="noreferrer">W17</a>指出使用网格包围球和锥体求交可以实现更精确的聚光灯剔除.</p>
+<p><figure><img
+    class="my-0 rounded-md"
+    loading="lazy"
+    decoding="async"
+    fetchpriority="low"
+    alt="cone-culling"
+    src="/render/interview-3/cone-culling.svg"
+    ></figure>
+</p>
 
           
           
