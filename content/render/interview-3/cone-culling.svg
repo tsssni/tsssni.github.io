@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 420" font-size="16" font-family="'IBM Plex Sans',sans-serif">
+  <title>Cone vs cell bounding sphere test: dist = perp·cosθ − axial·sinθ, cull when dist &gt; ρ, axial &gt; ρ + R or axial &lt; −ρ</title>
+  <style>
+    .surf  { stroke:#16404f; stroke-width:3; fill:none; }
+    .ink   { stroke:#16404f; fill:none; }
+    .guide { stroke:#9aa7ad; stroke-width:1.1; stroke-dasharray:5 4; fill:none; }
+    .ray   { stroke:#4c8dff; stroke-width:2.2; fill:none; }
+    .normal{ stroke:#f5a623; stroke-width:2; fill:none; }
+    .keep  { stroke:#4c8dff; stroke-width:2.2; fill:none; }
+    .cullc { stroke:#9aa7ad; stroke-width:1.6; stroke-dasharray:6 4; fill:none; }
+    .green { stroke:#3aa655; stroke-width:2; fill:none; }
+    .red   { stroke:#e0524d; stroke-width:2; fill:none; }
+    .lbl { fill:#16404f; } .blue { fill:#4c8dff; } .amber { fill:#f5a623; } .grn { fill:#3aa655; } .redl { fill:#e0524d; } .gray { fill:#9aa7ad; } .dot { fill:#16404f; }
+    @media (prefers-color-scheme: dark){
+      .surf,.ink { stroke:#cdd6da; } .lbl,.dot { fill:#cdd6da; }
+    }
+  </style>
+  <defs>
+    <marker id="ar-ray" markerWidth="6" markerHeight="6" refX="4.6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 z" fill="#4c8dff"/>
+    </marker>
+    <marker id="ar-nrm" markerWidth="6" markerHeight="6" refX="4.6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 z" fill="#f5a623"/>
+    </marker>
+    <marker id="ar-dim" markerWidth="7" markerHeight="7" refX="5.2" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#16404f"/>
+    </marker>
+    <marker id="ar-grn" markerWidth="6" markerHeight="6" refX="4.6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 z" fill="#3aa655"/>
+    </marker>
+    <marker id="ar-red" markerWidth="6" markerHeight="6" refX="4.6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 z" fill="#e0524d"/>
+    </marker>
+  </defs>
+
+  <!-- cone: apex P, two edges, radial (spherical) cap -->
+  <path d="M343.7 146 L110 260 L343.7 374" class="surf"/>
+  <path d="M343.7 146 A 260 260 0 0 1 343.7 374" class="surf"/>
+  <!-- axis -->
+  <line x1="110" y1="260" x2="520" y2="260" class="guide" marker-end="url(#ar-dim)"/>
+  <text x="524" y="252" text-anchor="start" class="lbl" font-style="italic">d</text>
+  <circle cx="110" cy="260" r="3" class="dot"/>
+  <text x="96" y="256" text-anchor="end" class="lbl" font-style="italic">P</text>
+  <!-- half angle -->
+  <path d="M165 260 A 55 55 0 0 0 159.4 235.9" class="ink"/>
+  <text x="176" y="248" text-anchor="middle" class="lbl" font-style="italic">&#952;</text>
+  <!-- range label on the cap -->
+  <text x="352" y="250" text-anchor="start" class="lbl" font-style="italic">R</text>
+
+  <!-- kept sphere: center c, radius rho -->
+  <circle cx="295" cy="110" r="60" class="keep"/>
+  <circle cx="295" cy="110" r="2.6" class="dot"/>
+  <text x="302" y="104" text-anchor="start" class="lbl" font-style="italic">c</text>
+  <line x1="295" y1="110" x2="245.9" y2="75.6" class="ink"/>
+  <text x="270" y="106" text-anchor="end" class="lbl" font-style="italic">&#961;</text>
+
+  <!-- v = c - P -->
+  <line x1="110" y1="260" x2="295" y2="110" class="ray" marker-end="url(#ar-ray)"/>
+  <text x="188" y="176" text-anchor="end" class="blue" font-style="italic">v</text>
+  <!-- perp: c to axis -->
+  <line x1="295" y1="110" x2="295" y2="260" class="guide"/>
+  <text x="302" y="212" text-anchor="start" class="lbl" font-style="italic">perp</text>
+  <!-- axial: dimension below axis -->
+  <text x="202" y="282" text-anchor="middle" class="lbl" font-style="italic">axial = v&#183;d</text>
+  <!-- perp contribution to dist: same start and direction as the green arrow, drawn thicker
+       underneath; its tip connects to c by a dashed line parallel to the cone edge -->
+  <line x1="290.5" y1="262.2" x2="231.5" y2="141" class="red" marker-end="url(#ar-red)"/>
+  <line x1="231.5" y1="141" x2="295" y2="110" class="guide"/>
+  <text x="228" y="134" text-anchor="end" class="redl" font-size="14" font-style="italic">perp&#183;cos&#952;</text>
+  <!-- axial contribution to dist: from the perp/axial junction to the edge line, parallel to dist -->
+  <line x1="299.5" y1="257.8" x2="263.9" y2="184.9" class="green" marker-end="url(#ar-grn)"/>
+  <text x="298" y="282" text-anchor="start" class="grn" font-size="14" font-style="italic">axial&#183;sin&#952;</text>
+  <!-- signed distance to the cone edge -->
+  <line x1="318.5" y1="158.3" x2="295" y2="110" class="normal" marker-end="url(#ar-nrm)"/>
+  <path d="M326.6 154.3 L322.7 146.2 L314.6 150.2" class="ink" stroke-width="1"/>
+  <text x="368" y="108" text-anchor="start" class="amber" font-size="14" font-style="italic">dist = perp&#183;cos&#952; &#8722; axial&#183;sin&#952;</text>
+  <text x="368" y="128" text-anchor="start" class="lbl" font-size="13">dist &#8804; &#961;: keep</text>
+
+  <!-- front cull: axial beyond rho + R -->
+  <line x1="370" y1="150" x2="370" y2="380" class="guide"/>
+  <text x="370" y="400" text-anchor="middle" class="gray" font-size="13" font-style="italic">axial = R</text>
+  <circle cx="450" cy="260" r="42" class="cullc"/>
+  <circle cx="450" cy="260" r="2.4" class="gray"/>
+  <text x="450" y="322" text-anchor="middle" class="gray" font-size="13" font-style="italic">axial &gt; &#961; + R</text>
+
+  <!-- back cull: behind the apex plane -->
+  <line x1="110" y1="150" x2="110" y2="380" class="guide"/>
+  <text x="110" y="400" text-anchor="middle" class="gray" font-size="13" font-style="italic">axial = 0</text>
+  <circle cx="50" cy="200" r="36" class="cullc"/>
+  <circle cx="50" cy="200" r="2.4" class="gray"/>
+  <text x="50" y="158" text-anchor="middle" class="gray" font-size="13" font-style="italic">axial &lt; &#8722;&#961;</text>
+</svg>
