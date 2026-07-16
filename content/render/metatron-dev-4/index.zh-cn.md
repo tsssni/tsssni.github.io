@@ -154,17 +154,19 @@ $$
 
 不同顶点数的积分不相交, 即$f(\mathbf{x})=\sum_{i=1}^\infty\int_{\mathbf{x}_i}f(\mathbf{x}_i)\mathrm{d}\mathbf{x}_i$, $\bigcup_{i=1}^\infty\mathbf{x_i}=\mathbf{x}$使得样本满足$\mathrm{supp}(Y) \subseteq \bigcup_{n=1}^M T_n(\mathrm{supp}(X_n))$, 同时对于单个像素生成的光线, 生成的每个NEE样本总是顶点数不同, $\mathcal{N}(y)$只位于一个支撑集, MIS权重设置为$1$即可.
 
-对于当前像素$y$, 从对所有像素相同的相机顶点$y_0$出发, 在某个spp下发射确定的初始光线击中$y_1$, 之后都是随机采样, 由随机数$u_i$生成散射方向$\omega_i$. 复用时使用另一个像素$x$的路径使用的随机数, 从$y_1$出发生成新的$\omega^y_i$, 若$y_i$, $x_i$, $x_{i+1}$都满足条件(材质足够粗糙, 顶点距离足够远...), 将$y_i$连接到$x_{i+1}$并复用后续路径, 得到新路径$\mathbf{y}$.
+对于当前像素$y$, 从对所有像素相同的相机顶点$y_0$出发, 发射确定的初始光线击中$y_1$, 之后由随机数$\mathbf{u}_i$生成散射方向$\omega_i$, 其中分量$\tilde{u}_i$选取波瓣. 复用时使用另一个像素$x$的路径使用的随机数, 从$y_1$出发生成新的$\omega^y_i$, 若$y_i$, $x_i$, $x_{i+1}$都满足重连接条件(材质足够粗糙, 顶点距离足够远...), 将$y_i$连接到$x_{i+1}$并复用后续路径, 得到新路径$\mathbf{y}$.
 
-注意到由于重连接$\mathbf{y}$和$\mathbf{x}$拥有相同的顶点数, 且除生成$y_i \to y_{i+1} \to y_{i+2}$使用的随机数外其余随机数相同, 若未使用VNDF等视线相关抽样则只需考虑$y_i \to y_{i+1}$. 由于重要性抽样中$U$为目标分布的CDF, 令$\theta$为立体角与法线的夹角, 对于同序顶点Jacobian形式如下:
+注意到由于重连接$\mathbf{y}$和$\mathbf{x}$拥有相同的顶点数, 且除生成$y_i \to y_{i+1} \to y_{i+2}$使用的随机数外其余随机数相同, 若未使用VNDF等视线相关抽样则只需考虑$y_i \to y_{i+1}$.
+
+由于重要性抽样中$U$为目标分布CDF, 微分可得PDF. 若重连接顶点复制波瓣选择随机数即$\tilde{u}^y_i = \tilde{u}^x_i$, 只变化$\tilde{u}^x_i$而$\omega^x_i$固定时命中点$\mathbf{p}^x_{i+1}$不变, 即$\frac{\partial \omega^y_i}{\partial \tilde{u}^x_i}=0$, 同理$\frac{\partial \omega^x_i}{\partial \tilde{u}^y_i}=0$, 而$\frac{\partial \tilde{u}^y_i}{\partial \tilde{u}^x_i}=1$, 因此只需计算立体角微分$\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|$. 令$\theta$为立体角与法线的夹角, 对于同序顶点Jacobian如下:
 
 $$
 \begin{equation}
 \begin{aligned}
-\left|\frac{\partial u^y_i}{\partial u^x_i}\right|
-&=\left|\frac{\partial u^y_i}{\partial \omega^y_i}\right|\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|\left|\frac{\partial \omega^x_i}{\partial u^x_i}\right|
-=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|\\
-&=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
+\left|\frac{\partial \mathbf{u}^y_i}{\partial \mathbf{u}^x_i}\right|
+&=\left|\frac{\partial \mathbf{u}^y_i}{\partial (\omega^y_i, \tilde{u}^y_i)}\right|\left|\frac{\partial (\omega^y_i, \tilde{u}^y_i)}{\partial (\omega^x_i, \tilde{u}^x_i)}\right|\left|\frac{\partial (\omega^x_i, \tilde{u}^x_i)}{\partial \mathbf{u}^x_i}\right|\\
+&=\frac{p_{y_i}(\omega^y_i, \tilde{u}^y_i)}{p_{x_i}(\omega^x_i, \tilde{u}^x_i)}\left|\frac{\partial\omega^y_i}{\partial\omega^x_i}\right|\\
+&=\frac{p_{y_i}(\omega^y_i, \tilde{u}^y_i)}{p_{x_i}(\omega^x_i, \tilde{u}^x_i)}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
 \end{aligned}
 \end{equation}
 $$
@@ -176,13 +178,13 @@ $$
 \begin{aligned}
 J_{\mathbf{x}\to\mathbf{y}}
 &=\begin{vmatrix}
-\frac{\partial u^y_i}{\partial u^x_i}&
-\frac{\partial u^y_i}{\partial u^x_{i+1}}\\
-\frac{\partial u^y_{i+1}}{\partial u^x_i}&
-\frac{\partial u^y_{i+1}}{\partial u^x_{i+1}}
+\frac{\partial \mathbf{u}^y_i}{\partial \mathbf{u}^x_i}&
+\frac{\partial \mathbf{u}^y_i}{\partial \mathbf{u}^x_{i+1}}\\
+\frac{\partial \mathbf{u}^y_{i+1}}{\partial \mathbf{u}^x_i}&
+\frac{\partial \mathbf{u}^y_{i+1}}{\partial \mathbf{u}^x_{i+1}}
 \end{vmatrix}
-= \frac{\partial u^y_i}{\partial u^x_i}\frac{\partial u^y_{i+1}}{\partial u^x_{i+1}}\\
-&=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\frac{p_{y_{i+1}}(\omega^y_{i+1})}{p_{x_{i+1}}(\omega^x_{i+1})}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
+= \frac{\partial \mathbf{u}^y_i}{\partial \mathbf{u}^x_i}\frac{\partial \mathbf{u}^y_{i+1}}{\partial \mathbf{u}^x_{i+1}}\\
+&=\frac{p_{y_i}(\omega^y_i, \tilde{u}^y_i)}{p_{x_i}(\omega^x_i, \tilde{u}^x_i)}\frac{p_{y_{i+1}}(\omega^y_{i+1}, \tilde{u}^y_{i+1})}{p_{x_{i+1}}(\omega^x_{i+1}, \tilde{u}^x_{i+1})}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
 \end{aligned}
 \end{equation}
 $$
