@@ -64,10 +64,10 @@ $$
 \begin{aligned}
 E[f(Y)W_Y]
 &= E[\frac{f(Y)}{\hat{p}(Y)}\sum_{i=1}^M w_i]\\
-&= E[\sum_{n=1, Y=T_n(X_n)}^M \frac{f(Y)}{\hat{p}(Y)}\sum_{i=1}^M w_i \frac{w_Y}{\sum_{i=1}^M w_i}]\\
-&= \sum_{n=1, y=T_n(x_n)}^M \int_{\mathrm{supp}(X_1)}\cdots\int_{\mathrm{supp}(X_M)} \frac{f(y) c_n(y) J_{x_n \to y}}{p_n(x_n)}\prod_{i=1}^M p_i(x_i)\mathrm{d}x_i\\
-&= \sum_{n=1, y=T_n(x_n)}^M \int_{\mathrm{supp}(X_1)}\cdots\int_{\mathrm{supp}(X_M)} f(y) c_n(y) J_{x_n \to y}\mathrm{d}x_n \prod_{i=1, i \neq n}^M p_i(x_i)\mathrm{d}x_i\\
-&= \sum_{n=1, y=T_n(x_n)}^M \int_{T_n(\mathrm{supp}(X_n))} f(y) c_n(y)\mathrm{d}y\\
+&= E[\sum_{n=1, Y_n=T_n(X_n)}^M \frac{f(Y_n)}{\hat{p}(Y_n)}\sum_{i=1}^M w_i \frac{w_n}{\sum_{i=1}^M w_i}]\\
+&= \sum_{n=1, y_n=T_n(x_n)}^M \int_{\mathrm{supp}(X_1)}\cdots\int_{\mathrm{supp}(X_M)} \frac{f(y_n) c_n(y_n) J_{x_n \to y_n}}{p_n(x_n)}\prod_{i=1}^M p_i(x_i)\mathrm{d}x_i\\
+&= \sum_{n=1, y_n=T_n(x_n)}^M \int_{\mathrm{supp}(X_1)}\cdots\int_{\mathrm{supp}(X_M)} f(y_n) c_n(y_n) J_{x_n \to y_n}\mathrm{d}x_n \prod_{i=1, i \neq n}^M p_i(x_i)\mathrm{d}x_i\\
+&= \sum_{n=1, y_n=T_n(x_n)}^M \int_{T_n(\mathrm{supp}(X_n))} f(y_n) c_n(y_n)\mathrm{d}y_n\\
 &= \int_{\bigcup_{n=1}^M T_n(\mathrm{supp}(X_n))} f(y) \sum_{n \in \mathcal{N}(y)} c_n(y)\mathrm{d}y\\
 \end{aligned}
 \end{equation}
@@ -79,11 +79,11 @@ $$
 \begin{equation}
 \begin{aligned}
 E[f(Y)W_Y]
-&= E[\sum_{n=1, Y=T_n(X_n)}^M f(Y)c_n(Y)W_nJ_{X_n \to Y}\frac{\sum_{i=1}^M w_i}{w_n}\frac{w_n}{\sum_{i=1}^M w_i}]\\
-&= \sum_{n=1, Y=T_n(X_n)}^M E[f(Y)c_n(Y)W_nJ_{X_n \to Y}]\\
-&= \sum_{n=1, y=T_n(x_n)}^M \int_{\mathrm{supp}(X_n)} f(y) c_n(y) J_{x_n \to y} E[W_n | X_n=x_n] p_n(x_n) \mathrm{d}x_n\\
-&= \sum_{n=1, y=T_n(x_n)}^M \int_{\mathrm{supp}(X_n)} f(y) c_n(y) J_{x_n \to y} \mathrm{d}x_n\\
-&= \sum_{n=1, y=T_n(x_n)}^M \int_{T_n(\mathrm{supp}(X_n))} f(y) c_n(y)\mathrm{d}y\\
+&= E[\sum_{n=1, Y_n=T_n(X_n)}^M f(Y_n)c_n(Y_n)W_nJ_{X_n \to Y_n}\frac{\sum_{i=1}^M w_i}{w_n}\frac{w_n}{\sum_{i=1}^M w_i}]\\
+&= \sum_{n=1, Y_n=T_n(X_n)}^M E[f(Y_n)c_n(Y_n)W_nJ_{X_n \to Y_n}]\\
+&= \sum_{n=1, y_n=T_n(x_n)}^M \int_{\mathrm{supp}(X_n)} f(y_n) c_n(y_n) J_{x_n \to y_n} E[W_n | X_n=x_n] p_n(x_n) \mathrm{d}x_n\\
+&= \sum_{n=1, y_n=T_n(x_n)}^M \int_{\mathrm{supp}(X_n)} f(y_n) c_n(y_n) J_{x_n \to y_n} \mathrm{d}x_n\\
+&= \sum_{n=1, y_n=T_n(x_n)}^M \int_{T_n(\mathrm{supp}(X_n))} f(y_n) c_n(y_n)\mathrm{d}y_n\\
 &= \int_{\bigcup_{n=1}^M T_n(\mathrm{supp}(X_n))} f(y) \sum_{n \in \mathcal{N}(y)} c_n(y)\mathrm{d}y\\
 \end{aligned}
 \end{equation}
@@ -129,12 +129,12 @@ L_o(\mathbf{p}, \omega_o) = \int_{A} f(\mathbf{p}, \omega_o, \omega_i) L_e(\math
 \end{equation}
 $$
 
-Delta光源无面积, 作为原子点并入基测度, 样本域扩充为$\Omega = A \cup \{\mathbf{p}_1, \dots, \mathbf{p}_K\}$:
+Delta光源无面积, 作为原子点并入基测度, 样本域扩充为$A' = A \cup \{\mathbf{p}_1, \dots, \mathbf{p}_K\}$:
 
 $$
 \begin{equation}
 \mu = \mathrm{d}A + \sum_{k=1}^K \delta_{\mathbf{p}_k}, \quad
-\int_\Omega f \mathrm{d}\mu = \int_A f\mathrm{d}A + \sum_{k=1}^K f(\mathbf{p}_k)
+\int_{A'} f \mathrm{d}\mu = \int_A f\mathrm{d}A + \sum_{k=1}^K f(\mathbf{p}_k)
 \end{equation}
 $$
 
@@ -172,6 +172,17 @@ $$
 \end{aligned}
 \end{equation}
 $$
+
+末尾为BSDF采样时所有维度均经CDF生成, PSS样本$X=\mathbf{u}$均匀, $p(X)=1$. 若采样包含轮盘赌, 此时$p(X)=\prod_i q_i$. 末尾为NEE时令末端顶点为$\mathbf{p}_e$, 得到混合样本$X=(\mathbf{u}, \mathbf{p}_e)$. 散射维度以立体角测度表示, 末端顶点以ReSTIR DI光源测度$\mu$表示:
+
+$$
+\begin{equation}
+\int_{\omega} \int_{A'} f(\mathbf{x}) \mathrm{d}\mu(\mathbf{p}_e) \prod_{i=1}^{d-2} \mathrm{d}\omega_i
+= \int_{\mathbf{u}} \int_{A'} \frac{f(\mathbf{x})}{\prod_{i=1}^{d-2} p_i(\omega_i)} \mathrm{d}\mu(\mathbf{p}_e) \prod_{i=1}^{d-2}\mathrm{d}\mathbf{u}_i
+\end{equation}
+$$
+
+$\mathbf{u}$均匀且$\mathbf{p}_e$独立地以NEE分布$p_1$生成, 因此$p(X)=p_1(\mathbf{p}_e)\prod_i q_i$. 若NEE使用RIS生成, $p_1$使用无偏权重即可. 末端顶点复用时为恒等映射, Jacobian只由散射维度贡献.
 
 不同顶点数的积分不相交, 即$f(\mathbf{x})=\sum_{i=1}^\infty\int_{\mathbf{x}_i}f(\mathbf{x}_i)\mathrm{d}\mathbf{x}_i$, $\bigcup_{i=1}^\infty\mathbf{x_i}=\mathbf{x}$使得样本满足$\mathrm{supp}(Y) \subseteq \bigcup_{n=1}^M T_n(\mathrm{supp}(X_n))$, 同时对于单个像素生成的光线, 生成的每个NEE样本总是顶点数不同, $\mathcal{N}(y)$只位于一个支撑集, MIS权重设置为$1$即可.
 
