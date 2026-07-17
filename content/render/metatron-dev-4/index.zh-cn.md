@@ -119,6 +119,27 @@ W_Y = \frac{1}{\hat{p}(Y)}\sum_{i=1}^M w_i \to \frac{\|\hat{p}\|}{\hat{p}(Y)}
 \end{equation}
 $$
 
+## ReSTIR DI
+
+直接光照使用NEE在光源表面抽样, 样本域为所有发光表面的并集$A=\bigcup_i A_i$, 积分表示如下, 其中$G(\mathbf{p} \leftrightarrow \mathbf{p}_e)=\frac{|\cos\theta \cos\theta_e|}{\|\mathbf{p}_e-\mathbf{p}\|^2}$为几何项, $V$为可见性:
+
+$$
+\begin{equation}
+L_o(\mathbf{p}, \omega_o) = \int_{A} f(\mathbf{p}, \omega_o, \omega_i) L_e(\mathbf{p}_e, -\omega_i) G(\mathbf{p} \leftrightarrow \mathbf{p}_e) V(\mathbf{p} \leftrightarrow \mathbf{p}_e) \mathrm{d}A
+\end{equation}
+$$
+
+Delta光源无面积, 作为原子点并入基测度, 样本域扩充为$\Omega = A \cup \{\mathbf{p}_1, \dots, \mathbf{p}_K\}$:
+
+$$
+\begin{equation}
+\mu = \mathrm{d}A + \sum_{k=1}^K \delta_{\mathbf{p}_k}, \quad
+\int_\Omega f \mathrm{d}\mu = \int_A f\mathrm{d}A + \sum_{k=1}^K f(\mathbf{p}_k)
+\end{equation}
+$$
+
+面光样本为光源面上的点, 其表示与NEE顶点无关, 且所有顶点的积分域都是同一面积测度下的光源表面, 因此复用时位移映射恒等即$J_{X \to Y}=1$. 点光与聚光的世界空间位置, 或方向光的世界空间方向, 同样与NEE顶点无关, 为恒等映射.
+
 ## ReSTIR GI
 
 每次蓄水池复用最终都存储无偏权重, 因此根据GRIS下次复用也可以得到无偏结果, 即链式GRIS. 目标像素的蓄水池总是被使用, 因此满足$\mathrm{supp}(Y) \subseteq \bigcup_{n=1}^M T_n(\mathrm{supp}(X_n))$. 蓄水池结构为:
