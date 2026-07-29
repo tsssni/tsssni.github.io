@@ -452,3 +452,13 @@ L_i
 \end{aligned}
 \end{equation}
 $$
+
+点光与聚光同样通过辐照度定义, 立体角范围和距离相关, 由源半径与距离决定:
+
+$$
+\begin{equation}
+\sin\theta_0 = \frac{r}{d}
+\qquad
+L_i = \frac{E}{\pi\sin^2\theta_0} = \frac{E d^2}{\pi r^2}
+\end{equation}
+$$
