@@ -115,7 +115,7 @@ f(n, ++xs...); // f(n, ++x0, ++x1, ++x2);
 f((Args const*)&xs...); // f((T0 const*)&x0, (T1 const*)&x1, (T2 const*)&x2)
 f(g(xs...) + xs...); // f(g(x0, x1, x2) + x0, g(x0, x1, x2) + x1, g(x0, x1, x2) + x2)
 f<Ts&...>(T{&xs...}) // f<T0&, T1&, T2&>(T{&x0, &x1, &x2})
-template<typename Bs> struct A: public Bs... {}; // public B0, public B1, public B2
+template<typename... Bs> struct A: public Bs... {}; // public B0, public B1, public B2
 ```
 
 折叠表达式来自函数式语言, 例如Haskell的`foldl`和`foldr`, 使得参数包之间可以直接通过运算符连接, 可以区分左右折叠并添加初值. 为不与参数包展开冲突, 必须添加括号. 例如:
@@ -162,7 +162,7 @@ auto constexpr forward(std::remove_reference_t<T>& t) noexcept -> T&& {
 template<typename T>
 auto constexpr forward(std::remove_reference_t<T>&& t) noexcept -> T&& {
     static_assert(!std::is_lvalue_reference_v<T>);  // avoid forward<int&>(std::move(x))
-    return static_cast<T&&>(t); //  T&& && = T&&
+    return static_cast<T&&>(t); //  T && = T&&
 }
 
 template<typename... Args>
@@ -206,17 +206,21 @@ auto fib = [](this auto self, int n) -> int {
 
 ## Atomic
 
-`std::atomic`使得对同一原子变量的操作在多线程下串行化, `load`/`store`保证不存在并发的读取和写入. `wait`传入期望值, 原子变量等于该值时阻塞, `notify_one`/`notify_all`唤醒一个或多个等待线程. `compare_exchange`比较期望值与原子变量实际值, 相等时执行修改, 否则写回实际值. 例如上次读取原子变量的结果是期望值, 我们期望它未被其它线程修改. `compare_exchange`保证修改一定进入缓存以对后续`compare_exchange`可见.
+`std::atomic`使得对同一原子变量的操作在多线程下串行化, `load`/`store`保证不存在并发的读取和写入. `wait`传入期望值, 比较是否与原子变量逐位相等, 通常实现时先自旋等待少量周期, 仍未唤醒再阻塞. `notify_one`/`notify_all`唤醒至少一个或所有等待线程, 检查值是否变化. `compare_exchange`比较期望值与原子变量实际值, 若相等则执行修改, 否则写回实际值. 例如上次读取原子变量的结果是期望值, 我们期望它未被其它线程修改. `compare_exchange`保证修改一定进入缓存以对后续`compare_exchange`可见.
 
-ARM等架构为LL/SC, 即`load-linked`/`store-conditional`一对指令: `load-linked`读取值并对该地址登记独占监视, `store-conditional`仅当监视未被上下文切换, 中断, 其它核心触碰同一缓存行等操作破坏才写入. 这导致`compare_exchange_weak`伪失败即值相等时也由于`store-conditional`而返回假. LL/SC架构的`compare_exchange_strong`需在内部循环重试以消除伪失败, 因此开销更高.
+ARMv8等架构为LL/SC, 即`load-linked`/`store-conditional`一对指令: `load-linked`读取值并对该地址登记独占监视, `store-conditional`仅当独占监视仍然有效时才写入, 上下文切换, 中断, 其它核心触碰同一缓存行会使其失效. 这导致`compare_exchange_weak`伪失败即值相等时也返回假. LL/SC架构的`compare_exchange_strong`需在内部循环重试以消除伪失败, 因此开销更高.
+
+缓存以缓存行为单位保证一致性, 通常远大于原子变量所需的空间. 若不同原子变量位于同一缓存行, 由于`fetch_add`等读改写操作必须先独占原子变量, 让其他核心缓存失效以读取最新值再修改写回, 等价于多核串行. 即使多个线程读写不同原子变量, 也会由于同一个缓存行的失效导致性能损失.
+
+`volatile`使得编译器优化和重排被阻止, 例如多次连续写入但后续只读一次, `volatile`不会优化为单次写入. 但多线程下仍然有并发读写顺序问题, 必须依赖`std::atomic`解决.
 
 ## Memory Order
 
-编译器重排和乱序执行导致并发内存读写顺序不被保证, 存储缓冲和失效队列导致可见性延迟, 可通过内存序`std::memory_order`解决. `relaxed`只保证原子操作本身语义正确, 不约束周围内存读写.
+编译器重排和乱序执行导致并发内存读写顺序未定义, 可通过内存序`std::memory_order`解决. `relaxed`只保证原子操作本身语义正确, 不约束周围内存读写.
 
-`release`保证原子操作前的内存读写不重排到之后, 保证之前的内存写入先于`release`本身进入缓存和发出失效消息. `acquire`保证原子操作之后的内存读写不重排到之前, 并处理已入队的失效消息, 当`acquire`读到`release`的写入, `release`前的写入已被失效队列处理, 因此已经可见.
+`release`保证原子操作前的内存读写不重排到之后, 保证之前的写入会先于`release`本身进入缓存, `acquire`保证原子操作后的内存读写不重排到之前. 当`acquire`读到`release`本身, 若`acquire`后再读取`release`前的写入, 此时可以保证缓存可见.
 
-`acq_rel`兼具`acquire`/`release`的特性, 而`seq_cst`在此基础上要求原子写入执行后立即排空存储缓冲并发送失效消息, 后续`acquire`触发的失效队列排空令写入可见, 因此`acquire`读取执行顺序在`seq_cst`写入之后时能立即获取写入结果.
+`acq_rel`用于读改写操作, 读取为`acquire`, 写入为`release`. `seq_cst`在x86上为写后立即排空存储缓冲, 在ARM上为读前等待当前线程所有写入进入缓存, 使得所有`seq_cst`指令可解释为串行顺序.
 
 ## Promise
 
@@ -283,6 +287,30 @@ C++26引入静态反射, 可通过反射运算符`^^`在编译期获取命名空
 auto constexpr iinfo = ^^int;
 using i32 = [:iinfo:];
 ```
+
+## Pointer
+
+`std::shared_ptr`可能循环引用, 例子如下, 因此用`std::weak_ptr`避免增加引用计数, 同时可用于确认对象是否存活.
+
+```cpp
+struct B;
+struct A { std::shared_ptr<B> b; };
+struct B { std::shared_ptr<A> a; };
+
+{
+    auto a = std::make_shared<A>();  // a 计数 1
+    auto b = std::make_shared<B>(); // b 计数 1
+    a->b = b; // b 计数 2
+    b->a = a; // a 计数 2
+}
+
+// 先析构b, 引用计数降为1, 由于未触发析构, a计数仍为2
+// 再析构a, 引用计数降为1, 同样不触发析构, 此时a和b都泄露
+```
+
+智能指针都默认通过`delete`来析构对象, 若内存分配由用户执行, 只在构造完成后传入指针, 此时无法`delete`. `std::unique_ptr`可在模板参数指定析构函数类型, 若为无捕获lambda或空类型functor, 则通过`[[no_unique_address]]`避免增加存储开销.
+
+`std::shared_ptr`通过控制块记录状态, `make_shared`直接将对象而非指针存至控制块, 裸指针和自定义析构将析构函数存至控制块, 部分实现通过虚函数实现类型擦除. 除强引用计数外, 通常控制块会记录弱引用计数即`std::weak_ptr`的数量, 弱指针都释放后再析构控制块, 因为弱指针的功能都通过访问控制块实现.
 
 ## ABI
 
