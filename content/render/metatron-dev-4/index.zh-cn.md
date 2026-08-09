@@ -190,20 +190,56 @@ $\mathbf{u}$均匀且$\mathbf{p}_e$独立地以NEE分布$p_1$生成, 因此$p(X)
 
 注意到由于重连接$\mathbf{y}$和$\mathbf{x}$拥有相同的顶点数, 且除生成$y_i \to y_{i+1} \to y_{i+2}$使用的随机数外其余随机数相同, 若未使用VNDF等视线相关抽样则只需考虑$y_i \to y_{i+1}$.
 
-由于重要性抽样中$U$为目标分布CDF, 微分可得PDF. 若重连接顶点复制波瓣选择随机数即$\tilde{u}^y_i = \tilde{u}^x_i$, 只变化$\tilde{u}^x_i$而$\omega^x_i$固定时命中点$\mathbf{p}^x_{i+1}$不变, 即$\frac{\partial \omega^y_i}{\partial \tilde{u}^x_i}=0$, 同理$\frac{\partial \omega^x_i}{\partial \tilde{u}^y_i}=0$, 而$\frac{\partial \tilde{u}^y_i}{\partial \tilde{u}^x_i}=1$, 因此只需计算立体角微分$\left|\frac{\partial \omega^y_i}{\partial \omega^x_i}\right|$. 令$\theta$为立体角与法线的夹角, 对于同序顶点Jacobian如下:
+重要性抽样中$U$为目标分布CDF, 微分得PDF. 重连接方向$\omega^y_i$由几何确定, 波瓣选择随机数$\tilde{u}^y_i$由$\tilde{u}^x_i$映射至可选中$\omega^y_i$的区间. 变化$\tilde{u}^x_i$而$\omega^x_i$固定, 命中点$\mathbf{p}^x_{i+1}$不变, 可得$\frac{\partial \omega^y_i}{\partial \tilde{u}^x_i}=0$, 同理$\frac{\partial \omega^x_i}{\partial \tilde{u}^y_i}=0$. 根据波瓣选择概率可得$\frac{\partial \tilde{u}^y_i}{\partial \tilde{u}^x_i}=\frac{P_{y_i}(l^y)}{P_{x_i}(l^x)}$, 链式法则给出的Jacobian依赖$l^y$的选取:
 
 $$
 \begin{equation}
 \begin{aligned}
 \left|\frac{\partial \mathbf{u}^y_i}{\partial \mathbf{u}^x_i}\right|
 &=\left|\frac{\partial \mathbf{u}^y_i}{\partial (\omega^y_i, \tilde{u}^y_i)}\right|\left|\frac{\partial (\omega^y_i, \tilde{u}^y_i)}{\partial (\omega^x_i, \tilde{u}^x_i)}\right|\left|\frac{\partial (\omega^x_i, \tilde{u}^x_i)}{\partial \mathbf{u}^x_i}\right|\\
-&=\frac{p_{y_i}(\omega^y_i, \tilde{u}^y_i)}{p_{x_i}(\omega^x_i, \tilde{u}^x_i)}\left|\frac{\partial\omega^y_i}{\partial\omega^x_i}\right|\\
-&=\frac{p_{y_i}(\omega^y_i, \tilde{u}^y_i)}{p_{x_i}(\omega^x_i, \tilde{u}^x_i)}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
+&=\frac{P_{y_i}(l^y)p_{y_i}(\omega^y_i|l^y)}{P_{x_i}(l^x)p_{x_i}(\omega^x_i|l^x)}\left|\frac{\partial\omega^y_i}{\partial\omega^x_i}\right|
 \end{aligned}
 \end{equation}
 $$
 
-对于非同序顶点, 我们无法得到最后立体角微分的解析形式. 但由于$\omega^x_{i+1}$只依赖$\omega^x_{i}$, 可得$\frac{\partial \omega^y_i}{\partial \omega^x_{i+1}}=0$, Jacobian为下三角行列式. 由于$\omega^y_{i+1}=\omega^x_{i+1}$, 形式如下:
+黑盒材质只有合并波瓣的边缘分布$p(\omega)=\sum_l P(l)p(\omega|l)$, 需要不依赖波瓣的位移映射. 记$\mathbf{u}=(\bar{\mathbf{u}}, \tilde{u})$, $\bar{\mathbf{u}}$为方向维度, $\tilde{u}$为波瓣选择维度. 波瓣选择按概率将$[0, 1)$划分为连续区间, 第$l$段为$I_l=[\sum_{j<l}P(j), \sum_{j \leq l}P(j))$, 记$t=\frac{\tilde{u}-\sum_{j<l}P(j)}{P(l)}$为$\tilde{u}$在段内的相对位置. 将生成$\omega$的各波瓣原像按序拼接并归一化得坐标$s$:
+
+$$
+\begin{equation}
+s = \frac{\sum_{j<l} P(j)p(\omega|j) + t P(l) p(\omega|l)}{p(\omega)}
+\end{equation}
+$$
+
+$\omega$与$\tilde{u}$无关, 因此$(\bar{\mathbf{u}}, \tilde{u}) \to (\omega, s)$的Jacobian矩阵为块下三角, $\frac{\partial s}{\partial \bar{\mathbf{u}}}$不参与行列式:
+
+$$
+\begin{equation}
+\begin{aligned}
+\left|\frac{\partial(\omega, s)}{\partial(\bar{\mathbf{u}}, \tilde{u})}\right|
+&=\begin{vmatrix}
+\frac{\partial \omega}{\partial \bar{\mathbf{u}}} & 0\\
+\frac{\partial s}{\partial \bar{\mathbf{u}}} & \frac{\partial s}{\partial \tilde{u}}
+\end{vmatrix}
+=\left|\frac{\partial \omega}{\partial \bar{\mathbf{u}}}\right|\frac{\partial s}{\partial \tilde{u}}\\
+&=\frac{1}{p(\omega|l)}\frac{p(\omega|l)}{p(\omega)}=\frac{1}{p(\omega)}
+\end{aligned}
+\end{equation}
+$$
+
+由此可得$\mathrm{d}\mathbf{u}=p(\omega)\mathrm{d}\omega\mathrm{d}s$, 位移映射定义为即$(\omega^x_i, s) \to (\omega^y_i, s)$, 仍为双射且与材质的波瓣定义无关. $\mathrm{d}s$约去, $\theta$为立体角与法线的夹角, 对于同序顶点Jacobian如下:
+
+$$
+\begin{equation}
+\begin{aligned}
+\left|\frac{\partial \mathbf{u}^y_i}{\partial \mathbf{u}^x_i}\right|
+&=\frac{p_{y_i}(\omega^y_i)\mathrm{d}\omega^y_i\mathrm{d}s}{p_{x_i}(\omega^x_i)\mathrm{d}\omega^x_i\mathrm{d}s}
+=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\left|\frac{\partial\omega^y_i}{\partial\omega^x_i}\right|\\
+&=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
+\end{aligned}
+\end{equation}
+$$
+
+非同序顶点无法得到最后立体角微分的解析形式. 但由于$\omega^x_{i+1}$只依赖$\omega^x_{i}$, 可得$\frac{\partial \omega^y_i}{\partial \omega^x_{i+1}}=0$, Jacobian为下三角行列式. 由于$\omega^y_{i+1}=\omega^x_{i+1}$, 形式如下:
 
 $$
 \begin{equation}
@@ -216,7 +252,7 @@ J_{\mathbf{x}\to\mathbf{y}}
 \frac{\partial \mathbf{u}^y_{i+1}}{\partial \mathbf{u}^x_{i+1}}
 \end{vmatrix}
 = \frac{\partial \mathbf{u}^y_i}{\partial \mathbf{u}^x_i}\frac{\partial \mathbf{u}^y_{i+1}}{\partial \mathbf{u}^x_{i+1}}\\
-&=\frac{p_{y_i}(\omega^y_i, \tilde{u}^y_i)}{p_{x_i}(\omega^x_i, \tilde{u}^x_i)}\frac{p_{y_{i+1}}(\omega^y_{i+1}, \tilde{u}^y_{i+1})}{p_{x_{i+1}}(\omega^x_{i+1}, \tilde{u}^x_{i+1})}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
+&=\frac{p_{y_i}(\omega^y_i)}{p_{x_i}(\omega^x_i)}\frac{p_{y_{i+1}}(\omega^y_{i+1})}{p_{x_{i+1}}(\omega^x_{i+1})}\left|\frac{\cos\theta^y}{\cos\theta^x}\right|\frac{\|\mathbf{p}^x_{i+1}-\mathbf{p}^x_{i}\|^2}{\|\mathbf{p}^x_{i+1}-\mathbf{p}^y_{i}\|^2}
 \end{aligned}
 \end{equation}
 $$
@@ -233,3 +269,90 @@ m_c(Y) &= \frac{1}{N+1}\left(1 + \sum_{i=1}^N \frac{\frac{M_c}{N}\hat{p}_c(Y)}{M
 $$
 
 目标分布为积分结果对像素的贡献, 初始权重为NEE/BSDF MIS无偏权重, 链式GRIS可实现无偏复用. 为节省内存, 采样时贪心的确定首对满足要求的$x_i,\ x_{i+1}$, 只存储随机数种子.
+统计邻域内共享随机数种子的蓄水池数量来调整$M$, 可抑制时序复用带来的相关性. 此时置信度依赖其它样本, 即$c_n(Y_n) \to c_n(Y_n, Y'_n, \dots)$, 无法提出至对$X_n$的积分, 因此有偏.
+
+重连接要求路径相似, 可由$J\approx1$推出. 记单侧几何项$G(\mathbf{p}_a \to \mathbf{p}_b)=\frac{|\cos\theta_b|}{\|\mathbf{p}_b-\mathbf{p}_a\|^2}$, 其中$\theta_b$为$\mathbf{p}_a \to \mathbf{p}_b$与$\mathbf{p}_b$处法线的夹角, 方向PDF乘单侧几何项即面积密度, Jacobian可改写为:
+
+$$
+\begin{equation}
+J_{\mathbf{x}\to\mathbf{y}}=\frac{p_{y_i}(\omega^y_i)G(\mathbf{p}^y_i \to \mathbf{p}^x_{i+1})}{p_{x_i}(\omega^x_i)G(\mathbf{p}^x_i \to \mathbf{p}^x_{i+1})}\frac{p_{y_{i+1}}(\omega^y_{i+1})}{p_{x_{i+1}}(\omega^x_{i+1})}
+\end{equation}
+$$
+
+两个因子分别为重连接顶点$\mathbf{p}^x_{i+1}$的面积密度变化, 以及$\mathbf{p}^x_{i+1}$处出射方向改变导致的BSDF采样密度变化. 令二者相对误差均小于$\epsilon$, 则$(1-\epsilon)^2 < J_{\mathbf{x}\to\mathbf{y}} < (1+\epsilon)^2$:
+
+$$
+\begin{equation}
+\begin{aligned}
+&\left|\frac{p_{y_i}(\omega^y_i)G(\mathbf{p}^y_i \to \mathbf{p}^x_{i+1}) - p_{x_i}(\omega^x_i)G(\mathbf{p}^x_i \to \mathbf{p}^x_{i+1})}{p_{x_i}(\omega^x_i)G(\mathbf{p}^x_i \to \mathbf{p}^x_{i+1})}\right| < \epsilon\\
+&\left|\frac{p_{y_{i+1}}(\omega^y_{i+1}) - p_{x_{i+1}}(\omega^x_{i+1})}{p_{x_{i+1}}(\omega^x_{i+1})}\right| < \epsilon
+\end{aligned}
+\end{equation}
+$$
+
+面积密度$p_A$小通常代表光线抽样范围大, 采中当前样本概率小, 因此可用$\frac{1}{p_A}$表示光线足迹. 令$\theta_0$为主光线与$\mathbf{p}^x_1$处法线的夹角, $R_\mathbf{x}^2$为均匀球面采样在该处的足迹, $R_\mathbf{x}$可近似为$\sqrt{\pi r^2}$即足迹半径. 有限场景中相邻像素的路径不会任意发散, 假设两条路径主顶点间距不超过$R_\mathbf{x}$ 的常数倍, 且次级顶点间距随主顶点间距线性增长.
+
+$$
+\begin{equation}
+\begin{aligned}
+&R_\mathbf{x} = \sqrt{\frac{4\pi\|\mathbf{p}^x_1-\mathbf{p}^x_0\|^2}{|\cos\theta_0|}}\\
+&\|\mathbf{p}^x_1-\mathbf{p}^y_1\| < C_1R_\mathbf{x}\\
+&\|\mathbf{p}^x_j-\mathbf{p}^y_j\| < C_2\|\mathbf{p}^x_1-\mathbf{p}^y_1\|=C_1C_2R_\mathbf{x}
+\end{aligned}
+\end{equation}
+$$
+
+追踪阶段无法做映射与重放, 无法比较$\mathbf{x}$与$\mathbf{y}$的密度函数, 经验假设随机重放保持面积密度, 令$T_r$为从$\mathbf{p}^y_i$不做重连接而是继续重放得到的顶点, 重连接条件变换为:
+
+$$
+\begin{equation}
+\begin{aligned}
+&p^\mathbf{x}(\mathbf{p}^x_{i+1}) = p_{x_i}(\omega^x_i)G(\mathbf{p}^x_i \to \mathbf{p}^x_{i+1}) \approx p^\mathbf{y}(T_r(\mathbf{p}^x_{i+1}))\\
+&p^\mathbf{y}(\mathbf{p}^x_{i+1}) = p_{y_i}(\omega^y_i)G(\mathbf{p}^y_i \to \mathbf{p}^x_{i+1})\\
+&\left|\frac{p^\mathbf{y}(\mathbf{p}^x_{i+1}) - p^\mathbf{y}(T_r(\mathbf{p}^x_{i+1}))}{p^\mathbf{y}(T_r(\mathbf{p}^x_{i+1}))}\right| < \epsilon
+\end{aligned}
+\end{equation}
+$$
+
+$p_A$为下一次弹射命中点的面积密度, $\mathbf{p}$, $\mathbf{q}$, $\mathbf{r}$均为该命中点的可能位置. 假设$p_A$在自身足迹尺度内近似常数, 即存在$c_2$, 使得以$\mathbf{p}$的足迹为半径的邻域内任取$\mathbf{q}$,$\mathbf{r}$, 密度相对差不超过$\epsilon$.
+
+$$
+\begin{equation}
+\max(\|\mathbf{q}-\mathbf{p}\|, \|\mathbf{r}-\mathbf{p}\|) < \sqrt{\frac{c_2}{p_A(\mathbf{p})}}
+\implies \left|\frac{p_A(\mathbf{r})-p_A(\mathbf{q})}{p_A(\mathbf{q})}\right| < \epsilon
+\end{equation}
+$$
+
+由几何假设得位移$\|T_r(\mathbf{p}^x_{i+1}) - \mathbf{p}^x_{i+1}\| \leq c_1R_\mathbf{y}$, 其中$c_1=C_1C_2$. 代入前式, 并由位移映射可逆性要求$\mathbf{x}$满足相同重连接条件, 得光线足迹阈值:
+
+$$
+\begin{equation}
+\begin{aligned}
+c_1R_\mathbf{y} < \sqrt{\frac{c_2}{p^\mathbf{y}(\mathbf{p}^x_{i+1})}}
+&\implies \frac{1}{p^\mathbf{y}(\mathbf{p}^x_{i+1})} > \frac{c_1^2}{c_2}R_\mathbf{y}^2\\
+&\implies \frac{1}{p_{x_i}(\omega^x_i)G(\mathbf{p}^x_i \to \mathbf{p}^x_{i+1})} > \frac{c_1^2}{c_2}R_\mathbf{x}^2
+\end{aligned}
+\end{equation}
+$$
+
+同时需要保证重连接点出射时不会因为低粗糙度材质导致BSDF PDF. 由光滑材质PDF的近似互易性可使用反向光线足迹:
+
+$$
+\begin{equation}
+\begin{aligned}
+p_{x_{i+1}}(\omega^x_{i+1}) &= p(\omega^x_{i+1}|\mathbf{p}^x_{i+1}, -\omega^x_i) \approx p(-\omega^x_i|\mathbf{p}^x_{i+1}, \omega^x_{i+1})\\
+p(\mathbf{p}^x_i|\mathbf{p}^x_{i+1}, \omega^x_{i+1}) &= p(-\omega^x_i|\mathbf{p}^x_{i+1}, \omega^x_{i+1})G(\mathbf{p}^x_{i+1} \to \mathbf{p}^x_i)
+\end{aligned}
+\end{equation}
+$$
+
+此时位移量为$\|\mathbf{p}^y_i-\mathbf{p}^x_i\|$, 近似$G(\mathbf{p}^x_{i+1} \to \mathbf{p}^x_i) \approx G(\mathbf{p}^x_{i+1} \to \mathbf{p}^y_i)$, 得形式对称的逆光线足迹阈值. 两式合并, 常数并入用户参数$c$:
+
+$$
+\begin{equation}
+\max\left(
+p_{x_i}(\omega^x_i)G(\mathbf{p}^x_i \to \mathbf{p}^x_{i+1}),\
+p_{x_{i+1}}(\omega^x_{i+1})G(\mathbf{p}^x_{i+1} \to \mathbf{p}^x_i)
+\right)^{-1} > cR_\mathbf{x}^2
+\end{equation}
+$$
