@@ -376,7 +376,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "5405"
+    "wordCount": "6549"
   }]
   </script>
 
@@ -1072,7 +1072,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>5405 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">11 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>6549 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">14 分钟</span>
     
 
     
@@ -1234,6 +1234,7 @@
     <li><a href="#reflection">Reflection</a></li>
     <li><a href="#pointer">Pointer</a></li>
     <li><a href="#abi">ABI</a></li>
+    <li><a href="#compile">Compile</a></li>
   </ul>
 </nav>
   </div>
@@ -1259,6 +1260,7 @@
     <li><a href="#reflection">Reflection</a></li>
     <li><a href="#pointer">Pointer</a></li>
     <li><a href="#abi">ABI</a></li>
+    <li><a href="#compile">Compile</a></li>
   </ul>
 </nav>
   </div>
@@ -1615,7 +1617,49 @@ struct B { std::shared_ptr&lt;A&gt; a; };
 // 再析构a, 引用计数降为1, 同样不触发析构, 此时a和b都泄露
 </code></pre>
 <p>智能指针都默认通过<code>delete</code>来析构对象, 若内存分配由用户执行, 只在构造完成后传入指针, 此时无法<code>delete</code>. <code>std::unique_ptr</code>可在模板参数指定析构函数类型, 若为无捕获lambda或空类型functor, 则通过<code>[[no_unique_address]]</code>避免增加存储开销.</p>
-<p><code>std::shared_ptr</code>通过控制块记录状态, <code>make_shared</code>直接将对象而非指针存至控制块, 裸指针和自定义析构将析构函数存至控制块, 部分实现通过虚函数实现类型擦除. 除强引用计数外, 通常控制块会记录弱引用计数即<code>std::weak_ptr</code>的数量, 弱指针都释放后再析构控制块, 因为弱指针的功能都通过访问控制块实现.</p>
+<p><code>std::shared_ptr</code>用控制块记录状态, <code>make_shared</code>将对象和控制块分配至同一块内存, 若调用共享指针的构造函数, 则只存裸指针. 通常控制块是类型擦除的, 可以让相同类型的不同共享指针具有不同的分配和析构方式, 部分实现为虚函数. 除强引用计数外, 通常控制块会记录弱引用计数即<code>std::weak_ptr</code>的数量, 弱指针都释放后再析构控制块, 因为弱指针的功能都通过访问控制块实现.</p>
+<pre><code class="language-cpp">template &lt;class T&gt;
+class shared_ptr {
+    T* px; // 对象指针
+    sp_counted_base* pn; // 控制块基类指针
+public:
+    template &lt;class Y, class D&gt;
+    shared_ptr(Y* p, D d): px(p), pn(new sp_counted_deleter&lt;Y, D&gt;(p, std::move(d))) {}
+};
+
+struct sp_counted_base {
+    std::atomic&lt;long&gt; use_count{1};
+    std::atomic&lt;long&gt; weak_count{1}; // 所有shared_ptr合起来只算1个weak
+
+    virtual void  dispose() noexcept = 0; // use_count → 0
+    virtual void  destroy() noexcept { delete this; } // weak_count → 0
+    virtual void* get_deleter(const std::type_info&amp;) noexcept { return nullptr; }
+    virtual ~sp_counted_base() = default;
+
+    void release() noexcept {
+        if (use_count.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            dispose();
+            weak_release();
+        }
+    }
+
+    // ...
+};
+
+template &lt;class Y, class D&gt;
+struct sp_counted_deleter final : sp_counted_base {
+    Y* ptr;
+    D del;
+
+    sp_counted_deleter(Y* p, D d) : ptr(p), del(std::move(d)) {}
+
+    void dispose() noexcept override { del(ptr); }
+
+    void* get_deleter(const std::type_info&amp; ti) noexcept override {
+        return ti == typeid(D) ? std::addressof(del) : nullptr;
+    }
+};
+</code></pre>
 
 <h2 class="relative group">ABI
     <div id="abi" class="anchor"></div>
@@ -1628,12 +1672,94 @@ struct B { std::shared_ptr&lt;A&gt; a; };
 </h2>
 <p>应用二进制接口规定二进制层面的交互, 系统层面和C/C++语言层面都存在ABI, 例如:</p>
 <ul>
-<li>ELF会做全局符号去重, LTO开启后跨动态库的符号为默认可见</li>
-<li>Mach-O只将符号绑定到动态库内部, LTO开启后跨动态库符号不共享</li>
 <li>System V AMD64和AAPCS64中小于16字节的对象使用寄存器传递参数</li>
 <li>Itanium名称修饰以<code>_Z</code>开头, Windows以<code>?</code>开头</li>
 <li>Itanium将虚基类偏移按序存储在负偏移, Windows在8字节偏移添加虚偏移指针</li>
 </ul>
+
+<h2 class="relative group">Compile
+    <div id="compile" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#compile" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p>Clang编译流程:</p>
+<ul>
+<li>预处理: 展开<code>#include</code>, 执行宏替换, 删除注释, 插入<code># ${line}</code>用于调试和报错</li>
+<li>编译: 词法分析, 语法分析, 语义分析, IR生成, 汇编生成, 符号表, 重定位表</li>
+<li>链接: 符号解析, 重定位回填, 地址分配, 运行时符号表</li>
+</ul>
+<p><code>main.cpp</code>:</p>
+<pre><code class="language-cpp">using i32 = int;
+
+auto f() noexcept -&gt; void;
+
+struct F final {
+    auto operator()() noexcept -&gt; void {
+        f();
+    }
+};
+
+auto main() noexcept -&gt; i32 {
+    F{}();
+    return 0;
+}
+</code></pre>
+<p><code>f.cpp</code></p>
+<pre><code class="language-cpp">auto f() noexcept -&gt; void {}
+</code></pre>
+<p>编译命令:</p>
+<pre><code class="language-nu">with-env { NIX_HARDENING_ENABLE: &quot;&quot; } {
+    let flags = [-std=c++26 -O0 -fno-asynchronous-unwind-tables]
+    clang++ ...$flags -fPIC -shared f.cpp -o libf.so
+    clang++ ...$flags -fno-pie -c main.cpp -o main.o
+    clang++ -no-pie main.o ./libf.so -Wl,-rpath,'$ORIGIN' -o main
+}
+</code></pre>
+<p><code>readelf -sW main.o</code>:</p>
+<pre><code class="language-txt">Symbol table '.symtab' contains 5 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS main.cpp
+     2: 0000000000000000    32 FUNC    GLOBAL DEFAULT    2 main
+     3: 0000000000000000    23 FUNC    WEAK   DEFAULT    5 _ZN1FclEv
+     4: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND _Z1fv
+</code></pre>
+<p><code>readelf -rW main.o</code>:</p>
+<pre><code class="language-txt">Relocation section '.rela.text' at offset 0x118 contains 1 entry:
+    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend
+0000000000000014  0000000300000004 R_X86_64_PLT32         0000000000000000 _ZN1FclEv - 4
+
+Relocation section '.rela.text._ZN1FclEv' at offset 0x130 contains 1 entry:
+    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend
+000000000000000d  0000000400000004 R_X86_64_PLT32         0000000000000000 _Z1fv - 4
+</code></pre>
+<p><code>F::operator()</code>位于类中, 默认为<code>inline</code>以允许被多个TU包含, 因此为<code>WEAK</code>且独占节 <code>.text._ZN1FclEv</code>, 链接后只留一份. 跨节调用偏移需等待链接器分配地址, 需要加入重定位表; 同节函数生成目标文件时即可算出偏移, 不产生重定位项. <code>f</code>在<code>main.cpp</code>中只含声明, 因此为<code>GLOBAL</code>并加入符号表.</p>
+<p><code>readelf --dyn-syms -W main</code>:</p>
+<pre><code class="language-txt">Symbol table '.dynsym' contains 4 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND _Z1fv
+</code></pre>
+<p><code>readelf -rW main</code>:</p>
+<pre><code class="language-txt">Relocation section '.rela.plt' at offset 0x580 contains 1 entry:
+    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend
+0000000000404000  0000000200000007 R_X86_64_JUMP_SLOT     0000000000000000 _Z1fv + 0
+</code></pre>
+<p><code>LD_DEBUG=bindings ./main</code>:</p>
+<pre><code class="language-txt">binding file ./main [0] to /home/tsssni/metatron/test/libf.so [0]: normal symbol `_Z1fv'
+</code></pre>
+<p>链接后<code>f</code>的代码位于<code>libf.so</code>, <code>main</code>只保留符号与动态重定位项. 动态库加载基址在运行时确定, 由动态链接器按名字在<code>libf.so</code>的<code>.dynsym</code>中查找<code>_Z1fv</code>, 加上加载基址得到实际地址后写入<code>main</code>, 调用点经此间接跳转. 若多个动态库有重名符号, 使用先加载到的.</p>
+<p>跨动态库调用需导出符号, 否则链接失败, UNIX默认全导出, Windows默认全隐藏. 头文件中的模板与<code>inline</code>的跨动态库去重依赖各平台的弱符号机制:</p>
+<ul>
+<li>ELF按符号名全局解析, 弱符号取最先加载者, LTO不改变可见性, 跨动态库仍为同一份</li>
+<li>Mach-O在LTO时隐藏模块内自用的弱符号, 跨动态库退化为各自一份</li>
+<li>PE在不标注导出时为各模块自持一份</li>
+</ul>
+<p>静态库为目标文件归档, 链接器按命令行顺序扫描, 只抽取能解决当前未定义符号的成员且不回溯, 未被引用的成员不进产物, 多个静态库有同名符号时保留第一个遇到的.</p>
+<p><code>static</code>按作用域有三种语义: 命名空间作用域的变量与函数为内部链接, 仅TU内部可见; 函数局部变量提升为静态存储期, 符号全局可用, 且构造时保证多线程安全; 类作用域变量为类级而非对象级, 非<code>inline</code>时类内只声明, 需在某个TU给出类外定义.</p>
 
           
           
