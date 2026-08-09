@@ -376,7 +376,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "4732"
+    "wordCount": "5405"
   }]
   </script>
 
@@ -1072,7 +1072,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>4732 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">10 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>5405 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">11 分钟</span>
     
 
     
@@ -1232,6 +1232,7 @@
     <li><a href="#promise">Promise</a></li>
     <li><a href="#value-category">Value Category</a></li>
     <li><a href="#reflection">Reflection</a></li>
+    <li><a href="#pointer">Pointer</a></li>
     <li><a href="#abi">ABI</a></li>
   </ul>
 </nav>
@@ -1256,6 +1257,7 @@
     <li><a href="#promise">Promise</a></li>
     <li><a href="#value-category">Value Category</a></li>
     <li><a href="#reflection">Reflection</a></li>
+    <li><a href="#pointer">Pointer</a></li>
     <li><a href="#abi">ABI</a></li>
   </ul>
 </nav>
@@ -1377,7 +1379,7 @@ f(n, ++xs...); // f(n, ++x0, ++x1, ++x2);
 f((Args const*)&amp;xs...); // f((T0 const*)&amp;x0, (T1 const*)&amp;x1, (T2 const*)&amp;x2)
 f(g(xs...) + xs...); // f(g(x0, x1, x2) + x0, g(x0, x1, x2) + x1, g(x0, x1, x2) + x2)
 f&lt;Ts&amp;...&gt;(T{&amp;xs...}) // f&lt;T0&amp;, T1&amp;, T2&amp;&gt;(T{&amp;x0, &amp;x1, &amp;x2})
-template&lt;typename Bs&gt; struct A: public Bs... {}; // public B0, public B1, public B2
+template&lt;typename... Bs&gt; struct A: public Bs... {}; // public B0, public B1, public B2
 </code></pre>
 <p>折叠表达式来自函数式语言, 例如Haskell的<code>foldl</code>和<code>foldr</code>, 使得参数包之间可以直接通过运算符连接, 可以区分左右折叠并添加初值. 为不与参数包展开冲突, 必须添加括号. 例如:</p>
 <pre><code class="language-cpp">template&lt;int... ns&gt;
@@ -1423,7 +1425,7 @@ auto constexpr forward(std::remove_reference_t&lt;T&gt;&amp; t) noexcept -&gt; T
 template&lt;typename T&gt;
 auto constexpr forward(std::remove_reference_t&lt;T&gt;&amp;&amp; t) noexcept -&gt; T&amp;&amp; {
     static_assert(!std::is_lvalue_reference_v&lt;T&gt;);  // avoid forward&lt;int&amp;&gt;(std::move(x))
-    return static_cast&lt;T&amp;&amp;&gt;(t); //  T&amp;&amp; &amp;&amp; = T&amp;&amp;
+    return static_cast&lt;T&amp;&amp;&gt;(t); //  T &amp;&amp; = T&amp;&amp;
 }
 
 template&lt;typename... Args&gt;
@@ -1476,8 +1478,10 @@ auto fib = [](this auto self, int n) -&gt; int {
     </span>
     
 </h2>
-<p><code>std::atomic</code>使得对同一原子变量的操作在多线程下串行化, <code>load</code>/<code>store</code>保证不存在并发的读取和写入. <code>wait</code>传入期望值, 原子变量等于该值时阻塞, <code>notify_one</code>/<code>notify_all</code>唤醒一个或多个等待线程. <code>compare_exchange</code>比较期望值与原子变量实际值, 相等时执行修改, 否则写回实际值. 例如上次读取原子变量的结果是期望值, 我们期望它未被其它线程修改. <code>compare_exchange</code>保证修改一定进入缓存以对后续<code>compare_exchange</code>可见.</p>
-<p>ARM等架构为LL/SC, 即<code>load-linked</code>/<code>store-conditional</code>一对指令: <code>load-linked</code>读取值并对该地址登记独占监视, <code>store-conditional</code>仅当监视未被上下文切换, 中断, 其它核心触碰同一缓存行等操作破坏才写入. 这导致<code>compare_exchange_weak</code>伪失败即值相等时也由于<code>store-conditional</code>而返回假. LL/SC架构的<code>compare_exchange_strong</code>需在内部循环重试以消除伪失败, 因此开销更高.</p>
+<p><code>std::atomic</code>使得对同一原子变量的操作在多线程下串行化, <code>load</code>/<code>store</code>保证不存在并发的读取和写入. <code>wait</code>传入期望值, 比较是否与原子变量逐位相等, 通常实现时先自旋等待少量周期, 仍未唤醒再阻塞. <code>notify_one</code>/<code>notify_all</code>唤醒至少一个或所有等待线程, 检查值是否变化. <code>compare_exchange</code>比较期望值与原子变量实际值, 若相等则执行修改, 否则写回实际值. 例如上次读取原子变量的结果是期望值, 我们期望它未被其它线程修改. <code>compare_exchange</code>保证修改一定进入缓存以对后续<code>compare_exchange</code>可见.</p>
+<p>ARMv8等架构为LL/SC, 即<code>load-linked</code>/<code>store-conditional</code>一对指令: <code>load-linked</code>读取值并对该地址登记独占监视, <code>store-conditional</code>仅当独占监视仍然有效时才写入, 上下文切换, 中断, 其它核心触碰同一缓存行会使其失效. 这导致<code>compare_exchange_weak</code>伪失败即值相等时也返回假. LL/SC架构的<code>compare_exchange_strong</code>需在内部循环重试以消除伪失败, 因此开销更高.</p>
+<p>缓存以缓存行为单位保证一致性, 通常远大于原子变量所需的空间. 若不同原子变量位于同一缓存行, 由于<code>fetch_add</code>等读改写操作必须先独占原子变量, 让其他核心缓存失效以读取最新值再修改写回, 等价于多核串行. 即使多个线程读写不同原子变量, 也会由于同一个缓存行的失效导致性能损失.</p>
+<p><code>volatile</code>使得编译器优化和重排被阻止, 例如多次连续写入但后续只读一次, <code>volatile</code>不会优化为单次写入. 但多线程下仍然有并发读写顺序问题, 必须依赖<code>std::atomic</code>解决.</p>
 
 <h2 class="relative group">Memory Order
     <div id="memory-order" class="anchor"></div>
@@ -1488,9 +1492,9 @@ auto fib = [](this auto self, int n) -&gt; int {
     </span>
     
 </h2>
-<p>编译器重排和乱序执行导致并发内存读写顺序不被保证, 存储缓冲和失效队列导致可见性延迟, 可通过内存序<code>std::memory_order</code>解决. <code>relaxed</code>只保证原子操作本身语义正确, 不约束周围内存读写.</p>
-<p><code>release</code>保证原子操作前的内存读写不重排到之后, 保证之前的内存写入先于<code>release</code>本身进入缓存和发出失效消息. <code>acquire</code>保证原子操作之后的内存读写不重排到之前, 并处理已入队的失效消息, 当<code>acquire</code>读到<code>release</code>的写入, <code>release</code>前的写入已被失效队列处理, 因此已经可见.</p>
-<p><code>acq_rel</code>兼具<code>acquire</code>/<code>release</code>的特性, 而<code>seq_cst</code>在此基础上要求原子写入执行后立即排空存储缓冲并发送失效消息, 后续<code>acquire</code>触发的失效队列排空令写入可见, 因此<code>acquire</code>读取执行顺序在<code>seq_cst</code>写入之后时能立即获取写入结果.</p>
+<p>编译器重排和乱序执行导致并发内存读写顺序未定义, 可通过内存序<code>std::memory_order</code>解决. <code>relaxed</code>只保证原子操作本身语义正确, 不约束周围内存读写.</p>
+<p><code>release</code>保证原子操作前的内存读写不重排到之后, 保证之前的写入会先于<code>release</code>本身进入缓存, <code>acquire</code>保证原子操作后的内存读写不重排到之前. 当<code>acquire</code>读到<code>release</code>本身, 若<code>acquire</code>后再读取<code>release</code>前的写入, 此时可以保证缓存可见.</p>
+<p><code>acq_rel</code>用于读改写操作, 读取为<code>acquire</code>, 写入为<code>release</code>. <code>seq_cst</code>在x86上为写后立即排空存储缓冲, 在ARM上为读前等待当前线程所有写入进入缓存, 使得所有<code>seq_cst</code>指令可解释为串行顺序.</p>
 
 <h2 class="relative group">Promise
     <div id="promise" class="anchor"></div>
@@ -1585,6 +1589,33 @@ A{1, pi}.x; A{}.y;
 <pre><code class="language-cpp">auto constexpr iinfo = ^^int;
 using i32 = [:iinfo:];
 </code></pre>
+
+<h2 class="relative group">Pointer
+    <div id="pointer" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#pointer" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p><code>std::shared_ptr</code>可能循环引用, 例子如下, 因此用<code>std::weak_ptr</code>避免增加引用计数, 同时可用于确认对象是否存活.</p>
+<pre><code class="language-cpp">struct B;
+struct A { std::shared_ptr&lt;B&gt; b; };
+struct B { std::shared_ptr&lt;A&gt; a; };
+
+{
+    auto a = std::make_shared&lt;A&gt;();  // a 计数 1
+    auto b = std::make_shared&lt;B&gt;(); // b 计数 1
+    a-&gt;b = b; // b 计数 2
+    b-&gt;a = a; // a 计数 2
+}
+
+// 先析构b, 引用计数降为1, 由于未触发析构, a计数仍为2
+// 再析构a, 引用计数降为1, 同样不触发析构, 此时a和b都泄露
+</code></pre>
+<p>智能指针都默认通过<code>delete</code>来析构对象, 若内存分配由用户执行, 只在构造完成后传入指针, 此时无法<code>delete</code>. <code>std::unique_ptr</code>可在模板参数指定析构函数类型, 若为无捕获lambda或空类型functor, 则通过<code>[[no_unique_address]]</code>避免增加存储开销.</p>
+<p><code>std::shared_ptr</code>通过控制块记录状态, <code>make_shared</code>直接将对象而非指针存至控制块, 裸指针和自定义析构将析构函数存至控制块, 部分实现通过虚函数实现类型擦除. 除强引用计数外, 通常控制块会记录弱引用计数即<code>std::weak_ptr</code>的数量, 弱指针都释放后再析构控制块, 因为弱指针的功能都通过访问控制块实现.</p>
 
 <h2 class="relative group">ABI
     <div id="abi" class="anchor"></div>
