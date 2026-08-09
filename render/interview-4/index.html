@@ -376,7 +376,7 @@
     "keywords": ["rendering","graphics","global illumination"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "720"
+    "wordCount": "674"
   }]
   </script>
 
@@ -1072,7 +1072,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-07-05T00:00:00&#43;00:00">2026 July 5</time><span class="px-2 text-primary-500">&middot;</span><span>720 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">2 分钟</span>
+      <time datetime="2026-07-05T00:00:00&#43;00:00">2026 July 5</time><span class="px-2 text-primary-500">&middot;</span><span>674 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">2 分钟</span>
     
 
     
@@ -1284,7 +1284,7 @@
 <p><strong>Q: 你针对ReSTIR GI的优化会引入pattern吗?</strong></p>
 <p>A: 理论上会提高样本的相关性, 实验发现影响较小, 可能是时域复用和降噪抹平了pattern. 本质是用样本间的独立性换取缓存局部性.</p>
 <p><strong>Q: ReSTIR时间和空间复用哪个对最终结果影响更大?</strong></p>
-<p>A: 时间复用, 有效样本数主要由时域累积贡献, 时域样本可以影响未来20-30帧的结果, 且引入的偏差更小; 空间复用单帧只合并少数邻居, 且空间复用结果不会再被下一帧使用. 关闭时间复用整体噪声大幅上升, 关闭空间复用主要影响遮挡区域填充速度.</p>
+<p>A: 时间复用, 时域样本是20-30帧的累积结果, 静态时持续提供高质量样本; 但动态场景下时域样本质量降低且可能有遮挡, 需要空间复用来提升质量.</p>
 <p><strong>Q: 能否将trace结果统一用于diffuse和specular?</strong></p>
 <p>A: 可以部分统一. specular复用时可以重新计算目标函数(BRDF * Li, 也有方案使用Blinn-Phong加速). 但抽样成本更高, 金属度居中的材质可能由于采样不同lobe引入divergency; 且实践中发现, 漫反射半分辨率trace, 镜面反射全分辨率trace但积分值较小时discard, 比单次全屏发射更高效. 可以考虑对rough specular复用漫反射光线.</p>
 <p><strong>Q: PRTGI为什么不使用光追烘焙?</strong></p>
