@@ -310,14 +310,160 @@ struct B { std::shared_ptr<A> a; };
 
 智能指针都默认通过`delete`来析构对象, 若内存分配由用户执行, 只在构造完成后传入指针, 此时无法`delete`. `std::unique_ptr`可在模板参数指定析构函数类型, 若为无捕获lambda或空类型functor, 则通过`[[no_unique_address]]`避免增加存储开销.
 
-`std::shared_ptr`通过控制块记录状态, `make_shared`直接将对象而非指针存至控制块, 裸指针和自定义析构将析构函数存至控制块, 部分实现通过虚函数实现类型擦除. 除强引用计数外, 通常控制块会记录弱引用计数即`std::weak_ptr`的数量, 弱指针都释放后再析构控制块, 因为弱指针的功能都通过访问控制块实现.
+`std::shared_ptr`用控制块记录状态, `make_shared`将对象和控制块分配至同一块内存, 若调用共享指针的构造函数, 则只存裸指针. 通常控制块是类型擦除的, 可以让相同类型的不同共享指针具有不同的分配和析构方式, 部分实现为虚函数. 除强引用计数外, 通常控制块会记录弱引用计数即`std::weak_ptr`的数量, 弱指针都释放后再析构控制块, 因为弱指针的功能都通过访问控制块实现.
 
+
+```cpp
+template <class T>
+class shared_ptr {
+    T* px; // 对象指针
+    sp_counted_base* pn; // 控制块基类指针
+public:
+    template <class Y, class D>
+    shared_ptr(Y* p, D d): px(p), pn(new sp_counted_deleter<Y, D>(p, std::move(d))) {}
+};
+
+struct sp_counted_base {
+    std::atomic<long> use_count{1};
+    std::atomic<long> weak_count{1}; // 所有shared_ptr合起来只算1个weak
+
+    virtual void  dispose() noexcept = 0; // use_count → 0
+    virtual void  destroy() noexcept { delete this; } // weak_count → 0
+    virtual void* get_deleter(const std::type_info&) noexcept { return nullptr; }
+    virtual ~sp_counted_base() = default;
+
+    void release() noexcept {
+        if (use_count.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            dispose();
+            weak_release();
+        }
+    }
+
+    // ...
+};
+
+template <class Y, class D>
+struct sp_counted_deleter final : sp_counted_base {
+    Y* ptr;
+    D del;
+
+    sp_counted_deleter(Y* p, D d) : ptr(p), del(std::move(d)) {}
+
+    void dispose() noexcept override { del(ptr); }
+
+    void* get_deleter(const std::type_info& ti) noexcept override {
+        return ti == typeid(D) ? std::addressof(del) : nullptr;
+    }
+};
+```
 ## ABI
 
 应用二进制接口规定二进制层面的交互, 系统层面和C/C++语言层面都存在ABI, 例如:
 
-- ELF会做全局符号去重, LTO开启后跨动态库的符号为默认可见
-- Mach-O只将符号绑定到动态库内部, LTO开启后跨动态库符号不共享
 - System V AMD64和AAPCS64中小于16字节的对象使用寄存器传递参数
 - Itanium名称修饰以`_Z`开头, Windows以`?`开头
 - Itanium将虚基类偏移按序存储在负偏移, Windows在8字节偏移添加虚偏移指针
+
+## Compile
+
+Clang编译流程:
+
+- 预处理: 展开`#include`, 执行宏替换, 删除注释, 插入`# ${line}`用于调试和报错
+- 编译: 词法分析, 语法分析, 语义分析, IR生成, 汇编生成, 符号表, 重定位表
+- 链接: 符号解析, 重定位回填, 地址分配, 运行时符号表
+
+`main.cpp`:
+
+```cpp
+using i32 = int;
+
+auto f() noexcept -> void;
+
+struct F final {
+    auto operator()() noexcept -> void {
+        f();
+    }
+};
+
+auto main() noexcept -> i32 {
+    F{}();
+    return 0;
+}
+```
+
+`f.cpp`
+
+```cpp
+auto f() noexcept -> void {}
+```
+
+编译命令:
+
+```nu
+with-env { NIX_HARDENING_ENABLE: "" } {
+    let flags = [-std=c++26 -O0 -fno-asynchronous-unwind-tables]
+    clang++ ...$flags -fPIC -shared f.cpp -o libf.so
+    clang++ ...$flags -fno-pie -c main.cpp -o main.o
+    clang++ -no-pie main.o ./libf.so -Wl,-rpath,'$ORIGIN' -o main
+}
+```
+
+`readelf -sW main.o`:
+
+```txt
+Symbol table '.symtab' contains 5 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS main.cpp
+     2: 0000000000000000    32 FUNC    GLOBAL DEFAULT    2 main
+     3: 0000000000000000    23 FUNC    WEAK   DEFAULT    5 _ZN1FclEv
+     4: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND _Z1fv
+```
+
+`readelf -rW main.o`:
+
+```txt
+Relocation section '.rela.text' at offset 0x118 contains 1 entry:
+    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend
+0000000000000014  0000000300000004 R_X86_64_PLT32         0000000000000000 _ZN1FclEv - 4
+
+Relocation section '.rela.text._ZN1FclEv' at offset 0x130 contains 1 entry:
+    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend
+000000000000000d  0000000400000004 R_X86_64_PLT32         0000000000000000 _Z1fv - 4
+```
+
+`F::operator()`位于类中, 默认为`inline`以允许被多个TU包含, 因此为`WEAK`且独占节 `.text._ZN1FclEv`, 链接后只留一份. 跨节调用偏移需等待链接器分配地址, 需要加入重定位表; 同节函数生成目标文件时即可算出偏移, 不产生重定位项. `f`在`main.cpp`中只含声明, 因此为`GLOBAL`并加入符号表.
+
+`readelf --dyn-syms -W main`:
+
+```txt
+Symbol table '.dynsym' contains 4 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND _Z1fv
+```
+
+`readelf -rW main`:
+
+```txt
+Relocation section '.rela.plt' at offset 0x580 contains 1 entry:
+    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend
+0000000000404000  0000000200000007 R_X86_64_JUMP_SLOT     0000000000000000 _Z1fv + 0
+```
+
+`LD_DEBUG=bindings ./main`:
+
+```txt
+binding file ./main [0] to /home/tsssni/metatron/test/libf.so [0]: normal symbol `_Z1fv'
+```
+
+链接后`f`的代码位于`libf.so`, `main`只保留符号与动态重定位项. 动态库加载基址在运行时确定, 由动态链接器按名字在`libf.so`的`.dynsym`中查找`_Z1fv`, 加上加载基址得到实际地址后写入`main`, 调用点经此间接跳转. 若多个动态库有重名符号, 使用先加载到的.
+
+跨动态库调用需导出符号, 否则链接失败, UNIX默认全导出, Windows默认全隐藏. 头文件中的模板与`inline`的跨动态库去重依赖各平台的弱符号机制:
+
+- ELF按符号名全局解析, 弱符号取最先加载者, LTO不改变可见性, 跨动态库仍为同一份
+- Mach-O在LTO时隐藏模块内自用的弱符号, 跨动态库退化为各自一份
+- PE在不标注导出时为各模块自持一份
+
+静态库为目标文件归档, 链接器按命令行顺序扫描, 只抽取能解决当前未定义符号的成员且不回溯, 未被引用的成员不进产物, 多个静态库有同名符号时保留第一个遇到的.
+
+`static`按作用域有三种语义: 命名空间作用域的变量与函数为内部链接, 仅TU内部可见; 函数局部变量提升为静态存储期, 符号全局可用, 且构造时保证多线程安全; 类作用域变量为类级而非对象级, 非`inline`时类内只声明, 需在某个TU给出类外定义.
