@@ -376,7 +376,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "6549"
+    "wordCount": "6574"
   }]
   </script>
 
@@ -1072,7 +1072,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>6549 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">14 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>6574 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">14 分钟</span>
     
 
     
@@ -1752,7 +1752,7 @@ Relocation section '.rela.text._ZN1FclEv' at offset 0x130 contains 1 entry:
 <pre><code class="language-txt">binding file ./main [0] to /home/tsssni/metatron/test/libf.so [0]: normal symbol `_Z1fv'
 </code></pre>
 <p>链接后<code>f</code>的代码位于<code>libf.so</code>, <code>main</code>只保留符号与动态重定位项. 动态库加载基址在运行时确定, 由动态链接器按名字在<code>libf.so</code>的<code>.dynsym</code>中查找<code>_Z1fv</code>, 加上加载基址得到实际地址后写入<code>main</code>, 调用点经此间接跳转. 若多个动态库有重名符号, 使用先加载到的.</p>
-<p>跨动态库调用需导出符号, 否则链接失败, UNIX默认全导出, Windows默认全隐藏. 头文件中的模板与<code>inline</code>的跨动态库去重依赖各平台的弱符号机制:</p>
+<p>若开启LTO, 同一模块内可内联函数调用, 跨模块依赖平台行为. 跨动态库调用需导出符号, 否则链接失败, UNIX默认全导出, Windows默认全隐藏. 头文件中模板与内联的跨动态库去重依赖各平台的弱符号机制:</p>
 <ul>
 <li>ELF按符号名全局解析, 弱符号取最先加载者, LTO不改变可见性, 跨动态库仍为同一份</li>
 <li>Mach-O在LTO时隐藏模块内自用的弱符号, 跨动态库退化为各自一份</li>
