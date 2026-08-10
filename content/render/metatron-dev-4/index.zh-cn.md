@@ -46,6 +46,35 @@ E[f(Y)W_Y]
 \end{equation}
 $$
 
+分层选取指下标分级确定, 如先选子池$t$再选子池内下标$k$, 记池为$Z=(Z_{t,k})$. 全概率公式展开可得: 只要每一级都不依赖池中样本的数值, 逐级归一后边缘分布不变:
+
+$$
+\begin{equation}
+\begin{aligned}
+p_X(x)
+&= \sum_t P(t) \sum_k P(k|t)\ p_{Z_{t,k}}(x)\\
+&= \sum_t P(t) \sum_k P(k|t)\ p(x)
+= \sum_t P(t)\ p(x) = p(x)
+\end{aligned}
+\end{equation}
+$$
+
+预抽样指抽样与使用分离: 按分布$p$生成样本池$Z=(Z_1, \dots, Z_N)$, 使用样本不再抽样, 而是以下标$J$取出$X=Z_J$. 要求下标与池内容独立, 下标本身可以分层选取, 只要不依赖池中样本的数值. 对$Z$取全期望, 边缘分布为池内样本分布的混合:
+
+$$
+\begin{equation}
+p_X(x) = \sum_{n=1}^N P(J=n)\ p_{Z_n}(x) = \sum_{n=1}^N P(J=n)\ p(x) = p(x)
+\end{equation}
+$$
+
+$X$与直接按$p$抽样同分布, 因此可以直接替换任何一次抽样, 下游估计的无偏性不变:
+
+$$
+\begin{equation}
+E\left[\frac{f(X)}{p(X)}\right] = \int \frac{f(x)}{p(x)}p_X(x)\mathrm{d}x = \int f(x)\mathrm{d}x
+\end{equation}
+$$
+
 ## GRIS
 
 依据全期望公式$E(XY)=\int_X x\ p(x)\ E(Y|X=x) \mathrm{d}x$, 可得:
