@@ -376,7 +376,7 @@
     "keywords": ["graphics","rendering","pbrt"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "10769"
+    "wordCount": "10704"
   }]
   </script>
 
@@ -1072,7 +1072,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2024-10-07T00:00:00&#43;00:00">2024 October 7</time><span class="px-2 text-primary-500">&middot;</span><span>10769 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">22 分钟</span>
+      <time datetime="2024-10-07T00:00:00&#43;00:00">2024 October 7</time><span class="px-2 text-primary-500">&middot;</span><span>10704 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">22 分钟</span>
     
 
     
@@ -1700,8 +1700,6 @@ E(p, \mathbf{n}) &amp;= \int_{A} L cos\theta_i \frac{\cos\theta_o \mathrm{d}A}{r
     </span>
     
 </h2>
-<p>我们需要反射光线的光谱与方向分布来描述反射, 对于透明物体更复杂的次表面光线传播会影响出射光线的位置.
-渲染任务中通过BRDF与BSSRDF来抽象这一过程, BRDF描述反射, BSSRDF在此基础上考虑透明物体.</p>
 
 <h3 class="relative group">BRDF
     <div id="brdf" class="anchor"></div>
@@ -1712,7 +1710,7 @@ E(p, \mathbf{n}) &amp;= \int_{A} L cos\theta_i \frac{\cos\theta_o \mathrm{d}A}{r
     </span>
     
 </h3>
-<p>BRDF代表双向反射分布函数, 它描述出射辐射亮度与入射辐射照度的关系.</p>
+<p>BRDF代表双向反射分布函数, 我们需要入射辐亮度对某方向出射辐亮度的影响, 由于入射光照的辐亮度变化对出射辐亮度的影响是线性的, 因此可以用除法定义:</p>
 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.16em" columnspacing="1em"><mtr><mtd class ="mtr-glue"></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msub><mi>f</mi><mi>r</mi></msub><mo stretchy="false">(</mo><mi>p</mi><mo separator="true">,</mo><msub><mi>ω</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>ω</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><mi mathvariant="normal">d</mi><msub><mi>L</mi><mi>o</mi></msub><mo stretchy="false">(</mo><mi>p</mi><mo separator="true">,</mo><msub><mi>ω</mi><mi>o</mi></msub><mo stretchy="false">)</mo></mrow><mrow><mi mathvariant="normal">d</mi><mi>E</mi><mo stretchy="false">(</mo><mi>p</mi><mo separator="true">,</mo><msub><mi>ω</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mi mathvariant="normal">d</mi><msub><mi>L</mi><mi>o</mi></msub><mo stretchy="false">(</mo><mi>p</mi><mo separator="true">,</mo><msub><mi>ω</mi><mi>o</mi></msub><mo stretchy="false">)</mo></mrow><mrow><msub><mi>L</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>p</mi><mo separator="true">,</mo><msub><mi>ω</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mi>cos</mi><mo>⁡</mo><msub><mi>θ</mi><mi>i</mi></msub><mi mathvariant="normal">d</mi><msub><mi>ω</mi><mi>i</mi></msub></mrow></mfrac></mrow></mstyle></mtd><mtd class ="mtr-glue"></mtd><mtd class ="mml-eqn-num"></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{equation}
 f_r(p, \omega_o, \omega_i) = \frac{\mathrm{d}L_o(p, \omega_o)}{\mathrm{d}E(p, \omega_i)} = \frac{\mathrm{d}L_o(p, \omega_o)}{L_i(p, \omega_i) \cos\theta_i \mathrm{d}\omega_i}
