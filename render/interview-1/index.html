@@ -376,7 +376,7 @@
     "keywords": ["graphics","rendering","gpu"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "6222"
+    "wordCount": "6427"
   }]
   </script>
 
@@ -1072,7 +1072,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>6222 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">13 分钟</span>
+      <time datetime="2026-06-06T00:00:00&#43;00:00">2026 June 6</time><span class="px-2 text-primary-500">&middot;</span><span>6427 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">13 分钟</span>
     
 
     
@@ -1242,6 +1242,7 @@
       <ul>
         <li><a href="#input-assembly">Input Assembly</a></li>
         <li><a href="#tbdr">TBDR</a></li>
+        <li><a href="#msaa">MSAA</a></li>
         <li><a href="#perspective-correction">Perspective Correction</a></li>
         <li><a href="#triangle-setup">Triangle Setup</a></li>
       </ul>
@@ -1298,6 +1299,7 @@
       <ul>
         <li><a href="#input-assembly">Input Assembly</a></li>
         <li><a href="#tbdr">TBDR</a></li>
+        <li><a href="#msaa">MSAA</a></li>
         <li><a href="#perspective-correction">Perspective Correction</a></li>
         <li><a href="#triangle-setup">Triangle Setup</a></li>
       </ul>
@@ -1542,6 +1544,18 @@
 <li>非全屏绘制时导致部分图块超出绘制范围, 不支持图块粒度快速清屏, 执行软件实现</li>
 </ol>
 <p>HK的透明度测试等输出合并操作使用软件实现, 插入到片元着色器尾部以在图块内执行. HK实现了<code>VK_KHR_dynamic_rendering</code>, 子通道在Mesa中由动态渲染模拟, 多个子通道的图块复用退化为显存读写, 因此不推荐在Mesa中使用子通道.</p>
+
+<h3 class="relative group">MSAA
+    <div id="msaa" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#msaa" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p>硬件上根据MSAA倍数分配相应大小的颜色/深度附件, 颜色存储片元着色结果, 深度剔除亚像素片元. 着色插值点在像素中心, 若多个亚像素被相同片元覆盖, 只做一次着色.</p>
+<p>AGX等TBDR架构可以让MSAA颜色/深度附件只在片上存活, 解析后写回显存. RADV每个像素实际为FMASK索引, 例如4x时只存2位索引, 单个像素共8位, 解析时用索引读取着色. RADV的EQAA支持样本数大于实际可存储的样本数, 实现更平滑的着色.</p>
 
 <h3 class="relative group">Perspective Correction
     <div id="perspective-correction" class="anchor"></div>
