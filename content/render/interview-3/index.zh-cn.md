@@ -462,3 +462,26 @@ $$
 L_i = \frac{E}{\pi\sin^2\theta_0} = \frac{E d^2}{\pi r^2}
 \end{equation}
 $$
+
+## Fog
+
+高度雾令衰减系数沿高度指数衰减, $a$为衰减率, $h_0$为参考高度:
+
+$$
+\begin{equation}
+\sigma_t(\mathbf{p}) = \sigma_0 e^{-a(\mathbf{p}_y - h_0)}
+\end{equation}
+$$
+
+沿光线$\mathbf{o}+t'\mathbf{d}$, $t' \in [0,t]$, 光学厚度存在解析解:
+
+$$
+\begin{equation}
+\begin{aligned}
+\tau(t)
+&= \int_0^t \sigma_0 e^{-a(\mathbf{o}_y + t'\mathbf{d}_y - h_0)}\mathrm{d}t'\\
+&= \sigma_0 e^{-a(\mathbf{o}_y-h_0)}\int_0^t e^{-a\mathbf{d}_y t'}\mathrm{d}t'\\
+&= \sigma_0 e^{-a(\mathbf{o}_y-h_0)}\frac{1 - e^{-a\mathbf{d}_y t}}{a\mathbf{d}_y}
+\end{aligned}
+\end{equation}
+$$
