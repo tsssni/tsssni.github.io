@@ -504,3 +504,76 @@ C \mathrel{+}= (1-\alpha)\alpha_i c_i
 $$
 
 不透明度在注入时取体素内的几何覆盖率, 颜色取反照率与直接光照的乘积, 两者以预乘的形式存储, 逐级下采样求平均后再除不透明度, 否则空体素会稀释颜色.
+
+## IBL
+
+[UE IBL](https://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf)使用分离求和法估计镜面反射:
+
+$$
+\begin{equation}
+\begin{aligned}
+L_o(p, \omega_o)
+&= \int_\Omega f(p, \omega_o, \omega_i) L_i(p, \omega_i) \cos\theta \mathrm{d}\omega_i\\
+&\approx \int_\Omega f(p, \omega_o, \omega_i) \cos\theta \mathrm{d}\omega_i \int_\Omega L_i(p, \omega_i) \mathrm{d}\omega_i
+\end{aligned}
+\end{equation}
+$$
+
+BRDF半球-方向反射量使用Schlick Fresnel分解, 烘焙时$\mathbf{v} = \mathbf{n}$以减少计算量:
+
+$$
+\begin{equation}
+\begin{aligned}
+\rho_{hd}(\omega_o)
+&= \int_\Omega (F_0 + (1 - F_0)(1 - \mathbf{v}\cdot\mathbf{h})^5)\frac{f(p, \omega_o, \omega_i)}{F(\mathbf{v}, \mathbf{h})} \cos\theta \mathrm{d}\omega_i\\
+&= F_0 \int_\Omega \frac{f(p, \omega_o, \omega_i)}{F(\mathbf{v}, \mathbf{h})} (1 - (1 - \mathbf{v}\cdot\mathbf{h})^5) \cos\theta \mathrm{d}\omega_i + \int_\Omega \frac{f(p, \omega_o, \omega_i)}{F(\mathbf{v}, \mathbf{h})} (1 - \mathbf{v}\cdot\mathbf{h})^5 \cos\theta \mathrm{d}\omega_i\\
+\end{aligned}
+\end{equation}
+$$
+
+[动视 IBL](https://onlinelibrary.wiley.com/doi/10.1111/cgf.70219)不分离材质与光照, 只用Schlick Fresnel分解:
+
+$$
+\begin{equation}
+\begin{aligned}
+L_o(p, \omega_o)
+&= \int_\Omega f(p, \omega_o, \omega_i) L_i(p, \omega_i) \cos\theta \mathrm{d}\omega_i\\
+&= F_0 \int_\Omega \frac{f(p, \omega_o, \omega_i)}{F(\mathbf{v}, \mathbf{h})} L_i(p, \omega_i) \cos\theta \mathrm{d}\omega_i + (1 - F_0) \int_\Omega \frac{f(p, \omega_o, \omega_i)}{F(\mathbf{v}, \mathbf{h})} (1 - (\mathbf{v}\cdot\mathbf{h}))^5 L_i(p, \omega_i) \cos\theta \mathrm{d}\omega_i\\
+&= F_0 E_0(p, \omega_o) + (1 - F_0) E_1(p, \omega_o)
+\end{aligned}
+\end{equation}
+$$
+
+$E_0$使用指数估计使线性优化求解可用.  $\mathbf{r} = 2\mathbf{n} - \mathbf{v}$即反射方向, $\mathbf{h_r} = \frac{\mathbf{n} + \mathbf{r}}{\Vert\mathbf{n} + \mathbf{r}\Vert}$为半反射. $\mathbf{vMF}_l(\kappa) = e^{\frac{-l(l+1)}{2\kappa}}$为von Mises-Fisher分布的球谐系数, $\mathbf{Y}$为球谐基, $\odot$代表逐项相乘:
+
+$$
+\begin{equation}
+E_0(p, \omega_o)
+\approx e^{
+(\mathbf{vMF}(\frac{1}{\alpha}) \odot \mathbf{Y}(\mathbf{r}))\cdot\mathbf{p} +
+(\mathbf{vMF}(\frac{1}{\alpha}) \odot \mathbf{Y}(\mathbf{h_r}))\cdot\mathbf{q} }
+\end{equation}
+$$
+
+$\mathbf{vMF}$卷积将用立体角查询球谐函数转为查询其附近的渲染方程积分, 拟合高粗糙度波瓣. BRDF包含不绕$\mathbf{r}$对称的$\mathbf{v}\cdot\mathbf{h}$, 高粗糙度下用$\mathbf{r}$附近的卷积来拟合误差较大, 因此引入$\mathbf{h_r}$.
+
+$\mathbf{p}$为四阶球谐, $\mathbf{q}$为二阶球谐, 使用最小二乘求解优化:
+
+$$
+\begin{equation}
+\begin{bmatrix}
+\mathbf{vMF}(\frac{1}{\alpha}) \odot \mathbf{Y}(\mathbf{r})\
+\mathbf{vMF}(\frac{1}{\alpha}) \odot \mathbf{Y}(\mathbf{h_r})
+\end{bmatrix}
+\begin{bmatrix} \mathbf{p} \\ \mathbf{q} \end{bmatrix}
+= \log E_0(p, \omega_o)
+\end{equation}
+$$
+
+$E_1$基于$E_0$估计:
+
+$$
+E_1 \approx E_0 \int_\Omega \frac{f(p, \omega_o, \omega_i)}{F(\mathbf{v}, \mathbf{h})} (1 - (\mathbf{v}\cdot\mathbf{h}))^5 \cos\theta \mathrm{d}\omega_i
+$$
+
+$\alpha > 0.25$时可以准确拟合, 反之可以回退到分离求和或直接查询环境光.
