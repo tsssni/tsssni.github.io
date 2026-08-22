@@ -200,7 +200,7 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-\mathrm{d}\omega^{\perp} &= \mathrm{d}\omega|cos\theta|\\
+\mathrm{d}\omega^{\perp} &= \mathrm{d}\omega|\cos\theta|\\
 E(p, \mathbf{n}) &= \int_{H^2(\mathbf{n})} L_i(p,\omega) \mathrm{d}\omega^{\perp}
 \end{aligned}
 \end{equation}
@@ -213,8 +213,8 @@ $$
 $$
 \begin{equation}
 \begin{aligned}
-\mathrm{d}\omega &= sin\theta \mathrm{d}\theta \mathrm{d}\phi\\
-E(p, \mathbf{n}) &= \int_0^{2\pi} \int_0^{\frac{\pi}{2}} L_i(p, \theta, \phi) cos\theta sin\theta \mathrm{d}\theta \mathrm{d}\phi
+\mathrm{d}\omega &= \sin\theta \mathrm{d}\theta \mathrm{d}\phi\\
+E(p, \mathbf{n}) &= \int_0^{2\pi} \int_0^{\frac{\pi}{2}} L_i(p, \theta, \phi) \cos\theta \sin\theta \mathrm{d}\theta \mathrm{d}\phi
 \end{aligned}
 \end{equation}
 $$
@@ -228,7 +228,7 @@ $$
 \begin{equation}
 \begin{aligned}
 \mathrm{d}\omega &= \frac{\cos\theta_o \mathrm{d}A}{r^2}\\
-E(p, \mathbf{n}) &= \int_{A} L cos\theta_i \frac{\cos\theta_o \mathrm{d}A}{r^2}
+E(p, \mathbf{n}) &= \int_{A} L \cos\theta_i \frac{\cos\theta_o \mathrm{d}A}{r^2}
 \end{aligned}
 \end{equation}
 $$
@@ -259,7 +259,7 @@ $$
 
 $$
 \begin{equation}
-\int_\Omega f_r(p, \omega_o, \omega_i) cos\theta_i \mathrm{d}\omega_i < 1
+\int_\Omega f_r(p, \omega_o, \omega_i) \cos\theta_i \mathrm{d}\omega_i < 1
 \end{equation}
 $$
 
@@ -268,7 +268,7 @@ BRDF的半球-方向反射量可以用于表示入射光从所有方向均匀照
 
 $$
 \begin{equation}
-\rho_{hd}(\omega_o) = \int_\Omega f_r(p, \omega_o, \omega_i) cos\theta_i \mathrm{d}\omega_i
+\rho_{hd}(\omega_o) = \int_\Omega f_r(p, \omega_o, \omega_i) \cos\theta_i \mathrm{d}\omega_i
 \end{equation}
 $$
 
