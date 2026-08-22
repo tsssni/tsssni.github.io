@@ -376,7 +376,7 @@
     "keywords": ["cpp","template","concurrent"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "6574"
+    "wordCount": "6717"
   }]
   </script>
 
@@ -1072,7 +1072,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>6574 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">14 分钟</span>
+      <time datetime="2026-06-10T00:00:00&#43;00:00">2026 June 10</time><span class="px-2 text-primary-500">&middot;</span><span>6717 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">14 分钟</span>
     
 
     
@@ -1233,6 +1233,7 @@
     <li><a href="#value-category">Value Category</a></li>
     <li><a href="#reflection">Reflection</a></li>
     <li><a href="#pointer">Pointer</a></li>
+    <li><a href="#allocator">Allocator</a></li>
     <li><a href="#abi">ABI</a></li>
     <li><a href="#compile">Compile</a></li>
   </ul>
@@ -1259,6 +1260,7 @@
     <li><a href="#value-category">Value Category</a></li>
     <li><a href="#reflection">Reflection</a></li>
     <li><a href="#pointer">Pointer</a></li>
+    <li><a href="#allocator">Allocator</a></li>
     <li><a href="#abi">ABI</a></li>
     <li><a href="#compile">Compile</a></li>
   </ul>
@@ -1660,6 +1662,18 @@ struct sp_counted_deleter final : sp_counted_base {
     }
 };
 </code></pre>
+
+<h2 class="relative group">Allocator
+    <div id="allocator" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#allocator" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+<p>伙伴堆只分配<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span>, 从空闲链表取出后分割剩余空间, 添加到空闲链表. 空闲链表为双向链表, 节点记录在空闲块头部, 释放时合并相邻节点.</p>
+<p>TLSF为两级映射, 先选择分配大小对应的档位, 内部再做细分, 细分单位由当前档位决定, 例如[64, 128)按2字节分割, [1024, 2048)按64字节分割.</p>
 
 <h2 class="relative group">ABI
     <div id="abi" class="anchor"></div>
