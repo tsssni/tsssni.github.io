@@ -2,11 +2,8 @@
   description = "blog devenv";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
-    tsssni = {
-      url = "github:tsssni/tsssni.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    tsssni.url = "github:tsssni/tsssni.nix";
+    nixpkgs.follows = "tsssni/nixpkgs";
   };
 
   outputs =
@@ -32,19 +29,19 @@
         let
           pkgs = import nixpkgs {
             inherit system;
-            overlays = tsssni.pkgs;
+            overlays = [ tsssni.overlays.default ];
           };
         in
         {
           default = pkgs.mkShell.override { stdenv = pkgs.stdenvNoCC; } {
             shellHook = ''
               export SHELL=nu
-              export IBM_PLEX_WEB=${pkgs.ibm-plex.webfont}/share/fonts
+              export IBM_PLEX_LITE=${pkgs.ibm-plex-lite.override { webfont = true; }}/share/fonts
             '';
             packages = with pkgs; [
               hugo
               nodejs
-              ibm-plex
+              ibm-plex-lite
             ];
           };
         }
