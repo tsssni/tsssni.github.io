@@ -377,7 +377,7 @@
     "keywords": ["graphics","rendering","path guiding","metatron"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "4251"
+    "wordCount": "4340"
   }]
   </script>
 
@@ -1073,7 +1073,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-08-28T00:00:00&#43;00:00">2026 August 28</time><span class="px-2 text-primary-500">&middot;</span><span>4251 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">9 分钟</span>
+      <time datetime="2026-08-28T00:00:00&#43;00:00">2026 August 28</time><span class="px-2 text-primary-500">&middot;</span><span>4340 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">9 分钟</span>
     
 
     
@@ -1256,6 +1256,11 @@
         <li><a href="#sharc">SHARC</a></li>
       </ul>
     </li>
+    <li><a href="#variable-rate-ray-tracing">Variable Rate Ray Tracing</a>
+      <ul>
+        <li><a href="#cod">COD</a></li>
+      </ul>
+    </li>
   </ul>
 </nav>
   </div>
@@ -1278,6 +1283,11 @@
       <ul>
         <li><a href="#orca">ORCA</a></li>
         <li><a href="#sharc">SHARC</a></li>
+      </ul>
+    </li>
+    <li><a href="#variable-rate-ray-tracing">Variable Rate Ray Tracing</a>
+      <ul>
+        <li><a href="#cod">COD</a></li>
       </ul>
     </li>
   </ul>
@@ -1473,6 +1483,27 @@ s&#x27;_i=\frac{b s_i}{\sum_{i=1}^N s_i}
     
 </h3>
 <p>依据世界空间顶点和LOD计算hash, 因此跨帧hash一致, 体素辐亮度逐帧累积.</p>
+
+<h2 class="relative group">Variable Rate Ray Tracing
+    <div id="variable-rate-ray-tracing" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#variable-rate-ray-tracing" aria-label="锚点">#</a>
+    </span>
+    
+</h2>
+
+<h3 class="relative group">COD
+    <div id="cod" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#cod" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p>根据方差, 遮挡, 历史PSS样本重放的辐射度梯度决定各像素的光线发射率, 按发射率分桶. 按桶降级/升级发射率以调整预算, 根据与屏幕中心的距离进一步细分, 实现注视点绘制.</p>
 
           
           
