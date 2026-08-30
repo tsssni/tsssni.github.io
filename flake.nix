@@ -32,7 +32,7 @@
         let
           pkgs = import nixpkgs {
             inherit system;
-            overlays = tsssni.pkgs;
+            overlays = [ tsssni.overlays.default ];
           };
         in
         {

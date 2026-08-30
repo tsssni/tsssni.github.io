@@ -1,12 +1,16 @@
 ---
-title: "Metatron Dev. IV: Path Guiding"
+title: "Metatron Dev. IV: 路径追踪加速"
 date: 2026-08-28
 draft: false
 description: "metatron development log"
 tags: ["graphics", "rendering", "path guiding", "metatron"]
 ---
 
-## ReSTIR PG
+## Path Guiding
+
+路径引导基于已有样本估计场景贡献, 通过MIS选择BSDF或PG, 结果无偏.
+
+### ReSTIR PG
 
 局部路径引导拟合的理想分布为后缀贡献:
 
@@ -130,3 +134,53 @@ p(\omega_i) = \int_{\mathcal{H}^2} p(\omega_i|\omega_o)p(\omega_o)\mathrm{d}\ome
 \propto L_i(\omega_i)|\cos\theta| \int_{\mathcal{H}^2} f(\omega_o, \omega_i)p(\omega_o)\mathrm{d}\omega_o
 \end{equation}
 $$
+
+$p(\omega_i)$以vMF拟合, $\mu_k \in \mathcal{S}^2$为单位平均方向, $\kappa_k \geq 0$为集中度, $\sum_k \pi_k = 1$:
+
+$$
+\begin{equation}
+\mathcal{V}(\omega;\Theta)
+= \sum_{k=1}^K \pi_k v(\omega;\mu_k, \kappa_k)
+= \sum_{k=1}^K \frac{\kappa}{4\pi\sinh\kappa}e^{\kappa\mu \cdot \omega}
+\end{equation}
+$$
+
+展开$\sinh$可得vMF随着$\kappa$增长而收窄集中于$\mu$的波瓣:
+
+$$
+\begin{equation}
+v(\omega;\mu, \kappa) = \frac{\kappa}{2\pi(1 - e^{-2\kappa})}e^{-\kappa(1 - \mu \cdot \omega)} \approx \frac{\kappa}{2\pi}e^{-\kappa(1 - \mu \cdot \omega)}
+\end{equation}
+$$
+
+以EM迭代求解, E步固定参数, 计算责任:
+
+$$
+\begin{equation}
+\gamma_k(\omega_n) = \frac{\pi_k v(\omega_n;\mu_k, \kappa_k)}{\sum_{j=1}^K \pi_j v(\omega_n;\mu_j, \kappa_j)}
+\end{equation}
+$$
+
+M步固定责任, 更新参数, $\epsilon = 0.01$防止分量权重归零:
+
+$$
+\begin{equation}
+\begin{aligned}
+w_k = \sum_{n=1}^N \gamma_k(\omega_n), \quad
+r_k = \sum_{n=1}^N \gamma_k(\omega_n)\omega_n\\
+\pi_k = \frac{w_k + \epsilon}{\sum_{j=1}^K (w_j + \epsilon)}, \quad
+\mu_k = \frac{r_k}{\|r_k\|}, \quad
+\bar{R}_k = \frac{\|r_k\|}{w_k}
+\end{aligned}
+\end{equation}
+$$
+
+方向越集中$\bar{R}_k \in [0, 1]$越接近1, 由其反解$\kappa_k$:
+
+$$
+\begin{equation}
+\kappa_k \approx \frac{\bar{R}_k(3 - \bar{R}_k^2)}{1 - \bar{R}_k^2}
+\end{equation}
+$$
+
+ReSTIR PT无偏权重包含足够信息, 不复用历史分布, 记录最终路径所有顶点以更新引导.
