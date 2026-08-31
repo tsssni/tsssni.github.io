@@ -185,6 +185,56 @@ $$
 
 ReSTIR PT无偏权重包含足够信息, 不复用历史分布, 记录最终路径所有顶点以更新引导.
 
+### VXPG
+
+将第二次弹射顶点的NEE采样结果注入体素, 估计漫反射辐照度:
+
+$$
+\begin{equation}
+E(v_i) = \frac{1}{N}\sum_{\mathbf{x}_2 \in v_i} L_l(\mathbf{x}_2)
+\end{equation}
+$$
+
+以$32 \times 32$图块中心像素为矩心, 单次SLIC聚类计算超像素, $\mathbf{p}$, $\mathbf{n}$为世界空间位置和法线, $\mathbf{u}$为像素坐标, $w_u$为超参数, 距离函数如下:
+
+$$
+\begin{equation}
+\text{dist}_p(x, y) = |\mathbf{p}_x - \mathbf{p}_y|^2 + w_u |\mathbf{u}_x - \mathbf{u}_y|^2 +
+\begin{cases}
+\begin{aligned}
+&0,&\ \text{if}\ \mathbf{n_x}\cdot\mathbf{n_y} > 0.1\\
+&1000000,&\ \text{otherwise}
+\end{aligned}
+\end{cases}
+\end{equation}
+$$
+
+在屏幕空间分层抽样128条路径, 所有体素向所有样本路径的$\mathbf{x}_2$发射光线以验证可见性, 得128位位域$R$, 执行K-means聚类. $\oplus$为异或, $w_E$为超参数, 距离函数如下:
+
+$$
+\begin{equation}
+\text{dist}_v(x, y) = \text{countbits}(R_x \oplus R_y) + w_E |E_x - E_y|
+\end{equation}
+$$
+
+聚类后依据超像素与超体素组成的元组分桶, 从桶中抽取32个路径样本统计平均路径通量:
+
+$$
+\begin{equation}
+\bar{T}(p', v') = \frac{1}{N}\sum_{i = 1}^N f(\mathbf{p}_2 \rightarrow \mathbf{p}_1 \rightarrow \mathbf{p}_0) G(\mathbf{p}_1 \leftrightarrow \mathbf{p}_2)
+\end{equation}
+$$
+
+依据平均路径通量重要性抽样得超像素与超体素, 再抽样桶中的体素. 光栅化执行体素化, 得体素中所有三角形的包围盒, $A$为包围盒最大面的面积, 抽样权重如下:
+
+$$
+\begin{equation}
+\phi(v_i) = E(v_i)A(v_i)
+\end{equation}
+$$
+
+得到体素后, 使用球面三角形抽样确定与包围盒可见面的相交点, 发射光线求交.
+
 ## Radiance Cache
 
 辐射度缓存在探针中存储辐射度, 命中后直接查询缓存, 因此有偏.
