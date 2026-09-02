@@ -1,5 +1,5 @@
 ---
-title: "Metatron Dev. IV: 路径追踪加速"
+title: "Metatron Dev. VIII: 路径追踪加速"
 date: 2026-08-28
 draft: false
 description: "metatron development log"
@@ -234,6 +234,52 @@ $$
 $$
 
 得到体素后, 使用球面三角形抽样确定与包围盒可见面的相交点, 发射光线求交.
+
+### RCPG
+
+基于辐射度级联摆放探针, 使用八面体纹理存储辐射度, 转为立体角的Jacobian如下:
+
+$$
+\begin{equation}
+|J| = \left(1 + 2\min(1 - |u| - |v|, 0) - 2|u| - 2|v| + 2|uv| + 2u^2 + 2v^2\right)^{-\frac{3}{2}}
+\end{equation}
+$$
+
+贴近物体的探针命中距离短, 需要的采样率率低, 反之采样率高. 因此不同LOD的探针对应不同的距离区间, 基于区间远端与探针体素内嵌球形成的锥体, 可估计角采样Nyquist频率. 令$w$为体素边长, $d$为与体素中心的距离, $c$为超参数, 采样频率估计如下:
+
+$$
+\begin{equation}
+\theta_{\min} = 2\arcsin\frac{w}{2d_{\max}}, \quad
+f_{\max} = \frac{1}{\theta_{\min}} < \frac{f_s}{2}, \quad
+d_{\max} = \frac{cw}{2\sin\frac{1}{f_s}}
+\end{equation}
+$$
+
+所有探针纹素每帧更新, 只追踪距离区间, 命中确定二值透明. 下采样父级探针, 做透明度混合填充区间外辐射度. 探针通过指数混合累积历史, 命中时查询历史探针, 存储无限弹射辐射度. 每帧对场景执行体素化, 剔除空体素对应的探针.
+
+遍历表面对应的LOD 0探针的纹素, 作为解析面光通过LTC计算贡献, 执行功率重要性抽样, 逐级查询父级纹素LTC并抽样. 令$\mathbf{v}$为几何顶点, 面光辐照度如下:
+
+$$
+\begin{equation}
+E = \frac{1}{2\pi}\sum_{i=1}^m \arccos(\mathbf{v}_i \cdot \mathbf{v}_j)
+\frac{\mathbf{v}_i \times \mathbf{v}_j}{|\mathbf{v}_i \times \mathbf{v}_j|} \cdot \mathbf{n}, \quad
+j = (i + 1) \bmod m
+\end{equation}
+$$
+
+使用三参数LTC以减少计算量:
+
+$$
+\begin{equation}
+M^{-1} =
+\begin{pmatrix}
+a & 0 & b\\
+0 & 1 & 0\\
+0 & 0 & c
+\end{pmatrix}, \quad
+a, b, c \in [0, 1]
+\end{equation}
+$$
 
 ## Radiance Cache
 
