@@ -281,6 +281,99 @@ a, b, c \in [0, 1]
 \end{equation}
 $$
 
+### NASGPG
+
+归一化各向异性球面高斯(NASG)基于正交坐标系$[\mathbf{x}, \mathbf{y}, \mathbf{z}]$定义, $\mathbf{z}$为波瓣轴, $\lambda$为锐度, $a$为各向异性, $a = 0$时退化为球面高斯. 记$u = \frac{\mathbf{v} \cdot \mathbf{z} + 1}{2}$, $e = \frac{a(\mathbf{v} \cdot \mathbf{x})^2}{1 - (\mathbf{v} \cdot \mathbf{z})^2}$, 形式如下:
+
+$$
+\begin{equation}
+G(\mathbf{v};[\mathbf{x}, \mathbf{y}, \mathbf{z}], \lambda, a) =
+\begin{cases}
+\begin{aligned}
+&\exp\left(2\lambda u^{1 + e} - 2\lambda\right)u^e, &\ \mathbf{v} \neq \pm\mathbf{z}\\
+&1, &\ \mathbf{v} = \mathbf{z}\\
+&0, &\ \mathbf{v} = -\mathbf{z}
+\end{aligned}
+\end{cases}
+\end{equation}
+$$
+
+$u^e$为球坐标换元的Jacobian, 因此NASG有闭式积分, 可归一化:
+
+$$
+\begin{equation}
+K = \int_{\mathcal{S}^2} G(\mathbf{v};[\mathbf{x}, \mathbf{y}, \mathbf{z}], \lambda, a)\mathrm{d}\omega
+= \frac{2\pi(1 - e^{-2\lambda})}{\lambda\sqrt{1 + a}}
+\end{equation}
+$$
+
+正交坐标系以欧拉角$\theta, \phi, \tau$参数化, $\mathbf{y} = \mathbf{z} \times \mathbf{x}$, 单个NASG分量只需$\cos\theta$, $\sin\phi$, $\cos\phi$, $\sin\tau$, $\cos\tau$, $\lambda$, $a$七个标量表示:
+
+$$
+\begin{equation}
+\mathbf{z} =
+\begin{pmatrix}
+\cos\phi\sin\theta\\
+\sin\phi\sin\theta\\
+\cos\theta
+\end{pmatrix}, \quad
+\mathbf{x} =
+\begin{pmatrix}
+\cos\theta\cos\phi\cos\tau - \sin\phi\sin\tau\\
+\cos\theta\sin\phi\cos\tau + \cos\phi\sin\tau\\
+-\sin\theta\cos\tau
+\end{pmatrix}
+\end{equation}
+$$
+
+神经网络为4层128宽无偏置MLP, 输入为$\mathbf{p}$, $\omega_o$, $\mathbf{n}$, $\mathbf{p}$归一化后应用one-blob编码, 即分为$k$个等宽区间, 每个区间对应$\sigma = \frac{1}{k}$的高斯核, 执行积分:
+
+$$
+\begin{equation}
+\text{ob}(x)_i = \int_{\frac{i - 1}{k}}^{\frac{i}{k}} \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(t - x)^2}{2\sigma^2}}\mathrm{d}t, \quad i = 1, \dots, k
+\end{equation}
+$$
+
+输出为$8N + 1$维, N为NASG分量数量, 8为NASG7个标量与其权重$A$, 1为MIS抽样概率$c$. 引导分布为归一化分量的混合, 与BSDF按$c$做MIS:
+
+$$
+\begin{equation}
+\begin{aligned}
+\hat{q}(\omega_i)
+&= cq(\omega_i) + (1 - c)p_f(\omega_i)\\
+&= c\sum_{k=1}^N A_k\frac{G_k(\omega_i)}{K_k} + (1 - c)p_f(\omega_i)
+\end{aligned}
+\end{equation}
+$$
+
+以KL散度衡量$q$与目标分布$p(\omega_i) = Cf(\mathbf{p}, \omega_o, \omega_i)L_i(\mathbf{p}, \omega_i)|\cos\theta|$的差异, 令$\gamma$为NASG参数, $p$与$\gamma$无关, 梯度如下:
+
+$$
+\begin{equation}
+\begin{aligned}
+\nabla_\gamma D_{KL}(p\|q)
+&= \nabla_\gamma\int_{\mathcal{S}^2} p(\omega_i)(\log p(\omega_i) - \log q(\omega_i;\gamma))\mathrm{d}\omega_i\\
+&= -\int_{\mathcal{S}^2} p(\omega_i)\nabla_\gamma\log q(\omega_i;\gamma)\mathrm{d}\omega_i
+\end{aligned}
+\end{equation}
+$$
+
+基于$\hat{q}$得单样本估计. 归一化常数$C$未知, 但只对梯度整体缩放, Adam归一化矩后可约去:
+
+$$
+\begin{equation}
+\nabla_\gamma D_{KL}(p\|q) \approx -\frac{p(\omega_i)}{\hat{q}(\omega_i)}\nabla_\gamma\log q(\omega_i;\gamma)
+\end{equation}
+$$
+
+$D_{KL}(p\|q)$与$c$无关, $D_{KL}(p\|\hat{q})$可对$c$求导, 但只优化$\hat{q}$时$c$会倾向0, 因为初始$q$质量较差. 因此以$D_{KL}(p\|q)$为主项保证$q$持续更新, 混入$D_{KL}(p\|\hat{q})$以学习$c$, $e = 0.2$:
+
+$$
+\begin{equation}
+\text{loss} = eD_{KL}(p\|\hat{q}) + (1 - e)D_{KL}(p\|q)
+\end{equation}
+$$
+
 ## Radiance Cache
 
 辐射度缓存在探针中存储辐射度, 命中后直接查询缓存, 因此有偏.
