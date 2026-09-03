@@ -441,6 +441,45 @@ $$
 
 依据世界空间顶点和LOD计算hash, 因此跨帧hash一致, 体素辐亮度逐帧累积.
 
+### NRC
+
+单个MLP缓存散射辐亮度$L_s(\mathbf{x}, \omega)$, 路径足迹足够大时误差被模糊, 令$p$为BSDF抽样概率, $\theta_1$为主顶点处视线与法线夹角, $c = 0.01$, 路径足迹定义如下:
+
+$$
+\begin{equation}
+\begin{aligned}
+&a(\mathbf{x}_1 \cdots \mathbf{x}_n) = \left(\sum_{i=2}^n\sqrt{\frac{\|\mathbf{x}_{i-1} - \mathbf{x}_i\|^2}{p(\omega_i\mid\mathbf{x}_{i-1}, \omega)|\cos\theta_i|}}\right)^2\\
+&a_0 = \frac{\|\mathbf{x}_0 - \mathbf{x}_1\|^2}{4\pi\cos\theta_1}, \quad
+a > ca_0
+\end{aligned}
+\end{equation}
+$$
+
+屏幕分块后每块抽样一条路径更新缓存, 高学习率与每帧多步导致闪烁, 因此推理时使用权重的指数移动平均, $\alpha = 0.99$, $\eta_t$修正初期偏差, 不反馈到训练:
+
+$$
+\begin{equation}
+\bar{W}_t = \frac{1 - \alpha}{\eta_t}W_t + \alpha\eta_{t-1}\bar{W}_{t-1}, \quad
+\eta_t = 1 - \alpha^t
+\end{equation}
+$$
+
+MLP为7层64宽无偏置, 输出RGB. $\omega$, $\mathbf{n}$转球坐标, 与$1 - e^{-r}$一同做4区间one-blob编码, 漫反射与镜面反射率$\alpha$, $\beta$直接输入. 位置微小变化引起辐亮度剧变, 改用频率编码:
+
+$$
+\begin{equation}
+\text{freq}(x) = \left(\sin(2^0\pi x), \sin(2^1\pi x), \dots, \sin(2^{11}\pi x)\right)
+\end{equation}
+$$
+
+MLP输出乘$\alpha + \beta$得到近似出射辐射度. 由于$L_s$为无偏估计量, 使用相对L2损失保证梯度无偏, $\text{sg}$为停止梯度, 损失函数如下:
+
+$$
+\begin{equation}
+\mathcal{L}_2(L_s, \hat{L}_s) = \frac{(L_s - \hat{L}_s)^2}{\text{sg}(\hat{L}_s)^2 + \epsilon}
+\end{equation}
+$$
+
 ## Variable Rate Ray Tracing
 
 ### COD
