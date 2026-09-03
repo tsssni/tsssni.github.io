@@ -374,6 +374,53 @@ $$
 \end{equation}
 $$
 
+### NPMPG
+
+使用神经网络隐式表示场景, 以$\Phi$为可训练参数, 连续地将位置映射为vMF混合参数:
+
+$$
+\begin{equation}
+\text{NPM}(\mathbf{x}\mid\Phi) = \hat{\Theta}(\mathbf{x}), \quad
+\mathcal{V}(\omega_i\mid\hat{\Theta}(\mathbf{x})) \propto L_i(\mathbf{x}, \omega_i)
+\end{equation}
+$$
+
+使用可训练多分辨率空间编码处理高频, 定义$L$级均匀LOD网格, 体素存$F$维特征, 查询时拼接各层的三线性插值结果得到$G(\mathbf{x})$:
+
+$$
+\begin{equation}
+G(\mathbf{x}\mid\Phi_E) = \bigoplus_{l=1}^L \text{trilinear}(\mathbf{x}, V_l[\mathbf{x}])
+\end{equation}
+$$
+
+MLP为3层64宽ReLU, 输出$K$个vMF. $\kappa', \lambda', \theta', \phi'$为原始输出, $(\theta, \phi)$为$\mu$的归一化球坐标:
+
+$$
+\begin{equation}
+\begin{aligned}
+\kappa_i = \exp(\kappa_i'), \quad
+\lambda_i = \frac{\exp(\lambda_i')}{\sum_{j=1}^K\exp(\lambda_j')}\\
+\theta_i = \frac{1}{1 + \exp(-\theta_i')}, \quad
+\phi_i = \frac{1}{1 + \exp(-\phi_i')}
+\end{aligned}
+\end{equation}
+$$
+
+以KL散度为目标做小批量随机梯度下降. 令$\mathcal{D} \propto L_i$为目标分布, 路径顶点更新附近体素, $\tilde{p}$为BSDF与引导分布组合的实际抽样分布, 梯度估计如下:
+
+$$
+\begin{equation}
+\begin{aligned}
+\nabla_\Theta D_{KL}(\mathcal{D}\|\mathcal{V};\Theta)
+&= \nabla_\Theta\int_\Omega \mathcal{D}(\omega)\log\frac{\mathcal{D}(\omega)}{\mathcal{V}(\omega\mid\hat{\Theta})}\mathrm{d}\omega\\
+&\approx \nabla_\Theta\frac{1}{N}\sum_{j=1}^N\frac{\mathcal{D}(\omega_j)}{\tilde{p}(\omega_j\mid\hat{\Theta})}\log\frac{\mathcal{D}(\omega_j)}{\mathcal{V}(\omega_j\mid\hat{\Theta})}\\
+&= -\frac{1}{N}\sum_{j=1}^N\frac{\mathcal{D}(\omega_j)\nabla_\Theta\mathcal{V}(\omega_j\mid\hat{\Theta})}{\tilde{p}(\omega_j\mid\hat{\Theta})\mathcal{V}(\omega_j\mid\hat{\Theta})}
+\end{aligned}
+\end{equation}
+$$
+
+学习完整被积函数时额外输入$\omega_o$, 目标分布改为$f_s L_i\cos\theta_i$, 余弦项以固定vMF波瓣近似. $\mathbf{n}$与粗糙度$r$作为辅助特征输入, $\omega_o$与$\mathbf{n}$使用球谐编码.
+
 ## Radiance Cache
 
 辐射度缓存在探针中存储辐射度, 命中后直接查询缓存, 因此有偏.
