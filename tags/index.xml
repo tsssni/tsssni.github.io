@@ -7,12 +7,12 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>© 2026 </copyright>
-    <lastBuildDate>Fri, 28 Aug 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 07 Sep 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Graphics</title>
       <link>https://tsssni.github.io/tags/graphics/</link>
-      <pubDate>Fri, 28 Aug 2026 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 07 Sep 2026 00:00:00 +0000</pubDate>
       
       <guid>https://tsssni.github.io/tags/graphics/</guid>
       <description></description>
@@ -22,9 +22,29 @@
     <item>
       <title>Metatron</title>
       <link>https://tsssni.github.io/tags/metatron/</link>
-      <pubDate>Fri, 28 Aug 2026 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 07 Sep 2026 00:00:00 +0000</pubDate>
       
       <guid>https://tsssni.github.io/tags/metatron/</guid>
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>Radiance Cache</title>
+      <link>https://tsssni.github.io/tags/radiance-cache/</link>
+      <pubDate>Mon, 07 Sep 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/tags/radiance-cache/</guid>
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>Rendering</title>
+      <link>https://tsssni.github.io/tags/rendering/</link>
+      <pubDate>Mon, 07 Sep 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/tags/rendering/</guid>
       <description></description>
       
     </item>
@@ -35,16 +55,6 @@
       <pubDate>Fri, 28 Aug 2026 00:00:00 +0000</pubDate>
       
       <guid>https://tsssni.github.io/tags/path-guiding/</guid>
-      <description></description>
-      
-    </item>
-    
-    <item>
-      <title>Rendering</title>
-      <link>https://tsssni.github.io/tags/rendering/</link>
-      <pubDate>Fri, 28 Aug 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/tags/rendering/</guid>
       <description></description>
       
     </item>
@@ -260,7 +270,7 @@
     </item>
     
     <item>
-      <title>MacOS</title>
+      <title>Macos</title>
       <link>https://tsssni.github.io/tags/macos/</link>
       <pubDate>Sat, 14 Sep 2024 00:00:00 +0000</pubDate>
       
