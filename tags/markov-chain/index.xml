@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Markov Chain on TSSSNI&#39;S BLOG</title>
+    <link>https://tsssni.github.io/tags/markov-chain/</link>
+    <description>Recent content in Markov Chain on TSSSNI&#39;S BLOG</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <copyright>© 2026 </copyright>
+    <lastBuildDate>Tue, 08 Sep 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/markov-chain/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Metatron Dev. X: MCMC</title>
+      <link>https://tsssni.github.io/render/metatron-dev-10/</link>
+      <pubDate>Tue, 08 Sep 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/render/metatron-dev-10/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-10/featured.jpg" />
+    </item>
+    
+  </channel>
+</rss>
