@@ -1,9 +1,9 @@
 ---
 title: "Metatron Dev. IV: ReSTIR"
-date: 2025-05-17
+date: 2026-06-20
 draft: false
 description: "metatron development log"
-tags: ["graphics", "rendering", "restir", "metatron"]
+tags: ["graphics", "rendering", "restir", "gris"]
 ---
 
 ## RIS
@@ -383,5 +383,37 @@ $$
 p_{x_i}(\omega^x_i)G(\mathbf{p}^x_i \to \mathbf{p}^x_{i+1}),\
 p_{x_{i+1}}(\omega^x_{i+1})G(\mathbf{p}^x_{i+1} \to \mathbf{p}^x_i)
 \right)^{-1} > cR_\mathbf{x}^2
+\end{equation}
+$$
+
+## ReSTIR Splatting
+
+根据图元序号与重心坐标查询本帧的变换矩阵或骨骼动画, 即可获取前向运动矢量, 使用它将历史样本投影到当前帧. 包含在样本中的亚像素偏移使得历史候选集不再是确定的. 将历史样本的样本域扩展为历史帧全体路径空间, 目标函数包含滤波器权重:
+
+$$
+\begin{equation}
+\hat{p}_k(\mathbf{x}) = h_k(\mathbf{x})\,\hat{p}(\mathbf{x})
+\end{equation}
+$$
+
+平衡启发式MIS需要将样本变换到所有候选样本的样本域中, 盒形滤波器位于像素外为0, 由于历史帧样本都来自不同像素, MIS可被简化:
+
+$$
+\begin{equation}
+m_i(Y) = \frac{M_i\,\hat{p}_{\leftarrow i}(Y)}{\sum_{n \in \mathcal{N}(Y)} M_n\,\hat{p}_{\leftarrow n}(Y)} = \frac{M_i\,\hat{p}_{\leftarrow i}(Y)}{M_i\,\hat{p}_{\leftarrow i}(Y) + M_c\,\hat{p}_c(Y)}
+\end{equation}
+$$
+
+亚像素坐标需要计算Jacobian, 令$\theta_V$为视线与相机前向的夹角, $\theta_N$为视线与法线的夹角, 非刚体形变时表面项取三角形面积比, 反之为$1$:
+
+$$
+\begin{equation}
+\begin{aligned}
+\left|\frac{\partial\mathbf{p}_1}{\partial\mathbf{u}}\right| &= \left|\frac{\partial\mathbf{p}_1}{\partial\omega}\right|\left|\frac{\partial\omega}{\partial\mathbf{u}}\right| = \frac{\|\mathbf{p}_1-\mathbf{p}_0\|^2}{\cos\theta_N}\cos^3\theta_V\\
+\left|\frac{\partial\mathbf{u}}{\partial\mathbf{v}}\right|
+&=\left|\frac{\partial\mathbf{u}}{\partial\mathbf{p}^y_1}\right|
+\left|\frac{\partial\mathbf{p}^y_1}{\partial\mathbf{p}^x_1}\right|
+\left|\frac{\partial\mathbf{p}^x_1}{\partial\mathbf{v}}\right|
+\end{aligned}
 \end{equation}
 $$

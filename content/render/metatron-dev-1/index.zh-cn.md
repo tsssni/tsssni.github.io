@@ -1,261 +1,254 @@
 ---
-title: "Metatron Dev. I: 构建系统"
-date: 2025-02-16
+title: "Metatron Dev. I: Metal + Asahi分析Apple Silicon GPU架构"
+date: 2026-06-06
 draft: false
 description: "metatron development log"
-tags: ["graphics", "rendering", "metatron"]
+tags: ["graphics", "rendering", "gpu"]
 ---
 
-今天正式开始开发metatron, 名字由来第一版发布再说. 这些文章主要记录一些相对独有的开发成果, 烂大街的就不提了.
+## Command
 
-## 工具链
+### Command Pool
 
-原本计划使用C++20 modules, 因为懒得分离定义和实现. linux上只有clang对模块有正式支持, [但当clang的exe为符号链接时模块无法找到系统头文件](https://clang.llvm.org/docs/StandardCPlusPlusModules.html#possible-issues-failed-to-find-system-headers), 而NixOS更是封装了一层bash. 官方推荐手动设置-I/path/to/system/headers, 但最后clang会引用到gcc的头文件, 导致找不到定义. 即使不用模块, 现在nixos-24.11的clang也有封装问题, 同样找不到系统头文件. 之后试过用c++23 `import std;`, 但cmake即使打开实验特性也会报`only support libc++`.
+Mesa中的命令池负责在CPU分配和回收命令缓冲, 即使用户将命令缓冲作为一次性对象来频繁销毁创建, Mesa中也足够高效. HK的实现中, 命令池同时为它所分配的所有命令缓冲管理内存分配.
 
-rust也是个选择, 但rust的`trait`和`impl`其实也一定程度分离了定义和实现. 加上我对C++还是有好感的, 也希望项目里能练习一些新特性, 最后还是fallback到更稳妥的gcc+headers
+### Command Buffer
 
-## 编辑器
+HK录制的命令存到控制流链表, 通过尾部跳转指令链接. CPU状态机记录状态修改, 若调用绘制且状态变化, 上传状态到新分配的内存. 推送常量等内部数据由命令缓冲管理内存, 因此为保证数据有效, 命令缓冲不能在执行完成前重置. HK单独分配统一着色器核心(Unified Shader Core)启动命令, AGX要求它们位于虚拟地址低位, 例如描述符集地址.
 
-使用自己配置的nixvim, 测试模块时发现clangd默认不支持C++20语法特性, 需要通过`.clangd`文件设置.
+### Command Encoder
 
-```yaml
-CompileFlags:
-  Add: [-std=c++20]
-```
+Metal的命令编码器负责标记状态共享边界与命令同步, 提供`MTL(Render|Compute|AccelerationStructure|Blit)CommandEncoder`等作用域控制功能. Vulkan除渲染通道外使用命令缓冲全局共享状态.
 
-## 构建系统
+### Command Queue
 
-为了兼容性使用CMake, 构建流程的设计目标如下:
+`MTLCommandQueue`/`VkQueue`对应GPU上的命令提交前端, 它负责发送命令与执行屏障. `VkQueueFamilyProperties`的`queueCount`和`queueFlags`表示提交前端的并发数量与处理能力. `MTLCommandQueue`不暴露`queueFlags`, 相当于通用队列. AGX底层拥有多个硬件前端, 在Metal中切换编码器可能触发前端切换. 例如HK使用渲染和计算两种, 但逻辑上只暴露1个队列并串行化命令.
 
-- 模块可被独立链接
-- 自动分析依赖关系
-- 第三方依赖可配置
+## Synchronization
 
-### 项目结构
+### Barrier
 
-整体结构分为以下处理单元集合:
+Metal没有Vulkan的细粒度屏障, 不追踪风险时需要通过`MTLFence`在编码器间添加屏障. `MTLDispatchTypeSerial`同步编码器内依赖, `MTLDispatchTypeConcurrent`则不保证, 需要调用`memoryBarrier`, 只支持粗粒度的给调用时所有纹理/缓冲/渲染附件添加屏障.
 
-- ext: 第三方依赖
-- src: 项目内模块
-- exe: 可执行程序
+### Stage
 
-此外还有额外的文件夹:
-- cmake: 自定义的cmake函数
+Vulkan认为管线在GPU上是完全并行的, 阶段屏障提供细粒度执行顺序控制实现最大效率. 若当前管线的依赖不被上个管线的后续阶段修改, 管线不再阻塞; 管线前置阶段没有依赖, 可前进到有依赖关系的阶段再阻塞.
 
-### 分批处理
+### Access
 
-将ext/src/exe下面的子文件作为最小处理单元, `metatron_classify`负责收集处理单元. `path`是单元集合目录, 目录下的单元会使用相似的构建方式, 例如`exe`下的单元都会通过`add_executable`创建target. `mode`记录当前处理模式, 同样可设置为`"ext"|"src"|"exe"`, 主要用于单元构建时选择不同的策略. 为防止冲突模块名会添加`metatron-`的前缀.
+访问屏障用于内存一致性保证, 以RADV为例:
 
-```cmake
-function(metatron_classify path mode)
-  if (IS_DIRECTORY ${path})
-    file(GLOB units RELATIVE ${path} ${path}/*)
-    foreach(unit ${units})
-      if(IS_DIRECTORY ${path}/${unit})
-        metatron_evaluate(metatron-${unit} ${path}/${unit} ${mode})
-      endif()
-    endforeach()
-  endif()
-endfunction()
-```
+- RAW
+    - src: `VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT`
+    - dst: `VK_ACCESS_SHADER_SAMPLED_READ_BIT`
+    - `FLUSH_AND_INV_CB`将颜色缓存写回L2, `INV_VCACHE`强制L0/L1失效
+- WAR
+    - src: `VK_ACCESS_SHADER_SAMPLED_READ_BIT`
+    - dst: `VK_ACCESS_TRANSFER_WRITE_BIT`
+    - `PS_PARTIAL_FLUSH`等待读取完成
+- WAW
+    - src: `VK_ACCESS_SHADER_STORAGE_WRITE_BIT`
+    - dst: `VK_ACCESS_SHADER_STORAGE_WRITE_BIT`
+    - `WB_L2`将缓冲缓存写回L2, `CS_PARTIAL_FLUSH`等待写入完成
 
-### 单元设置
+### Image Layout
 
-每个单元下都可以通过`setup.cmake`做一些设置, 例如`exe/renderer/setup.cmake`, 大部分工作都在这里完成, `CMakeLists.txt`只做简单的配置与全局变量定义. `metatron-build`用于收集所有构建单元, 然后再分析依赖关系.
+[So Long, Image Layouts: Simplifying Vulkan Synchronization](https://www.khronos.org/blog/so-long-image-layouts-simplifying-vulkan-synchronisation)阐明图像布局的存在理由: 初始化, 外部组件共享, 内部格式解析. 前两者现代GPU依然需要, 例如将图片转为显示引擎可读的格式.
 
-```cmake
-cmake_minimum_required(VERSION 3.30.5)
+内部格式解析在大部分设备上已不再重要, `VK_KHR_unified_image_layout`启用后保证`VK_IMAGE_LAYOUT_GENERAL`具有最高效率. 例如HK/NVK在图像创建时解析是否可以压缩, 绑定内存时设置压缩元数据, 后续交给硬件处理.
 
-project(metatron-renderer LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/lib)
+RADV驱动依赖图像布局执行格式解析, 故不支持`VK_KHR_unified_image_layout`, 例如:
+- HTILE(Hierarchical Tile)
+    - src: `VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL`
+    - dst: `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`
+    - 使用HTILE压缩深度附件, 若不兼容纹理缓存格式则触发解压
+- DCC(Delta Color Compression)
+    - src: `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`
+    - dst: `VK_IMAGE_LAYOUT_GENERAL`
+    - 使用DCC压缩颜色附件, 在计算引擎上格式转换为`VK_IMAGE_LAYOUT_GENERAL`, 代表图像可写, 不识别DCC的旧硬件使用通用内存格式, 需要解压.
+- 片元掩码(Fragment Mask)
+    - src: `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`
+    - dst: `VK_IMAGE_LAYOUT_GENERAL`
+    - 4样本MSAA像素覆盖两个图元, 只写入两种颜色以降低带宽, 索引片元掩码设为[0, 0, 1, 1], 后续写入退化为完整存储4个样本.
+- 快速清屏消除(Fast Clear Eliminate)
+    - src: `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`
+    - dst: `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`
+    - 不兼容纹理缓存格式的MSAA图像无法读取快速清屏值, 需要写入MSAA样本
 
-set(metatron-root ${CMAKE_CURRENT_LIST_DIR})
-set(metatron-bin ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-set(metatron-lib ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
+## Pipeline
 
-define_property(TARGET PROPERTY metatron-units)
-define_property(TARGET PROPERTY metatron-path)
-define_property(TARGET PROPERTY metatron-mode)
-define_property(TARGET PROPERTY metatron-access)
+现代API显式声明管线以支持AOT, Vulkan中`VkPipelineLayout`和`VkShaderModule`等状态必须静态, 视口等状态可静态化. Metal支持`MTL(Render|Compute)PipelineState`, 从`MTLLibrary`中提取函数, Metal始终不允许静态化视口等状态以避免组合爆炸. Vulkan后续推出`VK_EXT_graphics_pipeline_library`, 允许管线的不同阶段独立编译再链接, 降低编译开销但同时阻止了跨阶段编译优化.
 
-include(cmake/classify.cmake)
-include(cmake/evaluate.cmake)
-include(cmake/link.cmake)
+### Input Assembly
 
-add_library(metatron-build INTERFACE)
-set_property(TARGET metatron-build PROPERTY metatron-units)
+IA阶段负责图元装配与顶点数据获取. 通常图元装配是固定管线, 硬件扫描索引缓冲, 执行顶点去重, 使用更紧凑的索引, 直到图元或顶点数量达到上限. 顶点数据获取的实现更多样, 例如HK将该阶段转为顶点着色器前置的软件内存读取, NVK则完全硬件化.
 
-metatron_classify(${metatron-root}/lib "ext")
-metatron_classify(${metatron-root}/src "src")
-metatron_classify(${metatron-root}/exe "exe")
+### TBDR
 
-get_property(metatron-units TARGET metatron-build PROPERTY metatron-units)
-foreach(unit ${metatron-units})
-  metatron_link(${unit})
-endforeach()
-```
+为减少频繁写入内存的功耗增长, 光栅器预先划分屏幕为图块, 多次绘制只操作片上缓存, `vk(Begin|End)Rendering`/`MTLRenderCommandEncoder`标记图块复用边界. 分块阶段中硬件分块器将渲染通道内多次绘制的所有图元按图块分类, 渲染阶段以图块为单位启动, 读取图元并执行剔除与着色.
 
-对于处理单元集合, `setup.cmake`只是调用`metatron_classify`.
+AGX继承PowerVR的逐像素HSR(Hidden Surface Removal), 等待图块内所有图元完成深度测试后只着色最终可见片元. 由于可见性在着色前已完全解析, 不透明物体的提交顺序不影响开销, 无需由近及远排序. Adreno生成只计算位置的顶点着色器, 在分块阶段执行并生成1/8 LRZ(Low Resolution Z), 即8x8最近深度中的最远值. Mali使用保守的Early-Z, 并补充FPK(Forward Pixel Kill), 新片元通过深度测试且完全覆盖队列中尚未着色的旧片元时直接终止后者, 已开始着色的无法回收. LRZ与FPK均为保守剔除, 不透明物体仍需排序.
 
-```cmake
-message(STATUS "processing libraries ...")
-metatron_classify("${metatron-root}/src" "src")
-```
+`vkCmdBeginRendering`中, HK会执行多项准备工作, 例如:
+1. 基于颜色附件的对齐排序, 最大化空间利用率, HK中每个样本最多占用64字节
+2. 颜色附件溢出部分需要驻留内存, AGX无法处理内存中的压缩格式, 执行解压
+3. 分块器容量有限, 图元过多时触发部分绘制并写回内存, 加载剩余图元后回读并继续
+4. 非全屏绘制时导致部分图块超出绘制范围, 不支持图块粒度快速清屏, 执行软件实现
 
-对于exe/src, `setup.cmake`主要用于分析依赖关系, 将依赖的模块存储在`metatron-deps`中.
+HK的透明度测试等输出合并操作使用软件实现, 插入到片元着色器尾部以在图块内执行.
 
-```cmake
-list(APPEND metatron-deps mimalloc)
-```
+### Geometry
 
-对于lib, `setup.cmake`还会设置第三方库的构建选项. 第三方库也需要设置`metatron-deps`, 主要用于以统一的格式设置依赖.
+分块与渲染为分离阶段, 顶点计算结果写入显存的中间缓冲再逐图块回读, 每个顶点对应一次显存往返, 顶点数量与插值变量的位宽直接决定该部分带宽, 而IMR架构顶点结果留在片上缓存, 直接被光栅化消费, 不存在该开销. 颜色与深度则相反, 驻留图块内且存储操作设置正确时不产生显存流量, 因此顶点数量的增长通常比像素数量更昂贵.
 
-```cmake
-set(MI_USE_CXX ON CACHE BOOL "")
-set(MI_BUILD_STATIC OFF CACHE BOOL "")
-set(MI_BUILD_OBJECT OFF CACHE BOOL "")
-set(MI_BUILD_TESTS OFF CACHE BOOL "")
-add_subdirectory(${path}/mimalloc)
-list(APPEND metatron-deps mimalloc)
-```
+部分实现将顶点着色器拆分为位置与插值变量两部分, 位置部分执行后先剔除, 只对存活图元执行插值变量部分; 另一些实现在分块阶段只执行计算位置的着色器, 渲染阶段再完整处理一遍几何, 后者对顶点数量最为敏感. 由于只读取位置, 交错存储的顶点属性使该阶段读取完整顶点导致跨越缓存, 因此位置应与其它属性分离到独立的顶点流.
 
-### 求解模块
+图元需要在其覆盖的每个图块的图元列表中登记, 故大三角形增加分块开销. 几何着色器的输出量运行时才确定, 需要按最坏情况分配并经由内存传递, Metal不提供几何着色器; 曲面细分在分块前放大顶点数量, 加剧中间缓冲溢出, 两者在移动端均不推荐.
 
-模块生成过程在`metatron_evaluate`中.
+### Hi-Z
 
-对于ext, 创建interface target, 用于传递与第三方库的依赖关系, 并不会生成实际构建结果.
+硬件Hi-Z的层级体现为光栅化各阶段的测试粒度, 如图元包围盒与图块网格的粗光栅剔除, 图块内已写入的最小/最大深度测试, 四元组以及逐像素深度测试, 通过测试再继续下一级. 软件Hi-Z用于遮挡剔除, 剔除粒度为物体或簇的包围盒, 需要完整的深度金字塔以便按尺寸选择Mip等级, 保证单次采样覆盖整个包围盒.
 
-```cmake
-message(STATUS "build external library ${target}")
-add_library(${target} INTERFACE)
-```
+当前帧深度在剔除时尚未生成, 通常使用两阶段剔除解决: 先用历史帧Hi-Z重投影筛选并绘制通过的对象, 基于该部分深度构建当前帧Hi-Z, 再重测第一阶段被剔除的对象并补绘. 历史帧只用于决定绘制顺序, 最终判定只依赖当前帧深度, 因此结果保守正确. 若不接受历史帧延迟, 可改用简化几何的深度预通道, 或将少量遮挡代理软光栅到低分辨率深度图.
 
-src/exe下如果有cpp文件, 则创建target, 传递头文件目录的依赖, 最后会生成动态库或可执行文件. 模块的头文件必须位于`include/metatron/${unit}/`, 这样头文件都可以通过`#include <metatron/${unit}/...>`引入, 且分析完依赖关系后, 只有依赖的模块的头文件会被补全.
+### Attachment
 
-```cmake
-if(${mode} STREQUAL "exe")
-    message(STATUS "build executable ${target}")
-    add_executable(${target} ${sources})
-else()
-    message(STATUS "build library ${target}")
-    add_library(${target} SHARED EXCLUDE_FROM_ALL ${sources})
-endif()
-target_include_directories(${target} PUBLIC ${path}/include)
-```
+附件的加载/存储操作决定图块与显存之间的往返, Vulkan为`loadOp`/`storeOp`, Metal为`loadAction`/`storeAction`. 通道开始时设置`CLEAR`或`DONT_CARE`避免读入, 结束时对不再使用的附件设置`DONT_CARE`避免写回, MSAA附件通常属于后者.
 
-构建单元如果是纯头文件库, 或者是只用于收集依赖并传播的接口库, 采用和lib类似的处理方式, 因为只需要被include或target链接.
+GLES依据帧缓冲绑定划分边界, 如开始时`glClear`, 结束时`glInvalidateFramebuffer`. `glReadPixels`, `glBlitFramebuffer`及中途切换FBO均会打断图块复用, 因此绘制调用需要按帧缓冲分组. `EXT_multisampled_render_to_texture`使MSAA附件只存于图块内.
 
-```cmake
-if(headers)
-    message(STATUS "build header-only library ${target}")
-else()
-    message(STATUS "build interface library ${target}")
-endif()
-add_library(${target} INTERFACE)
-target_include_directories(${target} INTERFACE ${path}/include)
-set(mode "inc")
-```
+通道内的所有附件需要同时驻留图块, 位宽之和超出预算硬件缩小图块尺寸导致开销增加. 因此延迟渲染的G-Buffer位宽直接影响分块效率, 移动端通常选择Forward+而非延迟渲染.
 
-最后设置target属性用于依赖分析.
+### Subpass
 
-```cmake
-set_property(TARGET ${target} PROPERTY metatron-path ${path})
-set_property(TARGET ${target} PROPERTY metatron-mode ${mode})
-if(${mode} STREQUAL "ext" OR ${mode} STREQUAL "inc")
-    set_property(TARGET ${target} PROPERTY metatron-access INTERFACE)
-else()
-    set_property(TARGET ${target} PROPERTY metatron-access PUBLIC)
-endif()
-```
+子通道提供的能力是在图块内读回上一阶段写入的附件, 而非TBDR本身, 单子通道的渲染通道与`VK_KHR_dynamic_rendering`在分块上完全等价. 输入附件的`subpassLoad`不接受坐标参数, 只能读取当前片元位置, 依赖关系需要设置`VK_DEPENDENCY_BY_REGION_BIT`声明不跨图块. 因此延迟渲染的光照, 色调映射与自定义混合可以合并到同一通道, 而模糊, 降采样等邻域操作必须结束通道并写回显存.
 
-### 链接依赖
+动态渲染丢失该能力后由`VK_KHR_dynamic_rendering_local_read`补回, 已进入Vulkan 1.4核心. Metal没有子通道, 同像素读回通过programmable blending实现, 更复杂的图块内计算使用imageblock与tile shader, 后者可访问整个图块的数据, 能力强于输入附件. GLES对应`EXT_shader_framebuffer_fetch`与`EXT_shader_pixel_local_storage`, 另有需要显式插入屏障的`QCOM_shader_framebuffer_fetch_noncoherent`.
 
-获取target属性.
+子通道在桌面IMR上无实际效果, 驱动直接视为独立通道. HK实现了`VK_KHR_dynamic_rendering`, 子通道在Mesa中由动态渲染模拟, 多个子通道的图块复用退化为显存读写, 因此不推荐在Mesa中使用子通道.
 
-```cmake
-set(target metatron-${unit})
-get_property(path TARGET ${target} PROPERTY metatron-path)
-get_property(mode TARGET ${target} PROPERTY metatron-mode)
-get_property(access TARGET ${target} PROPERTY metatron-access)
-```
+### MSAA
 
-执行`setup.cmake`中的自定义构建流程.
+硬件上根据MSAA倍数分配相应大小的颜色/深度附件, 颜色存储片元着色结果, 深度剔除亚像素片元. 着色插值点在像素中心, 若多个亚像素被相同片元覆盖, 只做一次着色.
 
-```cmake
-# execute setup file
-set(metatron-deps)
-set(setup-file ${path}/setup.cmake)
-if(EXISTS ${setup-file})
-    include(${setup-file})
-endif()
-```
+AGX等TBDR架构可以让MSAA颜色/深度附件只在片上存活, 解析后写回显存. RADV每个像素实际为FMASK索引, 例如4x时只存2位索引, 单个像素共8位, 解析时用索引读取着色. RADV的EQAA支持样本数大于实际可存储的样本数, 实现更平滑的着色.
 
-获取依赖项, 由于构建系统自动添加前缀, src/exe需要重命名依赖项.
+### Perspective Correction
 
-```cmake
-# solve dependencies
-set(linked-libs)
-foreach(dep ${metatron-deps})
-    if(${mode} STREQUAL "ext")
-        list(APPEND linked-libs ${dep})
-    else()
-        list(APPEND linked-libs metatron-${dep})
-    endif()
-endforeach()
-```
+对物体做线性变换重心坐标不变. 比如正交投影到 xy 平面, 相当于面积缩放 $n \cdot z$. 内部子三角形缩放相同, 即面积比例不变, 可用二维面积计算重心坐标. 数学证明:
 
-执行target链接.
+$$
+\begin{aligned}
+T(\mathbf{x}) &= \mathbf{M}\mathbf{x} + \mathbf{t}, \ \mathbf{P} = \sum_i b_i \mathbf{v}_i, \ \sum_i b_i = 1\\
+T(\mathbf{P})
+&= \mathbf{M}\left(\sum_i b_i \mathbf{v}_i\right) + \mathbf{t}\\
+&=  \sum_i b_i\,\mathbf{M}\mathbf{v}_i + \left(\sum_i b_i\right) \mathbf{t}
+= \sum_i b_i\,\mathbf{M}\mathbf{v}_i + \sum_i b_i\,\mathbf{t}\\
+&=  \sum_i b_i \left( \mathbf{M}\mathbf{v}_i + \mathbf{t} \right)
+= \sum_i b_i\,T(\mathbf{v}_i)
+\end{aligned}
+$$
 
-```cmake
-# link dependencies
-if(linked-libs)
-    message(STATUS "${target} link libraries ${linked-libs}")
-    target_link_libraries(${target} ${access} ${linked-libs})
-endif()
-```
+透视投影含逐点除以$w$使得重心坐标不再恒定, 但透视除法之前的步骤为线性变换, 可通过分析透视除法前的系数关系得到透视矫正系数. 裁剪空间变换如下:
 
-## 构建运行
+$$
+\tilde{\mathbf{V}}(\mathbf{P})\ =\ \mathbf{M}\,(\mathbf{P},1)\ =\ \sum_i b_i\,\mathbf{M}\,(\mathbf{P}_i,1)\ =\ \sum_i b_i\,\tilde{\mathbf{V}}_i
+$$
 
-为避免`cmake`命令行参数不一致导致的问题, 项目中含有`CMakePresets.json`.
+裁剪空间$w$可用重心坐标插值, 将NDC坐标按透视除法的$\mathbf{p}_i=(x_i,y_i)/w_i$分解:
 
-```json
-{
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 30,
-    "patch": 5
-  },
-  "configurePresets": [
-    {
-      "name": "default",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      }
-    },
-    {
-      "name": "linux-native-dev",
-      "inherits": "default",
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "linux-native-rel",
-      "inherits": "default",
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    }
-  ],
-  "version": 8
-}
-```
+$$
+\begin{aligned}
+\mathbf{p}
+&=\frac{\sum_i b_i\,(x_i,y_i)}{\sum_j b_j w_j} = \frac{\sum_i b_i w_i\cdot (x_i,y_i)/w_i}{\sum_j b_j w_j}\\
+&=\sum_i \frac{b_i w_i}{\sum_j b_j w_j}\,\mathbf{p}_i = \sum_i s_i \mathbf{p}_i
+\end{aligned}
+$$
 
-运行`cmake -B build --preset linux-native-dev`即可生成构建目标, `cmake --build build`启动构建.
+基于$s_i$推导$b_i$:
 
-无论neovim还是vscode的CMake插件我都使用过一段时间, 其实和命令行也没差多少, 无非是可以打开编辑器自动生成, 对于我自己的项目确实没必要了.
+$$
+\begin{aligned}
+\frac{s_i}{w_i} &= \frac{b_i}{\sum_j b_j w_j}\\
+\sum_i \frac{s_i}{w_i} &= \frac{\sum_i b_i}{\sum_j b_j w_j} = \frac{1}{\sum_j b_j w_j}\\
+b_i &= \frac{s_i / w_i}{\sum_j s_j / w_j}
+\end{aligned}
+$$
+
+### Triangle Setup
+
+边函数$e(\mathbf{p}) = \begin{vmatrix}\mathbf{v}_1 - \mathbf{v}_0 \\ \mathbf{p} - \mathbf{v}_0\end{vmatrix}$结果为两条向量组成的平行四边形的有向面积, 可用于重心坐标计算, 同时可通过符号判断位于边的哪一侧, 三个边函数符号相同则位于三角形内.
+
+需要基于$\mathbf{x} = \begin{bmatrix}\frac{\partial u}{\partial x}\ \frac{\partial u}{\partial y} \\ \frac{\partial v}{\partial x}\ \frac{\partial v}{\partial y} \end{bmatrix}$计算纹理屏幕空间微分以选择预滤波Mipmap. 光追应用通常基于相邻像素发射微分光线与三角形求交计算$b = \begin{bmatrix}\frac{\partial\mathbf{P}}{\partial x}\ \frac{\partial\mathbf{P}}{\partial y}\end{bmatrix}$, 结合预计算的$A = \begin{bmatrix}\frac{\partial\mathbf{P}}{\partial u}\ \frac{\partial\mathbf{P}}{\partial v}\end{bmatrix}$, 求解$A\mathbf{x}=b$.
+
+光栅化硬件为提高效率, 通常在预计算边函数系数后, 以固定宽度并行扫描包围盒内像素. 着色以2x2四元组为单位, 微分通过读取组内线程$uv$计算, 图元边缘由范围外的辅助线程补齐差分. 小三角形下硬件每时钟处理的三角形数量有限, 定宽扫描可能只生效一个像素, 成为串行瓶颈; 三次顶点着色可能只对应一次片元着色, 四元组中大部分线程为辅助线程. Nanite对小三角形改用软件光栅化, 上述流程只占用一个线程以减少浪费.
+
+## Descriptor
+
+### Descriptor Set
+
+若设置`VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT`, 描述符数量的设置延迟到分配阶段, 描述符集布局可以被多个只有无绑定描述符数量不同的描述符集使用. Vulkan只允许将最后一个绑定点设置为可变.
+
+若设置`VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT`, 允许描述符集在绑定后更新, 无绑定描述符更新时机不受限, 提升流式加载的性能.
+
+### Descriptor Buffer
+
+`VK_EXT_descriptor_buffer`使得描述符集暴露底层的`VkBuffer`, 可直接操作该缓冲, 通过一系列接口暴露描述符偏移/长度等信息执行更新. Vulkan不同类型的描述符不等长, 驱动也可能重排用户声明的描述符顺序, 因此必须事先查询.
+
+硬件可能特殊处理采样器, 例如HK定义了长度为1024且全局唯一的`hk_sampler_heap`, 创建采样器时写入该推并去重, 描述符只存储指向该堆的索引.
+
+### Descriptor Heap
+
+`VK_EXT_descriptor_heap`可以兼容D3D12描述符堆, 不再有隐式描述符重排. 在hlsl中用`ResourceDescriptorHeap`访问任意描述符需要保持等长, 可用最大长度作为统一步长.
+
+### Descriptor Pool
+
+对于许多现代设备, 描述符池分配描述符集的方式与描述符缓冲一致. 例如HK的描述符池封装可容纳最大数量描述符集的堆, 分配描述符集时从堆中分配内存.
+
+旧设备或嵌入式设备的描述符集可能封装了其它分配/绑定方式, 例如Raspberry PI V3DV使用OpenGL方法, 将变量设置为地址或值; 更旧的硬件可能直接将描述符写入寄存器.
+
+### Push Constants
+
+HK推送常量位于`hk_root_descriptor_table`, 在命令缓冲中共享. 推送常量上传到内存, 设置在变量寄存器写入地址来访问.
+
+RADV解码时将推送常量设置到硬件状态寄存器, 运行时加载至SGPR的头部. 若着色器存在推送常量动态索引, 无法内联寄存器访问, 编译器会减少寄存器预算, 超出部分溢出到显存.
+
+### Inline Uniform Block
+
+内联变量块将UBO数据直接写入描述符集内存, 而非描述符间接访问, HK在编译期将UBO访问翻译为在描述符集中寻址.
+
+## Resource
+
+### Layout
+
+- scalar: C语言对齐, 成员的偏移必须满足自身对齐, 结构体使用最大成员的对齐.
+- base: `std430`, 增加向量对齐, `vec3`使用`vec4`对齐, 结构体向上取整到`vec4`.
+- extended: `std140`, 旧硬件UBO位于常量寄存器堆, 每寄存器16字节. 动态索引需要取寄存器完整内容再确定偏移, 例如`vec2 a[2]`访问`a[i].x`时编译器无法推断`.x`在寄存器中的偏移. 将元素填充到16字节可避免该问题以提升旧硬件性能.
+
+### Register
+
+GCN架构中, VGPR为子组的每个线程单独分配, SGPR为子组共享. VGPR与SGPR使用不同的寄存器文件, 分别用VALU与SALU读取. 共享数据分配到SGPR可减少ALU和寄存器压力.
+
+AGX使用统一GPR, 分配单位2字节, 此外有变量寄存器存储共享标量. 由于没有硬件SALU, 只能在着色器前插入变量加载或预计算. 除运行时计算结果, 变量寄存器也存放推送常量, 描述符等数据.
+
+### Payload
+
+光追的调用目标编译期未知, 命中的几何体决定着色器绑定表索引, 需要通过载荷约定参数. 若开启着色器执行重排, 在调用命中着色器前插入重排点并保存子组状态, 将相同的着色器调用聚拢到相同子组后加载对应状态. 若开启俄罗斯轮盘赌, 可通过重排填充早退线程.
+
+RADV将载荷表示为`uint32`数组并分配VGPR, BVH遍历为软件实现, 不读写载荷但需透传, 因此整个遍历期间都占用VGPR. 规范未要求载荷等光追存储类支持小于32位的类型, 因此手动指定宽度更小的类型可能最终编译得到32位类型, 导致得不到预期的寄存器占用.
+
+### Sparse Memory
+
+稀疏内存为超大尺寸虚拟纹理/缓冲提供硬件支持, Vulkan将硬件支持分为稀疏绑定/驻留, 稀疏绑定可将资源绑定到不同内存, 稀疏驻留在其基础上可部分绑定, 未绑定区域的访问良定义. 若支持稀疏驻留别名, 相同稀疏内存可绑定到不同资源.
+
+由于稀疏内存暴露虚拟页表, `vkQueueBindSparse`操作队列修改硬件页表, 用信号量同步, 需要队列支持`VK_QUEUE_SPARSE_BINDING_BIT`, 可实现异步绑定.
+
+Metal只支持虚拟纹理, 使用`MTLResourceStateCommandEncoder`执行映射, 因此页表同步发生在编码器的分配/释放. 分配内存需要设置堆为`MTLHeapTypeSparse`, 不支持别名.
+
+HK通过硬件DRM实现虚拟纹理与缓冲, 创建虚拟资源时将整段页表绑定到值为0的页面, 维护额外的稀疏页表. 由于AGX硬件页表16KB, Vulkan规范为64KB, HK将Z-Order连续的纹理页面绑定到Vulkan页面.
+
+对于虚拟纹理, 若支持Mipmap, Vulkan要求高Mip等级用连续内存绑定. AGX图像队列各层连续存储各自的Mip等级, 由于AGX页表为16KB, 小图可能与其它层共享64KB逻辑页面, 无法逐个绑定各层页表. 因此AGX返回`VK_SPARSE_IMAGE_FORMAT_SINGLE_MIPTAIL_BIT`, 偏移返回魔数, 用户将所有层的高Mip写到连续内存, HK将连续内存分散绑定到实际位置.
+
+### Residency Set
+
+Metal中需要通过`useResource`声明资源可被访问, 否则不保证虚拟地址映射到物理内存. 无绑定模型下难以声明所有资源, Metal3添加驻留集以支持一次声明多个资源的驻留情况, 允许向驻留集添加多个资源或内存堆.
