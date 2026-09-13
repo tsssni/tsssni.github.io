@@ -10,59 +10,9 @@
     <lastBuildDate>Fri, 28 Aug 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://tsssni.github.io/tags/rendering/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Metatron Dev. VIII: 抽样优化</title>
-      <link>https://tsssni.github.io/render/metatron-dev-8/</link>
-      <pubDate>Fri, 28 Aug 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/render/metatron-dev-8/</guid>
-      <description></description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-8/featured.jpg" />
-    </item>
-    
-    <item>
-      <title>Interview III: 项目分析</title>
-      <link>https://tsssni.github.io/render/interview-3/</link>
-      <pubDate>Mon, 15 Jun 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/render/interview-3/</guid>
-      <description></description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/interview-3/featured.png" />
-    </item>
-    
-    <item>
-      <title>Interview I: Metal &#43; Asahi分析Apple Silicon GPU架构</title>
-      <link>https://tsssni.github.io/render/interview-1/</link>
-      <pubDate>Sat, 06 Jun 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/render/interview-1/</guid>
-      <description></description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/interview-1/featured.jpg" />
-    </item>
-    
-    <item>
-      <title>Metatron Dev. VII: GPU</title>
-      <link>https://tsssni.github.io/render/metatron-dev-7/</link>
-      <pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/render/metatron-dev-7/</guid>
-      <description></description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-7/featured.jpg" />
-    </item>
-    
-    <item>
-      <title>Metatron Dev. VI: ECS &amp; SERDE</title>
-      <link>https://tsssni.github.io/render/metatron-dev-6/</link>
-      <pubDate>Wed, 06 Aug 2025 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/render/metatron-dev-6/</guid>
-      <description></description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-6/featured.jpg" />
-    </item>
-    
-    <item>
-      <title>Metatron Dev. V: proxy</title>
+      <title>Metatron Dev. V: 抽样优化</title>
       <link>https://tsssni.github.io/render/metatron-dev-5/</link>
-      <pubDate>Sun, 06 Jul 2025 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 28 Aug 2026 00:00:00 +0000</pubDate>
       
       <guid>https://tsssni.github.io/render/metatron-dev-5/</guid>
       <description></description>
@@ -72,7 +22,7 @@
     <item>
       <title>Metatron Dev. IV: ReSTIR</title>
       <link>https://tsssni.github.io/render/metatron-dev-4/</link>
-      <pubDate>Sat, 17 May 2025 00:00:00 +0000</pubDate>
+      <pubDate>Sat, 20 Jun 2026 00:00:00 +0000</pubDate>
       
       <guid>https://tsssni.github.io/render/metatron-dev-4/</guid>
       <description></description>
@@ -80,9 +30,9 @@
     </item>
     
     <item>
-      <title>Metatron Dev. III: 体数据</title>
+      <title>Metatron Dev. III: 项目杂记</title>
       <link>https://tsssni.github.io/render/metatron-dev-3/</link>
-      <pubDate>Mon, 05 May 2025 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 15 Jun 2026 00:00:00 +0000</pubDate>
       
       <guid>https://tsssni.github.io/render/metatron-dev-3/</guid>
       <description></description>
@@ -90,19 +40,9 @@
     </item>
     
     <item>
-      <title>Metatron Dev. II: 矩阵运算</title>
-      <link>https://tsssni.github.io/render/metatron-dev-2/</link>
-      <pubDate>Sat, 12 Apr 2025 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/render/metatron-dev-2/</guid>
-      <description></description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://tsssni.github.io/render/metatron-dev-2/featured.jpg" />
-    </item>
-    
-    <item>
-      <title>Metatron Dev. I: 构建系统</title>
+      <title>Metatron Dev. I: Metal &#43; Asahi分析Apple Silicon GPU架构</title>
       <link>https://tsssni.github.io/render/metatron-dev-1/</link>
-      <pubDate>Sun, 16 Feb 2025 00:00:00 +0000</pubDate>
+      <pubDate>Sat, 06 Jun 2026 00:00:00 +0000</pubDate>
       
       <guid>https://tsssni.github.io/render/metatron-dev-1/</guid>
       <description></description>

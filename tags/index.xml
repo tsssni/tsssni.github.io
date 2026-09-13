@@ -30,16 +30,6 @@
     </item>
     
     <item>
-      <title>Metatron</title>
-      <link>https://tsssni.github.io/tags/metatron/</link>
-      <pubDate>Fri, 28 Aug 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/tags/metatron/</guid>
-      <description></description>
-      
-    </item>
-    
-    <item>
       <title>Path Guiding</title>
       <link>https://tsssni.github.io/tags/path-guiding/</link>
       <pubDate>Fri, 28 Aug 2026 00:00:00 +0000</pubDate>
@@ -60,11 +50,21 @@
     </item>
     
     <item>
-      <title>Global Illumination</title>
-      <link>https://tsssni.github.io/tags/global-illumination/</link>
-      <pubDate>Mon, 15 Jun 2026 00:00:00 +0000</pubDate>
+      <title>Gris</title>
+      <link>https://tsssni.github.io/tags/gris/</link>
+      <pubDate>Sat, 20 Jun 2026 00:00:00 +0000</pubDate>
       
-      <guid>https://tsssni.github.io/tags/global-illumination/</guid>
+      <guid>https://tsssni.github.io/tags/gris/</guid>
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>Restir</title>
+      <link>https://tsssni.github.io/tags/restir/</link>
+      <pubDate>Sat, 20 Jun 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://tsssni.github.io/tags/restir/</guid>
       <description></description>
       
     </item>
@@ -125,36 +125,6 @@
       <pubDate>Sun, 10 May 2026 00:00:00 +0000</pubDate>
       
       <guid>https://tsssni.github.io/tags/maths/</guid>
-      <description></description>
-      
-    </item>
-    
-    <item>
-      <title>Metal</title>
-      <link>https://tsssni.github.io/tags/metal/</link>
-      <pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/tags/metal/</guid>
-      <description></description>
-      
-    </item>
-    
-    <item>
-      <title>Vulkan</title>
-      <link>https://tsssni.github.io/tags/vulkan/</link>
-      <pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/tags/vulkan/</guid>
-      <description></description>
-      
-    </item>
-    
-    <item>
-      <title>Restir</title>
-      <link>https://tsssni.github.io/tags/restir/</link>
-      <pubDate>Sat, 17 May 2025 00:00:00 +0000</pubDate>
-      
-      <guid>https://tsssni.github.io/tags/restir/</guid>
       <description></description>
       
     </item>
@@ -270,7 +240,7 @@
     </item>
     
     <item>
-      <title>Macos</title>
+      <title>MacOS</title>
       <link>https://tsssni.github.io/tags/macos/</link>
       <pubDate>Sat, 14 Sep 2024 00:00:00 +0000</pubDate>
       
