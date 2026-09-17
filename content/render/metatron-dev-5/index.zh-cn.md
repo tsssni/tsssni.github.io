@@ -245,7 +245,7 @@ $$
 \end{equation}
 $$
 
-贴近物体的探针命中距离短, 需要的采样率率低, 反之采样率高. 因此不同LOD的探针对应不同的距离区间, 基于区间远端与探针体素内嵌球形成的锥体, 可估计角采样Nyquist频率. 令$w$为体素边长, $d$为与体素中心的距离, $c$为超参数, 采样频率估计如下:
+贴近物体的探针命中距离短, 需要的采样率低, 反之采样率高. 不同LOD的探针对应不同的距离区间, 基于区间远端与探针体素内嵌球形成的锥体, 可估计角采样Nyquist频率. 令$w$为体素边长, $d$为与体素中心的距离, $c$为超参数, 采样频率估计如下:
 
 $$
 \begin{equation}
@@ -696,6 +696,34 @@ $$
 \end{equation}
 $$
 
+重连接后$\mathbf{u}_{i-1}$为隐式, 需要BSDF抽样可逆即由$\omega^x_{i-1}$恢复$\mathbf{u}^x_{i-1}$. 若以对称核$k(\omega^x_{i-1}, \omega^y_{i-1})$扰动立体角, 变换到$\mathbf{u}_{i-1}$后为$k(\omega^x_{i-1}, \omega^y_{i-1})\left|\frac{\partial\omega^y_{i-1}}{\partial\mathbf{u}^y_{i-1}}\right| = \frac{k(\omega^x_{i-1}, \omega^y_{i-1})}{p_{y_{i-1}}(\omega^y_{i-1})}$, 此时比值变为:
+
+$$
+\begin{equation}
+\frac{T(\mathbf{y} \to \mathbf{x})}{T(\mathbf{x} \to \mathbf{y})}
+= \frac{p_{y_{i-1}}(\omega^y_{i-1})}{p_{x_{i-1}}(\omega^x_{i-1})}J_{\mathbf{x} \to \mathbf{y}}
+\end{equation}
+$$
+
+$\mathbf{p}_{i+2} = \mathbf{p}_e$时, $\mathbf{p}_{i+1} \to \mathbf{p}_e$确定, $\mathbf{u}_{i+1}$不存在, 去除$\mathbf{u}_{i+1}$的变换:
+
+$$
+\begin{equation}
+\frac{T(\mathbf{y} \to \mathbf{x})}{T(\mathbf{x} \to \mathbf{y})}
+= \frac{p_{y_{i-1}}(\omega^y_{i-1})}{p_{x_{i-1}}(\omega^x_{i-1})}
+\frac{p_{y_i}(\omega^y_i)G(\mathbf{p}^y_i \to \mathbf{p}^x_{i+1})}{p_{x_i}(\omega^x_i)G(\mathbf{p}^x_i \to \mathbf{p}^x_{i+1})}
+\end{equation}
+$$
+
+$\mathbf{p}_{i+1} = \mathbf{p}_e$时, $\mathbf{p}_i \to \mathbf{p}_e$确定, $\mathbf{u}_i$不存在, 提议只包含$\mathbf{u}_{i-1}$的变换:
+
+$$
+\begin{equation}
+\frac{T(\mathbf{y} \to \mathbf{x})}{T(\mathbf{x} \to \mathbf{y})}
+= \frac{p_{y_{i-1}}(\omega^y_{i-1})}{p_{x_{i-1}}(\omega^x_{i-1})}
+\end{equation}
+$$
+
 ## Correlated Sampling
 
 ### Control Variates
@@ -742,7 +770,7 @@ $$
 \begin{aligned}
 I_x - \alpha I_y
 &= \int_{\Omega_x} f(\mathbf{x})\mathrm{d}\mathbf{x} - \alpha\int_{\Omega_y} f(\mathbf{y})\mathrm{d}\mathbf{y}\\
-&= \int_{\Omega_x} \left(f(\mathbf{x}) - \alpha f(T_{x \to y}(\mathbf{x}))J_{\mathbf{x} \to \mathbf{y}}\right)\mathrm{d}\mathbf{x}
+&= \int_{\Omega_x} \left(f(\mathbf{x}) - \alpha f(T_{x \to y}(\mathbf{x}))J_{\mathbf{x} \to \mathbf{y}}\right)\mathrm{d}\mathbf{x} - \alpha\int_{\Omega_y \setminus T_{x \to y}(\Omega_x)} f(\mathbf{y})\mathrm{d}\mathbf{y}
 \end{aligned}
 \end{equation}
 $$
