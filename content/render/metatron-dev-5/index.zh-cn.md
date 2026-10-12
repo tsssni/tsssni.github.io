@@ -806,3 +806,68 @@ $$
 $$
 
 ReSTIR PT下$\langle I_x \rangle_{\leftarrow y}$的参数可从蓄水池获取, GRIS估计量只根据无偏权重调整样本亮度, 控制变量估计量包含多个通道, 可有效降低复杂色彩光照或光谱渲染的方差.
+
+## Russian Roulette
+
+### ADRR
+
+令$c_i = \sum_{j > i}\beta_j L_e(\mathbf{p}_j)$, 由$L_i = L_r + L_e$可得:
+
+$$
+\begin{equation}
+E[c_i|\mathbf{p}_{0 \dots i}]
+= E\big[\beta_{i+1}L_i(\mathbf{p}_{i+1} \to \mathbf{p}_i)\big|\mathbf{p}_{0 \dots i}\big]\\
+= \beta_i L_r(\mathbf{p}_i \to \mathbf{p}_{i-1})
+\end{equation}
+$$
+
+零方差(zero-variance)抽样密度$p_\mathrm{zv}$即前文条件分布, 抽样密度正比于方向贡献:
+
+$$
+\begin{equation}
+p_\mathrm{zv}(\mathbf{p}_{i+1}|\mathbf{p}_{i-1}, \mathbf{p}_i) = \frac{f(\mathbf{p}_{i+1} \to \mathbf{p}_i \to \mathbf{p}_{i-1})G(\mathbf{p}_i \leftrightarrow \mathbf{p}_{i+1})L_i(\mathbf{p}_{i+1} \to \mathbf{p}_i)}{L_r(\mathbf{p}_i \to \mathbf{p}_{i-1})}
+\end{equation}
+$$
+
+以$p_\mathrm{zv}$抽样得$\mathbf{p}_{i+1}$, 代入上式形式如下. 光源不再弹射, 故到达光源顶点时贡献为像素真值.
+
+$$
+\begin{equation}
+\begin{aligned}
+E[c_i|\mathbf{p}_{0 \dots i}]
+&= \beta_i L_r(\mathbf{p}_i \to \mathbf{p}_{i-1})\\
+&= \beta_i\frac{f(\mathbf{p}_{i+1} \to \mathbf{p}_i \to \mathbf{p}_{i-1})G(\mathbf{p}_i \leftrightarrow \mathbf{p}_{i+1})}{p_\mathrm{zv}(\mathbf{p}_{i+1}|\mathbf{p}_{i-1}, \mathbf{p}_i)}L_i(\mathbf{p}_{i+1} \to \mathbf{p}_i)\\
+&= \beta_{i+1}L_i(\mathbf{p}_{i+1} \to \mathbf{p}_i)\\
+&= \beta_{i+1}L_e(\mathbf{p}_{i+1}) + E[c_{i+1}|\mathbf{p}_{0 \dots i+1}]
+\end{aligned}
+\end{equation}
+$$
+
+由前文可得$fGL_i = L_r p_\mathrm{zv}$, 任意抽样密度$p$下方差如下, 可见$p=p_{zv}$时方差最小.
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{Var}\left[\frac{fGL_i}{p}\right]
+&= \int_\mathcal{A}\left(\frac{fGL_i}{p} - L_r\right)^2 p\,\mathrm{d}\mathbf{p}_{i+1}\\
+&= L_r^2\int_\mathcal{A}\left(\frac{p_\mathrm{zv}}{p} - 1\right)^2 p\,\mathrm{d}\mathbf{p}_{i+1}\\
+&= L_r^2\int_\mathcal{A}\frac{(p_\mathrm{zv} - p)^2}{p}\mathrm{d}\mathbf{p}_{i+1}
+\end{aligned}
+\end{equation}
+$$
+
+$\langle L_i \rangle$为后缀估计, 由方差定义得$E[\langle L_i \rangle^2|\mathbf{p}_{i+1}] = L_i^2(\mathbf{p}_{i+1} \to \mathbf{p}_i) + \mathrm{Var}[\langle L_i \rangle|\mathbf{p}_{i+1}]$. 分裂为$n = \lfloor q \rfloor$条后缀, 再以概率$q - n$的Bernoulli试验决定最后一次分裂, 每条权重乘$\frac{1}{q}$, $q < 1$时退化为轮盘赌. 记路径数$N = n + B$, $B \sim \mathrm{Bernoulli}(q - n)$, $E[N] = q$, $E[N^2] = q^2 + (q - n)(n + 1 - q)$. 估计量$\langle L_r \rangle_q = \frac{fG}{p}\frac{1}{q}\sum_{k=1}^N\langle L_i \rangle_k$, 各后缀独立且与$N$独立, 此时可得:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{Var}[\langle L_r \rangle_q]
+&= E[\langle L_r \rangle_q^2] - E[\langle L_r \rangle_q]^2\\
+&= E\big[E[\langle L_r \rangle_q^2|\mathbf{p}_{i+1}]\big] - L_r^2\\
+&= E\left[\left(\frac{fG}{p}\right)^2\frac{E\left[\left(\sum_{k=1}^N\langle L_i \rangle_k\right)^2\middle|\mathbf{p}_{i+1}\right]}{q^2}\right] - L_r^2\\
+&= E\left[\left(\frac{fG}{p}\right)^2\frac{E\left[N\mathrm{Var}[\langle L_i \rangle|\mathbf{p}_{i+1}] + N^2L_i^2\middle|\mathbf{p}_{i+1}\right]}{q^2}\right] - L_r^2\\
+&= E\left[\left(\frac{fG}{p}\right)^2\frac{q\mathrm{Var}[\langle L_i \rangle|\mathbf{p}_{i+1}] + \left(q^2 + (q - n)(n + 1 - q)\right)L_i^2}{q^2}\right] - L_r^2\\
+&= \mathrm{Var}\left[\frac{fGL_i}{p}\right] + E\left[\left(\frac{fG}{p}\right)^2\left(\frac{\mathrm{Var}[\langle L_i \rangle|\mathbf{p}_{i+1}]}{q} + \frac{(q - n)(n + 1 - q)}{q^2}L_i^2\right)\right]
+\end{aligned}
+\end{equation}
+$$
