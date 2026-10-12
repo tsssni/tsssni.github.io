@@ -175,8 +175,8 @@
   <link
     type="text/css"
     rel="stylesheet"
-    href="/lib/katex/katex.min.7145427311abfe1e820c33f8dd1df93294bcf251fe80c8eb8328e9410d80c09ed01fbad3ea7d22ccd371d047adeccf655182c3447454a755816915d4747ad42c.css"
-    integrity="sha512-cUVCcxGr/h6CDDP43R35MpS88lH&#43;gMjrgyjpQQ2AwJ7QH7rT6n0izNNx0Eet7M9lUYLDRHRUp1WBaRXUdHrULA==">
+    href="/lib/katex/katex.min.0a382f21b7d7c21ce3382b4ffb0b9030f189679b84636907678a8f1af8c881f913885767b83985fa8256d81e60963eddece90f3c35fd04cbb88438a8e4c59310.css"
+    integrity="sha512-CjgvIbfXwhzjOCtP&#43;wuQMPGJZ5uEY2kHZ4qPGvjIgfkTiFdnuDmF&#43;oJW2B5glj7d7OkPPDX9BMu4hDio5MWTEA==">
   
   
     
@@ -1672,7 +1672,7 @@ struct sp_counted_deleter final : sp_counted_base {
     </span>
     
 </h2>
-<p>伙伴堆只分配<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span>, 从空闲链表取出后分割剩余空间, 添加到空闲链表. 空闲链表为双向链表, 节点记录在空闲块头部, 释放时合并相邻节点.</p>
+<p>伙伴堆只分配<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span>, 从空闲链表取出后分割剩余空间, 添加到空闲链表. 空闲链表为双向链表, 节点记录在空闲块头部, 释放时合并相邻节点.</p>
 <p>TLSF为两级映射, 先选择分配大小对应的档位, 内部再做细分, 细分单位由当前档位决定, 例如[64, 128)按2字节分割, [1024, 2048)按64字节分割.</p>
 
 <h2 class="relative group">ABI
