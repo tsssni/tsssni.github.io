@@ -159,15 +159,15 @@ T_r(p \leftarrow p+\mathrm{d}\omega)
 \end{equation}
 $$
 
-计算上式的Monte Carlo需要使用一个与积分项成比例的分布, pbrt使用$p_{\text{maj}}(t) \propto e^{\int_0^t -\sigma_{\text{maj}}(p+t'\omega, \omega)\mathrm{d}t'}$, 归一化后得到以下PDF.
+pbrt使用$p_{\text{maj}}(t) \propto e^{\int_0^t -\sigma_{\text{maj}}(p+t'\omega, \omega)\mathrm{d}t'}$, 归一化后得到以下PDF.
 
 $$
 \begin{equation}
-p_{\text{maj}}(t)=\sigma_{\text{maj}}(p,\omega)e^{-\int_0^t \sigma_{\text{maj}}(p+t'\omega,\omega) \mathrm{d}t'}
+p_{\text{maj}}(t)=\sigma_{\text{maj}}(p + t\omega,\omega)e^{-\int_0^t \sigma_{\text{maj}}(p+t'\omega,\omega) \mathrm{d}t'}
 \end{equation}
 $$
 
-将积分项视为$t' \ge d$时为0的分段函数, Monte Carlo采样可以得到如下结果, 这被称为下一跳(next-flight)估计器, $t' \ge d$时停止递归采样过程. 在均匀介质下这是无偏的, 不均匀介质下效果一般.
+将积分项视为$t' \ge d$时为0的分段函数, Monte Carlo采样可得下一跳(next-flight)估计器, $t' \ge d$时停止递归采样过程, 异质介质下开销过大.
 
 $$
 \begin{equation}
@@ -179,7 +179,7 @@ T_r(p \leftarrow p+\mathrm{d}\omega) \approx e^{-\int_0^\mathrm{d}\sigma_{\text{
 \end{equation}
 $$
 
-随机选取其中一项也可以进行Monte Carlo, 由于CDF具有$P(t' \ge d)=e^{-\int_0^\mathrm{d}\sigma_{\text{maj}}\mathrm{d}t}$的性质, 可以将该值作为选择概率. 注意到下一跳估计器中是在$(0,\infty)$上的积分, 而这里是在$(0,d)$上的积分, 因此需要通过将PDF除以$1-e^{-\int_0^\mathrm{d}\sigma_{\text{maj}}(p+t\omega,\omega)\mathrm{d}t}$来归一化, Monte Carlo时正好与$\frac{1}{1-p_e}$抵消. 此时可以得到比率跟踪(ratio-tracking)估计器, 这是pbrt采用的算法.
+随机选取其中一项也可以进行Monte Carlo, 由于CDF有$P(t' \ge d)=e^{-\int_0^\mathrm{d}\sigma_{\text{maj}}\mathrm{d}t}$的性质, 可将该值作为选择概率. 下一跳估计器中是在$(0,\infty)$上的积分, 这里是在$(0,d)$上的积分, 因此需要通过将PDF除以$1-e^{-\int_0^\mathrm{d}\sigma_{\text{maj}}(p+t\omega,\omega)\mathrm{d}t}$来归一化, Monte Carlo时可与$\frac{1}{1-p_e}$抵消. 此时可得比率跟踪(ratio-tracking)估计器, 这是pbrt采用的算法.
 
 $$
 \begin{equation}
@@ -201,7 +201,7 @@ T_r(p \leftarrow p+\mathrm{d}\omega)
 \end{equation}
 $$
 
-比率跟踪估计器在透射率已经很小时仍然会继续采样, 可以通过俄罗斯轮盘解决该问题, 将俄罗斯轮盘概率设置为$\frac{\sigma_n(p+t'\omega,\omega)}{\sigma_{\text{maj}}(p+t'\omega,\omega)}$可以将其抵消, 这被称为差值跟踪(delta-tracking)估计器, 透射率只能为0或1.
+比率跟踪估计器在透射率已经很小时仍然会继续采样, 可以通过俄罗斯轮盘解决该问题, 概率为$\frac{\sigma_n(p+t'\omega,\omega)}{\sigma_{\text{maj}}(p+t'\omega,\omega)}$时可抵消, 即差值跟踪(delta-tracking)估计器, 透射率只能为0或1.
 
 $$
 \begin{equation}
