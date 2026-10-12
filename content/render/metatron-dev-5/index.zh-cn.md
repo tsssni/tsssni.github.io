@@ -809,7 +809,7 @@ ReSTIR PT下$\langle I_x \rangle_{\leftarrow y}$的参数可从蓄水池获取, 
 
 ## Russian Roulette
 
-### ADRR
+### Zero Variance
 
 令$c_i = \sum_{j > i}\beta_j L_e(\mathbf{p}_j)$, 由$L_i = L_r + L_e$可得:
 
@@ -871,3 +871,103 @@ $$
 \end{aligned}
 \end{equation}
 $$
+
+记$\mathbf{p}_i$处相对方差$r_i = \frac{\mathrm{Var}[\langle L_r \rangle_q]}{L_r^2}$, 设$\mathbf{p}_{i+1}$非光源, 由$L_i(\mathbf{p}_{i+1} \to \mathbf{p}_i) = L_r(\mathbf{p}_{i+1} \to \mathbf{p}_i)$得后缀相对方差$r_{i+1} = \frac{\mathrm{Var}[\langle L_i \rangle|\mathbf{p}_{i+1}]}{L_i^2}$. 记$w = \frac{p_\mathrm{zv}}{p}=\frac{fGL_i}{pL_r}$, 代入方差可得:
+
+$$
+\begin{equation}
+\mathrm{Var}[\langle L_r \rangle_q]
+= L_r^2\left(\int_\mathcal{A}\frac{(p_\mathrm{zv} - p)^2}{p}\mathrm{d}\mathbf{p}_{i+1} + E\left[w^2\left(\frac{r_{i+1}}{q} + \frac{(q - n)(n + 1 - q)}{q^2}\right)\right]\right)
+\end{equation}
+$$
+
+第一项与$q$无关; 取整项分情况讨论, 均不超过$\frac{1}{4}$与$q$, 因此第二项不超过$E\left[\frac{w^2(r_{i+1} + 1)}{q}\right]$.
+
+$$
+\begin{equation}
+(q - n)(n + 1 - q) =
+\begin{cases}
+q(1 - q) \leq \min\left(\frac{1}{4}, q\right), & q < 1\\
+(q - n)(n + 1 - q) \leq \frac{1}{4} \leq q, & q \geq 1
+\end{cases}
+\end{equation}
+$$
+
+预算$E[q] = 1$下应用Cauchy-Schwarz不等式, 等号成立当且仅当$\frac{w\sqrt{r_{i+1} + 1}}{\sqrt{q}} \propto \sqrt{q}$即$w\sqrt{r_{i+1} + 1} = cq$, 由$E[q] = 1$得$c = E\left[w\sqrt{r_{i+1} + 1}\right]$, 此时上界最小:
+
+$$
+\begin{equation}
+\begin{aligned}
+E\left[w\sqrt{r_{i+1} + 1}\right]^2
+&= E\left[\frac{w\sqrt{r_{i+1} + 1}}{\sqrt{q}}\sqrt{q}\right]^2\\
+&\leq E\left[\frac{w^2(r_{i+1} + 1)}{q}\right]E[q]\\
+&= E\left[\frac{w^2(r_{i+1} + 1)}{q}\right]
+\end{aligned}
+\end{equation}
+$$
+
+此时可得最优的$q$:
+
+$$
+\begin{equation}
+q^* = \frac{w\sqrt{r_{i+1} + 1}}{E\left[w\sqrt{r_{i+1} + 1}\right]}
+\end{equation}
+$$
+
+### ADRR
+
+假设$r_{i+1}$为常数, 此时可以约去$\sqrt{r_{i+1} + 1}$, 由$E[w] = \int_\mathcal{A} p_\mathrm{zv}\mathrm{d}\mathbf{p}_{i+1} = 1$可得$q^* = w$. 令$q$为期望贡献与像素真值之比, 此时可得最优的$q$:
+
+$$
+\begin{equation}
+q = \frac{\beta_{i+1}L_r(\mathbf{p}_{i+1} \to \mathbf{p}_i)}{I}
+= \frac{fGL_i(\mathbf{p}_{i+1} \to \mathbf{p}_i)}{pL_r(\mathbf{p}_i \to \mathbf{p}_{i-1})}
+= \frac{p_\mathrm{zv}}{p}
+= w
+\end{equation}
+$$
+
+记$\chi^2 = \int_\mathcal{A}\frac{(p_\mathrm{zv} - p)^2}{p}\mathrm{d}\mathbf{p}_{i+1}$, 代入$q = w$得:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{Var}[\langle L_r \rangle_q]
+&= \mathrm{Var}[L_r q] + E\left[L_r^2 q^2\left(\frac{r_{i+1}}{q} + \frac{(q - n)(n + 1 - q)}{q^2}\right)\right]\\
+&= L_r^2\left(\int_\mathcal{A}\frac{(p_\mathrm{zv} - p)^2}{p}\mathrm{d}\mathbf{p}_{i+1} + E\big[(q - n)(n + 1 - q)\big] + \int_\mathcal{A} p_\mathrm{zv}\,r_{i+1}\,\mathrm{d}\mathbf{p}_{i+1}\right)\\
+&= L_r^2\left(\chi^2 + r_{i+1} + E\big[(q - n)(n + 1 - q)\big]\right)
+\end{aligned}
+\end{equation}
+$$
+
+$q \equiv 1$时形式如下:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{Var}[\langle L_r \rangle_1]
+&= \mathrm{Var}\left[\frac{fGL_i}{p}\right] + E\left[\left(\frac{fG}{p}\right)^2\mathrm{Var}[\langle L_i \rangle|\mathbf{p}_{i+1}]\right]\\
+&= L_r^2\chi^2 + E\left[\left(\frac{fGL_i}{p}\right)^2 r_{i+1}\right]\\
+&= L_r^2\left(\chi^2 + r_{i+1}E[w^2]\right)\\
+&= L_r^2\left(\chi^2 + r_{i+1}\int_\mathcal{A}\frac{p_\mathrm{zv}^2}{p}\mathrm{d}\mathbf{p}_{i+1}\right)\\
+&= L_r^2\left(\chi^2 + r_{i+1}\int_\mathcal{A}\frac{(p_\mathrm{zv} - p)^2 + 2p_\mathrm{zv}p - p^2}{p}\mathrm{d}\mathbf{p}_{i+1}\right)\\
+&= L_r^2\left(\chi^2 + r_{i+1}(1 + \chi^2)\right)
+\end{aligned}
+\end{equation}
+$$
+
+记$\{w\}$为$w$的小数部分, 任意$w \geq 0$有$\{w\}(1 - \{w\}) \leq |w - 1|$, 此时可得:
+
+$$
+\begin{equation}
+\begin{aligned}
+E\big[(q - n)(n + 1 - q)\big]
+&= E\big[\{w\}(1 - \{w\})\big]\\
+&\leq E\big[|w - 1|\big]\\
+&\leq \sqrt{E\big[(w - 1)^2\big]}\\
+&= \chi
+\end{aligned}
+\end{equation}
+$$
+
+因此$r_{i+1}\chi^2 \geq \min\left(\frac{1}{4}, \chi\right)$时轮盘赌更优, 后缀噪声越大, $p$偏离$p_\mathrm{zv}$越远, 收益越大.
