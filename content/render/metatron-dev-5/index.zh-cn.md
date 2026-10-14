@@ -971,3 +971,61 @@ E\big[(q - n)(n + 1 - q)\big]
 $$
 
 因此$r_{i+1}\chi^2 \geq \min\left(\frac{1}{4}, \chi\right)$时轮盘赌更优, 后缀噪声越大, $p$偏离$p_\mathrm{zv}$越远, 收益越大.
+
+## Variable Rate Sampling
+
+### Call of Duty: Modern Warfare 4
+
+基于A-SVGF时间梯度调整采样率. 将屏幕以$s \times s$分层, 每层选一个历史帧表面样本$G_{i-1}$, 前向投影/重放到当前帧得$\vec{G}_{i-1}$. 梯度与归一化因子定义如下:
+
+$$
+\begin{equation}
+\begin{aligned}
+\delta &= f_i(\vec{G}_{i-1}, \xi_{i-1}) - f_{i-1}(G_{i-1}, \xi_{i-1})\\
+\Delta &= \max\big(f_i(\vec{G}_{i-1}, \xi_{i-1}), f_{i-1}(G_{i-1}, \xi_{i-1})\big)
+\end{aligned}
+\end{equation}
+$$
+
+滤波并归一化得历史权重$\lambda$, 调整全局$\alpha$为混合系数$\alpha_i$, 取$3 \times 3$邻域最大值弥补重建误差:
+
+$$
+\begin{equation}
+\lambda = \min\left(1, \frac{|\hat{\delta}|}{\hat{\Delta}}\right), \quad
+\alpha_i = (1 - \lambda)\alpha + \lambda
+\end{equation}
+$$
+
+$N$为历史样本数, $N_t = \frac{1}{\alpha_i}$为可容忍的历史样本数, $N_\mathrm{max} = \frac{1}{\alpha}$为目标样本数, 此时可计算被保留的历史样本数$N'$:
+
+$$
+\begin{equation}
+N' = \min\left(N, N_t - 1\right)
+\end{equation}
+$$
+
+历史未满时超采样, 历史已满时估计方差并降采样. $\rho$为依据方差调整的分段常数, 决定降采样追踪概率. 请求样本数为连续实数, 小数部分随机抽样光线, 样本数如下:
+
+$$
+\begin{equation}
+n =
+\begin{cases}
+\min(N_\mathrm{max} - N', n_\mathrm{max}), & N' < N_\mathrm{max} - 1\\
+\rho(\sigma^2), & N' = N_\mathrm{max} - 1
+\end{cases}
+\end{equation}
+$$
+
+对$n$分桶统计全屏光线, 档位为$\frac{1}{64}, \frac{1}{63}, \cdots, \frac{1}{2}, 1, 2, \cdots, 16$, 选桶流程如下:
+
+$$
+\begin{equation}
+r_{b(n)} =
+\begin{cases}
+\lfloor n \rfloor, & n \geq 1\\
+1/\lceil 1/n \rceil, & n < 1
+\end{cases}
+\end{equation}
+$$
+
+超出预算时自顶向下合并, 最高非空桶并入下一档直至不超过预算, 反之则自底向上合并. 末次合并时整档调整粒度过粗, 对桶内像素统一降低/提升样本数以刚好满足预算.
