@@ -377,7 +377,7 @@
     "keywords": ["graphics","rendering","path guiding","control variates"],
     
     "mainEntityOfPage": "true",
-    "wordCount": "25238"
+    "wordCount": "25561"
   }]
   </script>
 
@@ -1073,7 +1073,7 @@
   <div class="flex flex-row flex-wrap items-center">
     
     
-      <time datetime="2026-08-28T00:00:00&#43;00:00">2026 August 28</time><span class="px-2 text-primary-500">&middot;</span><span>25238 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">51 分钟</span>
+      <time datetime="2026-08-28T00:00:00&#43;00:00">2026 August 28</time><span class="px-2 text-primary-500">&middot;</span><span>25561 字</span><span class="px-2 text-primary-500">&middot;</span><span title="预计阅读">52 分钟</span>
     
 
     
@@ -1283,6 +1283,7 @@
     </li>
     <li><a href="#variable-rate-shading">Variable Rate Shading</a>
       <ul>
+        <li><a href="#doom-the-dark-ages">DOOM: The Dark Ages</a></li>
         <li><a href="#call-of-duty-modern-warfare">Call of Duty: Modern Warfare</a></li>
         <li><a href="#call-of-duty-modern-warfare-4">Call of Duty: Modern Warfare 4</a></li>
       </ul>
@@ -1338,6 +1339,7 @@
     </li>
     <li><a href="#variable-rate-shading">Variable Rate Shading</a>
       <ul>
+        <li><a href="#doom-the-dark-ages">DOOM: The Dark Ages</a></li>
         <li><a href="#call-of-duty-modern-warfare">Call of Duty: Modern Warfare</a></li>
         <li><a href="#call-of-duty-modern-warfare-4">Call of Duty: Modern Warfare 4</a></li>
       </ul>
@@ -2492,6 +2494,20 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">�
     </span>
     
 </h2>
+
+<h3 class="relative group">DOOM: The Dark Ages
+    <div id="doom-the-dark-ages" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none">
+        <a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#doom-the-dark-ages" aria-label="锚点">#</a>
+    </span>
+    
+</h3>
+<p>基于可见性缓冲分发每个材质的绘制调用, 材质序号作为深度比较是否相等. 材质无空间连贯性, Hi-Z无法剔除, 性能与Forward+持平.</p>
+<p>DOOM将多种相似材质打包为单个着色器, 为每个着色器分配隐式命令缓冲. 计算分发基于图块判断块内像素需要调用的着色器和材质, 以子组为单位原子填充各着色器的命令缓冲, 即根据子组大小对齐某种材质的像素数量.</p>
+<p>对于不支持隐式命令缓冲的平台, 对每种着色器根据每个图块所请求的工作组大小分桶, 增加一个维度用于标记图块序号. 由于桶的数量已知, CPU上为每个桶分别分发命令即可.</p>
+<p>依据亮度梯度确定着色率, 填充命令缓冲时只统计主像素并附加复制位. 若判断为四元组只渲染0号样本, 再添加更严格的判断, 以避免体积雾等效果的抖动失效.</p>
 
 <h3 class="relative group">Call of Duty: Modern Warfare
     <div id="call-of-duty-modern-warfare" class="anchor"></div>
