@@ -1,4 +1,4 @@
 :root {
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans SC', 'IBM Plex Sans TC', 'IBM Plex Sans JP', 'IBM Plex Sans KR', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'IBM Plex Sans SC', 'IBM Plex Sans TC', 'IBM Plex Sans JP', 'IBM Plex Sans KR', ui-monospace, SFMono-Regular, monospace;
 }

@@ -36,12 +36,11 @@
           default = pkgs.mkShell.override { stdenv = pkgs.stdenvNoCC; } {
             shellHook = ''
               export SHELL=nu
-              export IBM_PLEX_LITE=${pkgs.ibm-plex-lite.override { webfont = true; }}/share/fonts
+              export PLEXTINA=${pkgs.plextina.override { webfont = true; }}/share/fonts
             '';
             packages = with pkgs; [
               hugo
               nodejs
-              ibm-plex-lite
             ];
           };
         }
