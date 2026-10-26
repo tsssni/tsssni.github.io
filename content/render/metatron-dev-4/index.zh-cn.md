@@ -388,7 +388,7 @@ $$
 
 ## ReSTIR Splatting
 
-根据图元序号与重心坐标查询本帧的变换矩阵或骨骼动画, 即可获取前向运动矢量, 使用它将历史样本投影到当前帧. 包含在样本中的亚像素偏移使得历史候选集不再是确定的. 将历史样本的样本域扩展为历史帧全体路径空间, 目标函数包含滤波器权重:
+样本域扩展到全体路径空间, 滤波器, 镜头位置纳入主样本, 目标函数包含滤波器权重:
 
 $$
 \begin{equation}
@@ -396,24 +396,4 @@ $$
 \end{equation}
 $$
 
-平衡启发式MIS需要将样本变换到所有候选样本的样本域中, 盒形滤波器位于像素外为0, 由于历史帧样本都来自不同像素, MIS可被简化:
-
-$$
-\begin{equation}
-m_i(Y) = \frac{M_i\,\hat{p}_{\leftarrow i}(Y)}{\sum_{n \in \mathcal{N}(Y)} M_n\,\hat{p}_{\leftarrow n}(Y)} = \frac{M_i\,\hat{p}_{\leftarrow i}(Y)}{M_i\,\hat{p}_{\leftarrow i}(Y) + M_c\,\hat{p}_c(Y)}
-\end{equation}
-$$
-
-亚像素坐标需要计算Jacobian, 令$\theta_V$为视线与相机前向的夹角, $\theta_N$为视线与法线的夹角, 非刚体形变时表面项取三角形面积比, 反之为$1$:
-
-$$
-\begin{equation}
-\begin{aligned}
-\left|\frac{\partial\mathbf{p}_1}{\partial\mathbf{u}}\right| &= \left|\frac{\partial\mathbf{p}_1}{\partial\omega}\right|\left|\frac{\partial\omega}{\partial\mathbf{u}}\right| = \frac{\|\mathbf{p}_1-\mathbf{p}_0\|^2}{\cos\theta_N}\cos^3\theta_V\\
-\left|\frac{\partial\mathbf{u}}{\partial\mathbf{v}}\right|
-&=\left|\frac{\partial\mathbf{u}}{\partial\mathbf{p}^y_1}\right|
-\left|\frac{\partial\mathbf{p}^y_1}{\partial\mathbf{p}^x_1}\right|
-\left|\frac{\partial\mathbf{p}^x_1}{\partial\mathbf{v}}\right|
-\end{aligned}
-\end{equation}
-$$
+当前像素复用全部历史样本, 基于可见性缓冲前向投影, 当前滤波器范围外的样本权重为0, 因此只合并落入的样本. 所有历史域共用同一位移映射, 规范样本执行单次逆变换, 再评估各历史像素的滤波器即可计算MIS. 即使没有历史样本落入, 逆变换成功则仍然位于历史域部分像素的支撑集, 需要MIS.
