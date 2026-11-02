@@ -807,6 +807,153 @@ $$
 
 ReSTIR PT下$\langle I_x \rangle_{\leftarrow y}$的参数可从蓄水池获取, GRIS估计量只根据无偏权重调整样本亮度, 控制变量估计量包含多个通道, 可有效降低复杂色彩光照或光谱渲染的方差.
 
+### Histogram Stratification
+
+设$X \sim p$, $p$覆盖$f$的支撑集, 贡献$C = f(X)/p(X) = f(X)W_X$可积, $C$的CDF为:
+
+$$
+\begin{equation}
+F_C(c) = P(C \leq c)
+= \int_{\{\mathbf{x} \in \Omega_x:\,p(\mathbf{x}) > 0,\,f(\mathbf{x})/p(\mathbf{x}) \leq c\}} p(\mathbf{x})\mathrm{d}\mathbf{x}
+\end{equation}
+$$
+
+定义$C$的广义逆用于逆变换法:
+
+$$
+\begin{equation}
+F_C^{-1}(u) = \inf\{c \in \mathbb{R}: F_C(c) \geq u\}, \quad u \in (0, 1)
+\end{equation}
+$$
+
+令$U \sim \mathcal{U}(0, 1)$, 此时可得:
+
+$$
+\begin{equation}
+I_x = \int_{\Omega_x} f(\mathbf{x})\mathrm{d}\mathbf{x}
+= E[C]
+= \int_0^1 F_C^{-1}(u)\mathrm{d}u
+= E[F_C^{-1}(U)]
+\end{equation}
+$$
+
+令有限候选$\mathcal{S} = \{(X_i, W_i)\}_{i=1}^N$, $C_i = f(X_i)W_i$, 定义抽样函数:
+
+$$
+\begin{equation}
+G_{\mathcal{S}}(u) = C_{1 + \lfloor Nu \rfloor}, \quad u \in [0, 1)
+\end{equation}
+$$
+
+取独立于候选的均匀随机数$U$, 每个候选对应长度$1/N$的区间:
+
+$$
+\begin{equation}
+\begin{aligned}
+E[G_{\mathcal{S}}(U) \mid \mathcal{S}]
+&= \int_0^1 G_{\mathcal{S}}(u)\mathrm{d}u
+= \frac{1}{N}\sum_{i=1}^N C_i\\
+E[G_{\mathcal{S}}(U)]
+&= E\left[E[G_{\mathcal{S}}(U) \mid \mathcal{S}]\right]
+= \frac{1}{N}\sum_{i=1}^N E[C_i]
+= I_x
+\end{aligned}
+\end{equation}
+$$
+
+按$C_i$从小到大排序得置换$\pi$, 将列表重排后, 抽样函数成为经验逆CDF, 不影响无偏性:
+
+$$
+\begin{equation}
+G_{\mathcal{S}}(u) = C_{\pi(1 + \lfloor Nu \rfloor)}
+\end{equation}
+$$
+
+取独立于候选的$T \sim \mathcal{U}[0, 1/4]$, 构造四个相关样本, $U_k$在对应的$\frac{1}{4}$区间内均匀分布:
+
+$$
+\begin{equation}
+U_1 = T, \quad U_2 = \frac{1}{2} - T, \quad
+U_3 = \frac{1}{2} + T, \quad U_4 = 1 - T
+\end{equation}
+$$
+
+给定候选$\mathcal{S}$, 记$Z_k = G_{\mathcal{S}}(U_k)$, 平均估计量为$\langle I_x\rangle_\mathrm{anti} = \frac{1}{4}\sum_{k=1}^4 Z_k$. 由四层等宽可得:
+
+$$
+\begin{equation}
+\begin{aligned}
+&E[Z_k\mid\mathcal{S}]
+= 4\int_{(k-1)/4}^{k/4}G_{\mathcal{S}}(u)\mathrm{d}u\\
+&E\left[\langle I_x\rangle_\mathrm{anti}\middle|\mathcal{S}\right]
+= E\left[\frac{1}{4}\sum_{k=1}^4 Z_k\middle|\mathcal{S}\right]
+= \frac{1}{4}\sum_{k=1}^4 E[Z_k\mid\mathcal{S}] = \frac{1}{N}\sum_{i=1}^N C_i
+\end{aligned}
+\end{equation}
+$$
+
+条件方差展开为:
+
+$$
+\begin{equation}
+\mathrm{Var}[\langle I_x\rangle_\mathrm{anti}\mid\mathcal{S}]
+= \frac{1}{16}\left(\sum_{k=1}^4\mathrm{Var}[Z_k\mid\mathcal{S}] + 2\sum_{i<j}\mathrm{Cov}[Z_i,Z_j\mid\mathcal{S}]\right)
+\end{equation}
+$$
+
+令$z_k(t) = G_{\mathcal{S}}(U_k(t))$, $L = \frac{1}{4}$, $T$在$[0,L]$上均匀分布, 由协方差定义得:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{Cov}[Z_i,Z_j\mid\mathcal{S}]
+&= \frac{1}{L}\int_0^L z_i(t)z_j(t)\mathrm{d}t - \frac{1}{L^2}\left(\int_0^L z_i(t)\mathrm{d}t\right)\left(\int_0^L z_j(t)\mathrm{d}t\right)\\
+&= \frac{1}{L^2}\int_0^L\int_0^L\left(z_i(t)z_j(t)-z_i(t)z_j(s)\right)\mathrm{d}s\mathrm{d}t\\
+&= \frac{1}{2L^2}\int_0^L\int_0^L\left(z_i(t)z_j(t)+z_i(s)z_j(s)-z_i(t)z_j(s)-z_i(s)z_j(t)\right)\mathrm{d}s\mathrm{d}t\\
+&= \frac{1}{2L^2}\int_0^L\int_0^L
+\left(z_i(t)-z_i(s)\right)\left(z_j(t)-z_j(s)\right)\mathrm{d}s\mathrm{d}t
+\end{aligned}
+\end{equation}
+$$
+
+排序后的$G_{\mathcal{S}}$使$z_1,z_3$单调不减, $z_2,z_4$单调不增, 因此:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{Cov}[Z_i,Z_j\mid\mathcal{S}] &\leq 0, &&(i,j)\in\{(1,2),(1,4),(2,3),(3,4)\}\\
+\mathrm{Cov}[Z_i,Z_j\mid\mathcal{S}] &\geq 0, &&(i,j)\in\{(1,3),(2,4)\}
+\end{aligned}
+\end{equation}
+$$
+
+与独立均匀样本比较, 四样本平均的条件方差为:
+
+$$
+\begin{equation}
+\begin{aligned}
+&\mathrm{Var}[G_{\mathcal{S}}(U)\mid\mathcal{S}]
+= \frac{1}{4}\sum_{k=1}^4\left(\mathrm{Var}[Z_k\mid\mathcal{S}]+\left(E[Z_k\mid\mathcal{S}]-\frac{1}{N}\sum_{i=1}^N C_i\right)^2\right)\\
+&\mathrm{Var}[\langle I_x\rangle_\mathrm{iid}\mid\mathcal{S}]
+= \frac{1}{16}\sum_{k=1}^4\left(\mathrm{Var}[Z_k\mid\mathcal{S}]+\left(E[Z_k\mid\mathcal{S}]-\frac{1}{N}\sum_{i=1}^N C_i\right)^2\right)\\
+&\mathrm{Var}[\langle I_x\rangle_\mathrm{anti}\mid\mathcal{S}]
+-\mathrm{Var}[\langle I_x\rangle_\mathrm{iid}\mid\mathcal{S}]
+= \frac{1}{16}\left(2\sum_{i<j}\mathrm{Cov}[Z_i,Z_j\mid\mathcal{S}]-\sum_{k=1}^4\left(E[Z_k\mid\mathcal{S}]-\frac{1}{N}\sum_{i=1}^N C_i\right)^2\right)
+\end{aligned}
+\end{equation}
+$$
+
+以上均固定候选集合, 但$\mathcal{S}$本身也需要随机抽样. 令$\langle I_x\rangle$表示任意一种四样本平均估计量, 基于全方差公式可估计方差, 候选抽样方式直接影响第二项, 得到候选后再执行RIS:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{Var}[\langle I_x\rangle]
+&=\mathrm{Var}\left[\frac{1}{N}\sum_{i=1}^N C_i\right]+E\left[\mathrm{Var}[\langle I_x\rangle\mid\mathcal{S}]\right]
+\end{aligned}
+\end{equation}
+$$
+
 ## Russian Roulette
 
 ### Zero Variance
