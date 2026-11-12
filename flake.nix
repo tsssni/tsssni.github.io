@@ -4,49 +4,46 @@
   inputs = {
     tsssni.url = "github:tsssni/tsssni.nix";
     nixpkgs.follows = "tsssni/nixpkgs";
+    systems.follows = "tsssni/systems";
+    flake-parts.follows = "tsssni/flake-parts";
   };
 
   outputs =
     {
-      nixpkgs,
-      tsssni,
+      flake-parts,
       ...
-    }:
-    let
-      lib = nixpkgs.lib;
+    }@inputs:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = import inputs.systems;
 
-      systems = [
-        "aarch64-darwin"
-        "x86_64-linux"
-      ];
-
-      systemAttrs = f: system: { ${system} = f system; };
-
-      mapSystems = f: systems |> lib.map (systemAttrs f) |> lib.mergeAttrsList;
-
-      devShells = mapSystems (
-        system:
+      perSystem =
+        {
+          pkgs,
+          lib,
+          system,
+          ...
+        }:
         let
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ tsssni.overlays.default ];
+          webfonts = pkgs.symlinkJoin {
+            name = "plextina-webfonts";
+            paths = pkgs.plextina.passthru |> lib.attrValues |> lib.catAttrs "webfont";
           };
         in
         {
-          default = pkgs.mkShell.override { stdenv = pkgs.stdenvNoCC; } {
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = with inputs; [ tsssni.overlays.default ];
+          };
+
+          devShells.default = pkgs.mkShell.override { stdenv = pkgs.stdenvNoCC; } {
             shellHook = ''
-              export SHELL=nu
-              export PLEXTINA=${pkgs.plextina.override { webfont = true; }}/share/fonts
+              export PLEXTINA=${webfonts}/share/fonts
             '';
             packages = with pkgs; [
               hugo
               nodejs
             ];
           };
-        }
-      );
-    in
-    {
-      inherit devShells;
+        };
     };
 }

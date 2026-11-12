@@ -1,41 +1,64 @@
-name: GitHub Pages
+name: pages
 
 on:
   push:
     branches:
       - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+    permissions:
+      contents: read
+      pages: read
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
 
-      - name: Install
-        uses: DeterminateSystems/nix-installer-action@v18
+      - name: nix
+        uses: NixOS/nix-installer-action@v1
         with:
           extra-conf: |
             experimental-features = nix-command flakes pipe-operators
+            extra-substituters = https://nix-community.cachix.org https://tsssni.cachix.org
+            extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= tsssni.cachix.org-1:LMXr408+oLBpr9IkXMxT6L6F3lJuVPvev8oTf9zQnB0=
 
-      - name: Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v9
+      - name: configure
+        uses: actions/configure-pages@v5
 
-      - name: Depend
+      - name: depend
         run: nix develop -c npm install
 
-      - name: Build
+      - name: build
         run: nix develop -c node scripts/build.mjs
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
-        if: ${{ github.ref == 'refs/heads/master' }}
+      - name: upload
+        uses: actions/upload-pages-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./public
+          path: ./public
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: deploy
+        id: deploy
+        uses: actions/deploy-pages@v4
