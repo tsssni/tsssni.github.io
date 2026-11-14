@@ -250,3 +250,148 @@ $$
 \end{aligned}
 \end{equation}
 $$
+
+## Adjoint Differentiation
+
+设$V$与$W$为有限维实内积空间, 参数$\mathbf{p} \in V$通过可微映射$F: V \to W$决定可微标量目标函数$f: W \to \mathbb{R}$的输入$\mathbf{x}$. 已知$f$对输入的梯度, 希望求目标对参数的梯度, 就需要将同一个目标变化从关于$\mathrm{d}\mathbf{x}$的表达改写为关于$\mathrm{d}\mathbf{p}$的表达:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathbf{x} &= F(\mathbf{p}), \qquad g(\mathbf{p}) = f(\mathbf{x})\\
+\mathrm{d}g
+&= \langle\nabla_{\mathbf{x}}f, \mathrm{d}\mathbf{x}\rangle_W
+= \langle\nabla_{\mathbf{p}}g, \mathrm{d}\mathbf{p}\rangle_V
+\end{aligned}
+\end{equation}
+$$
+
+链式法则给出$\mathrm{d}\mathbf{x} = \mathrm{D}F(\mathbf{p})[\mathrm{d}\mathbf{p}]$. 为将内积中的扰动改为$\mathrm{d}\mathbf{p}$, 需要把这个线性作用移到内积另一侧. 线性算子$L: V \to W$的伴随算子$L^*: W \to V$定义为满足下式的唯一线性算子:
+
+$$
+\begin{equation}
+\langle L\mathbf{u}, \mathbf{w}\rangle_W
+= \langle\mathbf{u}, L^*\mathbf{w}\rangle_V,
+\qquad \forall\mathbf{u} \in V,\ \mathbf{w} \in W
+\end{equation}
+$$
+
+伴随将内积一侧的线性作用转移到另一侧. 在Euclidean内积下, 矩阵表示的线性算子的伴随就是转置:
+
+$$
+\begin{equation}
+\langle A\mathbf{u}, \mathbf{w}\rangle
+= (A\mathbf{u})^T\mathbf{w}
+= \mathbf{u}^T A^T\mathbf{w}
+= \langle\mathbf{u}, A^T\mathbf{w}\rangle,
+\qquad A^* = A^T
+\end{equation}
+$$
+
+将伴随定义用于$\mathrm{D}F(\mathbf{p})$, 就能把目标对输入的梯度传回参数空间:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{d}g
+&= \langle\nabla_{\mathbf{x}}f, \mathrm{D}F(\mathbf{p})[\mathrm{d}\mathbf{p}]\rangle_W\\
+&= \left\langle\bigl(\mathrm{D}F(\mathbf{p})\bigr)^*[\nabla_{\mathbf{x}}f], \mathrm{d}\mathbf{p}\right\rangle_V\\
+\nabla_{\mathbf{p}}g
+&= \bigl(\mathrm{D}F(\mathbf{p})\bigr)^*[\nabla_{\mathbf{x}}f]
+\end{aligned}
+\end{equation}
+$$
+
+伴随依赖所选内积. Forward沿原计算方向将参数扰动传到目标函数的输入, reverse则通过导数的伴随将目标对输入的梯度传回参数空间.
+
+以参数化线性系统为例, 设$\mathbf{p} \in \mathbb{R}^{d}$决定可逆矩阵$A(\mathbf{p}) \in \mathbb{R}^{n \times n}$, $A$随参数可微, $\mathbf{b} \in \mathbb{R}^{n}$固定. 目标函数的输入$\mathbf{x}$由方程求解得到:
+
+$$
+\begin{equation}
+A(\mathbf{p})\mathbf{x}(\mathbf{p}) = \mathbf{b}, \qquad
+g(\mathbf{p}) = f(\mathbf{x}(\mathbf{p}))
+\end{equation}
+$$
+
+对$A\mathbf{x} = \mathbf{b}$使用乘积法则, 由于右端固定, 两种变化引起的一阶影响之和为零:
+
+$$
+\begin{equation}
+\begin{aligned}
+&(\mathrm{d}A)\mathbf{x} + A\,\mathrm{d}\mathbf{x} = 0\\
+&A\,\mathrm{d}\mathbf{x} = -(\mathrm{d}A)\mathbf{x}\\
+&\mathrm{d}\mathbf{x} = -A^{-1}(\mathrm{d}A)\mathbf{x}
+\end{aligned}
+\end{equation}
+$$
+
+代入目标函数的微分, 就将$\mathrm{d}g$从关于$\mathrm{d}\mathbf{x}$的表达改写为关于$\mathrm{d}A$的表达:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{d}g
+&= (\nabla_{\mathbf{x}}f)^T\mathrm{d}\mathbf{x}\\
+&= -(\nabla_{\mathbf{x}}f)^T A^{-1}(\mathrm{d}A)\mathbf{x}\\
+&= -\underbrace{\bigl((\nabla_{\mathbf{x}}f)^T A^{-1}\bigr)}_{\mathbf{v}^T}
+(\mathrm{d}A)\mathbf{x}
+\end{aligned}
+\end{equation}
+$$
+
+从左向右组合乘法, 得到伴随方程:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathbf{v}^T &= (\nabla_{\mathbf{x}}f)^T A^{-1}\\
+\mathbf{v}^T A &= (\nabla_{\mathbf{x}}f)^T\\
+A^T\mathbf{v} &= \nabla_{\mathbf{x}}f
+\end{aligned}
+\end{equation}
+$$
+
+由于$A^T$可逆, 伴随方程唯一确定$\mathbf{v}$, 用$A\,\mathrm{d}\mathbf{x} = -(\mathrm{d}A)\mathbf{x}$代换:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{d}g
+&= \langle A^T\mathbf{v}, \mathrm{d}\mathbf{x}\rangle\\
+&= \langle\mathbf{v}, A\,\mathrm{d}\mathbf{x}\rangle\\
+&= -\mathbf{v}^T(\mathrm{d}A)\mathbf{x}
+\end{aligned}
+\end{equation}
+$$
+
+矩阵变化$\mathrm{d}A$由$A(\mathbf{p})$对参数的依赖决定. 继续按参数展开, 将标量因子$\mathrm{d}p_k$从矩阵乘积中提出, 得到关于参数变化的表达:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{d}A
+&= \sum_{k=1}^{d}\frac{\partial A}{\partial p_k}\,\mathrm{d}p_k\\
+\mathrm{d}g
+&= \sum_{k=1}^{d}\left(-\mathbf{v}^T\frac{\partial A}{\partial p_k}\mathbf{x}\right)\mathrm{d}p_k\\
+\frac{\partial g}{\partial p_k}
+&= -\mathbf{v}^T\frac{\partial A}{\partial p_k}\mathbf{x}
+\end{aligned}
+\end{equation}
+$$
+
+最终各$\mathrm{d}p_k$的系数就是目标对参数的偏导. 先解$A\mathbf{x} = \mathbf{b}$得到目标输入并计算$g$与$\nabla_{\mathbf{x}}f$, 再解$A^T\mathbf{v} = \nabla_{\mathbf{x}}f$, 所有参数都复用同一对$\mathbf{x}$与$\mathbf{v}$.
+
+前向微分则逐个计算各参数引起的输入变化, 相比逆向微分计算量较大:
+
+$$
+\begin{equation}
+\begin{aligned}
+A\frac{\partial\mathbf{x}}{\partial p_k}
+&= -\frac{\partial A}{\partial p_k}\mathbf{x}\\
+\frac{\partial g}{\partial p_k}
+&= (\nabla_{\mathbf{x}}f)^T\frac{\partial\mathbf{x}}{\partial p_k}\\
+&= -(\nabla_{\mathbf{x}}f)^T
+\left(A^{-1}\frac{\partial A}{\partial p_k}\mathbf{x}\right)
+\end{aligned}
+\end{equation}
+$$
