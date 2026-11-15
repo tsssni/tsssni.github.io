@@ -450,3 +450,188 @@ $$
 $$
 
 自动微分计算导数数值, 无需构造函数符号导数表达式, 链式法则给出精确导数.
+
+## Neural Network
+
+参考[Online Neural Path Guiding with Normalized Anisotropic Spherical Gaussians](https://arxiv.org/abs/2303.08064)中的路径引导分布在线训练, 简化网络为单个隐藏层的MLP, 输出单个归一化球面高斯波瓣.
+
+位置$\mathbf{x}$、法线$\mathbf{n}$与出射方向$\omega_o$组成输入特征$\mathbf{s} \in \mathbb{R}^{9}$, 网络参数为$\Theta = (W_1, \mathbf{b}_1, W_2, \mathbf{b}_2)$, 输出三维向量$\mathbf{z}$:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathbf{s} &= \begin{pmatrix}\mathbf{x}\\\mathbf{n}\\\omega_o\end{pmatrix}\\
+\mathbf{a} &= W_1\mathbf{s} + \mathbf{b}_1, \qquad W_1 \in \mathbb{R}^{m \times 9},\quad \mathbf{b}_1 \in \mathbb{R}^{m}\\
+\mathbf{h} &= \tanh(\mathbf{a})\\
+\mathbf{z} &= W_2\mathbf{h} + \mathbf{b}_2, \qquad W_2 \in \mathbb{R}^{3 \times m},\quad \mathbf{b}_2 \in \mathbb{R}^{3}
+\end{aligned}
+\end{equation}
+$$
+
+$\mathbf{z}$控制波瓣方向与集中程度. 令$\kappa = \|\mathbf{z}\|_2$, 当$\kappa > 0$时波瓣轴为$\boldsymbol{\mu} = \mathbf{z}/\kappa$. 对入射方向$\omega_i \in S^2$, 定义相对于立体角的密度:
+
+$$
+\begin{equation}
+\begin{aligned}
+q_\Theta(\omega_i\mid\mathbf{s})
+&= \frac{\exp(\mathbf{z}^T\omega_i)}{C(\kappa)}\\
+C(\kappa) &= \frac{4\pi\sinh\kappa}{\kappa}\\
+\int_{S^2}q_\Theta(\omega_i\mid\mathbf{s})\,\mathrm{d}\omega_i &= 1
+\end{aligned}
+\end{equation}
+$$
+
+为简化讨论只考虑标量辐亮度, 对固定的$\mathbf{x}$和$\omega_o$, 理想采样密度为入射辐亮度贡献:
+
+$$
+\begin{equation}
+\begin{aligned}
+F(\omega_i;\mathbf{s})
+&= f(\mathbf{x},\omega_i,\omega_o)
+L_i(\mathbf{x},\omega_i)|\mathbf{n}^T\omega_i|\\
+Z(\mathbf{s}) &= \int_{S^2}F(\omega_i;\mathbf{s})\,\mathrm{d}\omega_i > 0\\
+p^*(\omega_i\mid\mathbf{s}) &= \frac{F(\omega_i;\mathbf{s})}{Z(\mathbf{s})}
+\end{aligned}
+\end{equation}
+$$
+
+其中$f$为BSDF, $L_i$为入射辐亮度. 采用KL散度作为分布拟合误差:
+
+$$
+\begin{equation}
+E(\Theta;\mathbf{s})
+= D_{\mathrm{KL}}(p^*\|q_\Theta)
+= \int_{S^2}p^*(\omega_i\mid\mathbf{s})
+\log\frac{p^*(\omega_i\mid\mathbf{s})}{q_\Theta(\omega_i\mid\mathbf{s})}\,\mathrm{d}\omega_i
+\end{equation}
+$$
+
+渲染先固定用于采样的网络参数$\Theta_{\mathrm{old}}$, 用常数$\alpha \in [0, 1)$混合BSDF与引导分布:
+
+$$
+\begin{equation}
+r(\omega_i\mid\mathbf{s})
+= (1 - \alpha)p_{\mathrm{BSDF}}(\omega_i\mid\mathbf{s}) + \alpha q_{\Theta_{\mathrm{old}}}(\omega_i\mid\mathbf{s})
+\end{equation}
+$$
+
+从$r$采样入射方向$\omega_i$可得无偏估计$\widehat F$, 保存$(\mathbf{s},\omega_i,\widehat F,r(\omega_i\mid\mathbf{s}))$作为训练数据.
+
+对KL散度求导时固定$\mathbf{s}$, $p^*$与$Z$不依赖参数$\Theta$. 因此只需对$p^*\log q_\Theta$求导. 代入$p^* = F/Z$, 并用$r$作重要性抽样, 得到KL梯度:
+
+$$
+\begin{equation}
+\begin{aligned}
+\nabla_\Theta E
+&= -\int_{S^2}p^*(\omega_i\mid\mathbf{s})
+\nabla_\Theta\log q_\Theta(\omega_i\mid\mathbf{s})\,\mathrm{d}\omega_i\\
+&= -\frac{1}{Z(\mathbf{s})}\int_{S^2}F(\omega_i;\mathbf{s})
+\nabla_\Theta\log q_\Theta(\omega_i\mid\mathbf{s})\,\mathrm{d}\omega_i\\
+&= -\frac{1}{Z(\mathbf{s})}\mathbb{E}_{\omega_i\sim r}
+\left[\frac{F(\omega_i;\mathbf{s})}{r(\omega_i\mid\mathbf{s})}
+\nabla_\Theta\log q_\Theta(\omega_i\mid\mathbf{s})\right]
+\end{aligned}
+\end{equation}
+$$
+
+因此可用如下单样本误差进行训练:
+
+$$
+\begin{equation}
+\begin{aligned}
+\beta &= \frac{\widehat F}{r(\omega_i\mid\mathbf{s})}\\
+\ell(\Theta) &= -\beta\log q_\Theta(\omega_i\mid\mathbf{s})\\
+\mathbb{E}[\nabla_\Theta\ell\mid\mathbf{s}] &= Z(\mathbf{s})\nabla_\Theta E
+\end{aligned}
+\end{equation}
+$$
+
+单个着色点省略$1/Z$, 多个着色点共享网络时使能量高的点训练权重高. 反向传播时$\mathbf{s}$, $\omega_i$, $\widehat F$与采样时的$r$都视为固定数据, 所以$\beta$不参与求导. 单个训练样本的计算图如下:
+
+{{< mermaid >}}
+flowchart LR
+    S["s"] --> M["MLP"]
+    T["Θ"] --> M
+    M --> Z["z"]
+    Z --> Q["qΘ"]
+    O["ωᵢ"] --> Q
+    Q --> L["ℓ = −β log qΘ"]
+    D["F̂, r"] --> B["β = F̂ / r"]
+    B --> L
+{{< /mermaid >}}
+
+逆向传播从$\partial\ell/\partial\ell = 1$开始. 先计算误差对波瓣参数$\mathbf{z}$的梯度. 当$\kappa > 0$时:
+
+$$
+\begin{equation}
+\begin{aligned}
+\log q_\Theta &= \mathbf{z}^T\omega_i - \log C(\kappa)\\
+\frac{\mathrm{d}\log C}{\mathrm{d}\kappa} &= \coth\kappa - \frac{1}{\kappa},
+\qquad \nabla_{\mathbf{z}}\kappa = \frac{\mathbf{z}}{\kappa}\\
+\nabla_{\mathbf{z}}\ell
+&= -\beta\nabla_{\mathbf{z}}\log q_\Theta\\
+&= \beta\left[\left(\coth\kappa - \frac{1}{\kappa}\right)\frac{\mathbf{z}}{\kappa} - \omega_i\right]
+\end{aligned}
+\end{equation}
+$$
+
+$\mathbf{z} = \mathbf{0}$时取极限, $\nabla_{\mathbf{z}}\ell = -\beta\omega_i$. 贡献较大的样本具有较大的$\beta$, 对参数更新的影响也更大. 得到输出梯度后, 对第二层使用乘积法则:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{d}\mathbf{z}
+&= (\mathrm{d}W_2)\mathbf{h} + W_2\,\mathrm{d}\mathbf{h} + \mathrm{d}\mathbf{b}_2\\
+\mathrm{d}\ell
+&= (\nabla_{\mathbf{z}}\ell)^T\mathrm{d}\mathbf{z}\\
+&= (\nabla_{\mathbf{z}}\ell)^T(\mathrm{d}W_2)\mathbf{h} + (W_2^T\nabla_{\mathbf{z}}\ell)^T\mathrm{d}\mathbf{h} + (\nabla_{\mathbf{z}}\ell)^T\mathrm{d}\mathbf{b}_2
+\end{aligned}
+\end{equation}
+$$
+
+按向量的Euclidean内积与矩阵的Frobenius内积读出各梯度, 得到:
+
+$$
+\begin{equation}
+\begin{aligned}
+\nabla_{W_2}\ell &= (\nabla_{\mathbf{z}}\ell)\mathbf{h}^T\\
+\nabla_{\mathbf{b}_2}\ell &= \nabla_{\mathbf{z}}\ell\\
+\nabla_{\mathbf{h}}\ell &= W_2^T\nabla_{\mathbf{z}}\ell
+\end{aligned}
+\end{equation}
+$$
+
+再经过隐藏层激活函数. 记$\odot$为逐元素乘法, $\mathbf{1}$为全$1$向量, 由$\tanh'(a_i) = 1 - h_i^2$得到:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{d}\mathbf{h} &= (\mathbf{1} - \mathbf{h}\odot\mathbf{h})\odot\mathrm{d}\mathbf{a}\\
+\nabla_{\mathbf{a}}\ell
+&= (\nabla_{\mathbf{h}}\ell)\odot(\mathbf{1} - \mathbf{h}\odot\mathbf{h})\\
+&= (W_2^T\nabla_{\mathbf{z}}\ell)\odot(\mathbf{1} - \mathbf{h}\odot\mathbf{h})
+\end{aligned}
+\end{equation}
+$$
+
+最后回到第一层. 训练时输入特征$\mathbf{s}$固定, 对参数求导时$\mathrm{d}\mathbf{s} = \mathbf{0}$:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{d}\mathbf{a} &= (\mathrm{d}W_1)\mathbf{s} + \mathrm{d}\mathbf{b}_1\\
+\nabla_{W_1}\ell &= (\nabla_{\mathbf{a}}\ell)\mathbf{s}^T\\
+\nabla_{\mathbf{b}_1}\ell &= \nabla_{\mathbf{a}}\ell
+\end{aligned}
+\end{equation}
+$$
+
+将一批渲染样本的梯度取平均, 记批量误差为$\mathcal{L} = \frac{1}{B}\sum_{k=1}^{B}\ell_k$. 给定学习率$\eta > 0$, 用梯度下降更新两层参数:
+
+$$
+\begin{equation}
+W_j \leftarrow W_j - \eta\nabla_{W_j}\mathcal{L}, \qquad
+\mathbf{b}_j \leftarrow \mathbf{b}_j - \eta\nabla_{\mathbf{b}_j}\mathcal{L},
+\qquad j = 1, 2
+\end{equation}
+$$
