@@ -395,3 +395,58 @@ A\frac{\partial\mathbf{x}}{\partial p_k}
 \end{aligned}
 \end{equation}
 $$
+
+## Auto Differentiation
+
+自动微分是在给定输入处计算导数数值的方法. 运算可以组织为计算图, 节点为计算过程中的值, 边表示计算依赖. 自动微分根据链式法则沿计算图组合局部导数, 得到全局导数.
+
+以如下计算为例, 设$y \ne 0$, 将函数拆成正弦、除法与加法三个基本运算:
+
+$$
+\begin{equation}
+a = \sin x, \qquad b = \frac{a}{y}, \qquad z = b + x
+\end{equation}
+$$
+
+{{< mermaid >}}
+flowchart LR
+    X["x"] -->|"cos x"| A["a = sin x"]
+    A -->|"1 / y"| B["b = a / y"]
+    Y["y"] -->|"−a / y²"| B
+    B -->|"1"| Z["z = b + x"]
+    X -->|"1"| Z
+{{< /mermaid >}}
+
+边表达计算依赖, 边值为局部偏导. 输入微分乘以偏导得到对下游节点微分的贡献.
+
+沿计算图依次组合各节点的微分:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathrm{d}a &= \cos x\,\mathrm{d}x\\
+\mathrm{d}b &= \frac{1}{y}\,\mathrm{d}a - \frac{a}{y^2}\,\mathrm{d}y\\
+\mathrm{d}z &= \mathrm{d}b + \mathrm{d}x\\
+&= \frac{1}{y}\bigl(\cos x\,\mathrm{d}x\bigr) - \frac{a}{y^2}\,\mathrm{d}y + \mathrm{d}x\\
+&= \left(1 + \frac{\cos x}{y}\right)\mathrm{d}x - \frac{\sin x}{y^2}\,\mathrm{d}y
+\end{aligned}
+\end{equation}
+$$
+
+前向模式从选定的输入出发, 沿图传播各节点对该输入的偏导, 得到输出对该输入的偏导. 逆向模式从标量输出$z$出发, 以$\partial z / \partial z = 1$初始化, 逆向沿图计算$z$对各节点的偏导.
+
+对上例先正向计算并保存各节点的值再逆向传播, 每经过一条反向边就乘以局部偏导:
+
+$$
+\begin{equation}
+\begin{aligned}
+\frac{\partial z}{\partial z} &= 1\\
+\frac{\partial z}{\partial b} &= \frac{\partial z}{\partial z}\cdot 1 = 1\\
+\frac{\partial z}{\partial a} &= \frac{\partial z}{\partial b}\cdot\frac{1}{y} = \frac{1}{y}\\
+\frac{\partial z}{\partial y} &= \frac{\partial z}{\partial b}\cdot\left(-\frac{a}{y^2}\right) = -\frac{\sin x}{y^2}\\
+\frac{\partial z}{\partial x} &= \frac{\partial z}{\partial z}\cdot 1 + \frac{\partial z}{\partial a}\cdot\cos x = 1 + \frac{\cos x}{y}
+\end{aligned}
+\end{equation}
+$$
+
+自动微分计算导数数值, 无需构造函数符号导数表达式, 链式法则给出精确导数.
